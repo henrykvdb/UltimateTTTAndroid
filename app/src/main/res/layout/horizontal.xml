@@ -26,19 +26,19 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
+                android:layout_gravity="end"
                 android:text="New Game"
-                android:onClick="newGame"/>
+                android:onClick="newGameClicked"/>
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
+                android:layout_gravity="end"
                 android:text="Bot Game"
-                android:onClick="botGame"/>
+                android:onClick="botGameClicked"/>
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
+                android:layout_gravity="end"
                 android:text="Button"/>
     </LinearLayout>
 </LinearLayout>

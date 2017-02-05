@@ -10,24 +10,25 @@ import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Bot;
 import com.flaghacker.uttt.common.Coord;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Color.BLUE;
 import static android.graphics.Color.GRAY;
 import static android.graphics.Color.RED;
+import static com.flaghacker.uttt.common.Board.ENEMY;
+import static com.flaghacker.uttt.common.Board.NEUTRAL;
+import static com.flaghacker.uttt.common.Board.PLAYER;
 
 public class BoardView extends View
 {
 	private com.flaghacker.uttt.common.Board board;
-	private AndroidBot androidBot;
-	private Game game;
+	private AndroidBot ab;
 
 	private Paint paint;
-	private float macroSize;
+	private float macroSizeFull;
 	private float whiteSpace;
-	private float microLineLength;
+	private float macroSizeSmall;
 	private float tileSize;
 	private float xBorder;
 	private float oBorder;
@@ -37,27 +38,25 @@ public class BoardView extends View
 	{
 		super(context, attrs);
 
-		androidBot = new AndroidBot();
 		paint = new Paint();
-
-		newGame();
-
 		setVars();
+
 		setBoard(new Board());
+		setAndroidBot(new AndroidBot());
 	}
 
 	private void setVars()
 	{
 		fieldSize = Math.min(getWidth(), getHeight());
 
-		macroSize = fieldSize / 3;
+		macroSizeFull = fieldSize / 3;
 		whiteSpace = fieldSize * 0.02f;
-		microLineLength = macroSize - 2 * whiteSpace;
-		tileSize = microLineLength / 3;
+
+		macroSizeSmall = macroSizeFull - 2 * whiteSpace;
+		tileSize = macroSizeSmall / 3;
 
 		xBorder = fieldSize / 9 * 0.10f;
 		oBorder = fieldSize / 9 * 0.15f;
-		measure(getMeasuredWidth(), getHeight());
 	}
 
 	public void setBoard(Board board)
@@ -66,164 +65,129 @@ public class BoardView extends View
 		postInvalidate();
 	}
 
-	public void newGame()
+	public void setAndroidBot(AndroidBot ab)
 	{
-		setBoard(new Board());
-
-		if (game != null)
-			game.close();
-
-		androidBot = new AndroidBot();
-		game = new Game(this, androidBot, androidBot);
-		game.run();
-	}
-
-	public void newGame(Bot bot)
-	{
-		setBoard(new Board());
-
-		if (game != null)
-			game.close();
-
-		androidBot = new AndroidBot();
-		game = new Game(this, androidBot, bot);
-		game.run();
+		this.ab = ab;
 	}
 
 	protected void onDraw(Canvas canvas)
 	{
-		canvas.clipRect(0, 0, fieldSize, fieldSize);
-
 		//Make available moves yellow
 		paint.setStyle(Paint.Style.FILL);
 		paint.setColor(Color.rgb(255, 255, 100));
 		for (Coord coord : board.availableMoves())
 		{
-			float x = coord.xm() * macroSize + coord.xs() * tileSize + whiteSpace;
-			float y = coord.ym() * macroSize + coord.ys() * tileSize + whiteSpace;
+			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
+			float y = coord.ym() * macroSizeFull + coord.ys() * tileSize + whiteSpace;
 
 			canvas.translate(x, y);
-
 			canvas.drawRect(0, 0, tileSize, tileSize, paint);
-
 			canvas.translate(-x, -y);
 		}
 
-		paint.setColor(BLACK);
-		paint.setStrokeWidth(0);
-		canvas.translate(whiteSpace, whiteSpace);
-		//Small blue lines (not actually blue)
-		for (int x = 0; x < 9; x++)
-		{
-			for (int y = 0; y < 3; y++)
-			{
-				if (x % 3 == 0)
-					x++;
-
-				canvas.drawLine(x % 3 * tileSize + x / 3 * macroSize,
-						macroSize * y,
-						x % 3 * tileSize + x / 3 * macroSize,
-						microLineLength + macroSize * y, paint);
-
-				canvas.drawLine(macroSize * y,
-						x % 3 * tileSize + x / 3 * macroSize,
-						microLineLength + macroSize * y,
-						x % 3 * tileSize + x / 3 * macroSize, paint);
-			}
-		}
-		canvas.translate(-whiteSpace, -whiteSpace);
+		for (int om = 0; om < 9; om++)
+			drawMacro(canvas, om);
 
 		//Bigger macro separate lines
-		paint.setStrokeWidth(8);
-		paint.setColor(BLACK);
-		for (int xy = 1; xy < 3; xy++)
+		drawGridBarriers(canvas, fieldSize, BLACK, 8);
+	}
+
+	private void drawMacro(Canvas canvas, int om)
+	{
+		int xm = om % 3;
+		int ym = om / 3;
+
+		//Check if macro is finished
+		byte mPlayer = board.macro(xm, ym);
+		boolean mNeutral = mPlayer == NEUTRAL;
+
+		//Translate to macro
+		float xmt = macroSizeFull * xm + whiteSpace;
+		float ymt = macroSizeFull * ym + whiteSpace;
+		canvas.translate(xmt, ymt);
+
+		//Draw macro lines
+		drawGridBarriers(canvas, macroSizeSmall, BLACK, 0);
+
+		//Loop through macro tiles
+		for (Coord tile : Coord.macro(xm, ym))
 		{
-			canvas.drawLine(xy * macroSize, 0, xy * macroSize, fieldSize, paint);
-			canvas.drawLine(0, xy * macroSize, fieldSize, xy * macroSize, paint);
+			byte player = board.tile(tile);
+
+			//Translate to tile
+			float xt = tile.xs() * tileSize;
+			float yt = tile.ys() * tileSize;
+			canvas.translate(xt, yt);
+
+			if (player == PLAYER) //x
+			{
+				if (!mNeutral)
+					drawTile(canvas, true, xBorder, tileSize, Color.rgb(0, 0, 230), 16);
+				else
+					drawTile(canvas, true, xBorder, tileSize, BLUE, 16);
+			}
+			else if (player == ENEMY) //o
+			{
+				if (!mNeutral)
+					drawTile(canvas, false, oBorder, tileSize, Color.rgb(230, 0, 0), 16);
+				else
+					drawTile(canvas, false, oBorder, tileSize, RED, 16);
+			}
+
+			canvas.translate(-xt, -yt);
 		}
 
-		//O's and X's
-		paint.setStrokeWidth(16);
-		for (int x = 0; x < 9; x++)
+		//Make macro gray
+		if (!mNeutral)
 		{
-			for (int y = 0; y < 9; y++)
-			{
-				if (board.tile(x, y) != Board.NEUTRAL)
-				{
-					float xt = whiteSpace + x % 3 * tileSize + x / 3 * macroSize;
-					float yt = whiteSpace + y % 3 * tileSize + y / 3 * macroSize;
-
-					canvas.translate(xt, yt);
-
-					//Draw X and O
-					if (board.tile(x, y) == Board.PLAYER)
-					{
-						paint.setColor(BLUE);
-						paint.setStyle(Paint.Style.FILL);
-						if (board.macro(x / 3, y / 3) != Board.NEUTRAL)
-						{
-							paint.setColor(Color.rgb(0, 0, 230));
-						}
-
-						//Draw X
-						canvas.drawLine(xBorder, xBorder, tileSize - xBorder, tileSize - xBorder, paint);
-						canvas.drawLine(xBorder, tileSize - xBorder, tileSize - xBorder, xBorder, paint);
-					}
-					else if (board.tile(x, y) == Board.ENEMY)
-					{ //O
-						paint.setColor(RED);
-						paint.setStyle(Paint.Style.STROKE);
-						if (board.macro(x / 3, y / 3) != Board.NEUTRAL)
-						{
-							paint.setColor(Color.rgb(230, 0, 0));
-						}
-
-						//Draw O
-						canvas.drawOval(oBorder, oBorder, tileSize - oBorder, tileSize - oBorder, paint);
-					}
-
-					canvas.translate(-xt, -yt);
-				}
-			}
+			paint.setColor(GRAY);
+			paint.setStyle(Paint.Style.FILL);
+			paint.setAlpha(50);
+			canvas.drawRect(0, 0, macroSizeFull - 2 * whiteSpace, macroSizeFull - 2 * whiteSpace, paint);
+			paint.setAlpha(100);
 		}
 
-		paint.setStrokeWidth(40);
-		for (int xm = 0; xm < 3; xm++)
+		//Draw x and y over macros
+		if (mPlayer == PLAYER) //X
+			drawTile(canvas, true, xBorder, macroSizeSmall, BLUE, 40);
+		else if (mPlayer == ENEMY) //O
+			drawTile(canvas, false, oBorder, macroSizeSmall, RED, 40);
+
+		canvas.translate(-xmt, -ymt);
+	}
+
+	private void drawTile(Canvas canvas, boolean isX, float border, float size, int color, int strokeWidth)
+	{
+		float realSize = size - 2 * border;
+		canvas.translate(border, border);
+
+		paint.setStrokeWidth(strokeWidth);
+		paint.setColor(color);
+
+		if (isX)
 		{
-			for (int ym = 0; ym < 3; ym++)
-			{
-				if (board.macro(xm, ym) != Board.NEUTRAL)
-				{
-					float xt = whiteSpace + xm * macroSize;
-					float yt = whiteSpace + ym * macroSize;
+			paint.setStyle(Paint.Style.FILL);
+			canvas.drawLine(0, 0, realSize, realSize, paint);
+			canvas.drawLine(0, realSize, realSize, 0, paint);
+		}
+		else
+		{
+			paint.setStyle(Paint.Style.STROKE);
+			canvas.drawOval(0, 0, realSize, realSize, paint);
+		}
 
-					canvas.translate(xt, yt);
+		canvas.translate(-border, -border);
+	}
 
-					//Make macro gray
-					paint.setColor(GRAY);
-					paint.setStyle(Paint.Style.FILL);
-					paint.setAlpha(50);
-					canvas.drawRect(0, 0, macroSize - 2 * whiteSpace, macroSize - 2 * whiteSpace, paint);
-					paint.setAlpha(100);
+	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)
+	{
+		paint.setColor(color);
+		paint.setStrokeWidth(strokeWidth);
 
-					//Draw x and y over macros
-					if (board.macro(xm, ym) == Board.PLAYER)
-					{ //X
-						paint.setColor(BLUE);
-						paint.setStyle(Paint.Style.FILL);
-						canvas.drawLine(xBorder, xBorder, macroSize - 2 * whiteSpace - xBorder, macroSize - 2 * whiteSpace - xBorder, paint);
-						canvas.drawLine(xBorder, macroSize - 2 * whiteSpace - xBorder, macroSize - 2 * whiteSpace - xBorder, xBorder, paint);
-					}
-					else if (board.macro(xm, ym) == Board.ENEMY)
-					{ //O
-						paint.setColor(RED);
-						paint.setStyle(Paint.Style.STROKE);
-						canvas.drawOval(oBorder, oBorder, macroSize - 2 * whiteSpace - oBorder, macroSize - 2 * whiteSpace - oBorder, paint);
-					}
-
-					canvas.translate(-xt, -yt);
-				}
-			}
+		for (int i = 1; i < 3; i++)
+		{
+			canvas.drawLine(i * size / 3, 0, i * size / 3, size, paint);
+			canvas.drawLine(0, i * size / 3, size, i * size / 3, paint);
 		}
 	}
 
@@ -261,18 +225,18 @@ public class BoardView extends View
 			{
 
 				//Get event's macro
-				Pair<Integer, Integer> macro = findLocation(x, y, 0, 0, macroSize);
+				Pair<Integer, Integer> macro = findLocation(x, y, 0, 0, macroSizeFull);
 				int xm = macro.first;
 				int ym = macro.second;
 
 				//Check if event is not in whitespace area
-				if (pointInSquare(x, y, xm * macroSize + whiteSpace, ym * macroSize + whiteSpace, macroSize - 2 * whiteSpace))
+				if (pointInSquare(x, y, xm * macroSizeFull + whiteSpace, ym * macroSizeFull + whiteSpace, macroSizeFull - 2 * whiteSpace))
 				{
-					Pair<Integer, Integer> tile = findLocation(x, y, xm * macroSize + whiteSpace, ym * macroSize + whiteSpace, tileSize);
+					Pair<Integer, Integer> tile = findLocation(x, y, xm * macroSizeFull + whiteSpace, ym * macroSizeFull + whiteSpace, tileSize);
 					int xs = tile.first;
 					int ys = tile.second;
 
-					androidBot.play(Coord.coord(xm, ym, xs, ys));
+					ab.play(Coord.coord(xm, ym, xs, ys));
 					Log.d("ClickEvent", "Clicked xm:" + xm + " ym:" + ym + " xs:" + xs + " ys:" + ys);
 				}
 				else
