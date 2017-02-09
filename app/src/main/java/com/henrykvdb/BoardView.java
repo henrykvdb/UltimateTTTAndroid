@@ -2,7 +2,6 @@ package com.henrykvdb;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -12,20 +11,20 @@ import android.view.View;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 
-import static android.graphics.Color.BLACK;
-import static android.graphics.Color.BLUE;
-import static android.graphics.Color.GRAY;
-import static android.graphics.Color.RED;
+import java.io.Serializable;
+
 import static com.flaghacker.uttt.common.Board.ENEMY;
 import static com.flaghacker.uttt.common.Board.NEUTRAL;
 import static com.flaghacker.uttt.common.Board.PLAYER;
 
-public class BoardView extends View
+public class BoardView extends View implements Serializable
 {
-	private com.flaghacker.uttt.common.Board board;
+	private static final long serialVersionUID = -6067519139638476047L;
+	private Board board;
+	private Settings settings;
 	private AndroidBot ab;
-
 	private Paint paint;
+
 	private float macroSizeFull;
 	private float whiteSpace;
 	private float macroSizeSmall;
@@ -38,11 +37,11 @@ public class BoardView extends View
 	{
 		super(context, attrs);
 
+		settings = new Settings();
 		paint = new Paint();
 		setVars();
 
 		setBoard(new Board());
-		setAndroidBot(new AndroidBot());
 	}
 
 	private void setVars()
@@ -50,18 +49,25 @@ public class BoardView extends View
 		fieldSize = Math.min(getWidth(), getHeight());
 
 		macroSizeFull = fieldSize / 3;
-		whiteSpace = fieldSize * 0.02f;
+		whiteSpace = fieldSize * settings.relativeWhiteSpace();
 
 		macroSizeSmall = macroSizeFull - 2 * whiteSpace;
 		tileSize = macroSizeSmall / 3;
 
-		xBorder = fieldSize / 9 * 0.10f;
-		oBorder = fieldSize / 9 * 0.15f;
+		xBorder = fieldSize * settings.relativeBorderX();
+		oBorder = fieldSize * settings.relativeBorderO();
 	}
 
 	public void setBoard(Board board)
 	{
 		this.board = board;
+		postInvalidate();
+	}
+
+	public void setSettings(Settings settings)
+	{
+		this.settings = settings;
+		setVars();
 		postInvalidate();
 	}
 
@@ -74,7 +80,7 @@ public class BoardView extends View
 	{
 		//Make available moves yellow
 		paint.setStyle(Paint.Style.FILL);
-		paint.setColor(Color.rgb(255, 255, 100));
+		paint.setColor(settings.availableColor());
 		for (Coord coord : board.availableMoves())
 		{
 			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
@@ -89,7 +95,7 @@ public class BoardView extends View
 			drawMacro(canvas, om);
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, BLACK, 8);
+		drawGridBarriers(canvas, fieldSize, settings.gridColor(), 8);
 	}
 
 	private void drawMacro(Canvas canvas, int om)
@@ -107,7 +113,7 @@ public class BoardView extends View
 		canvas.translate(xmt, ymt);
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, BLACK, 0);
+		drawGridBarriers(canvas, macroSizeSmall, settings.gridColor(), 0);
 
 		//Loop through macro tiles
 		for (Coord tile : Coord.macro(xm, ym))
@@ -120,19 +126,9 @@ public class BoardView extends View
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-			{
-				if (!mNeutral)
-					drawTile(canvas, true, xBorder, tileSize, Color.rgb(0, 0, 230), 16);
-				else
-					drawTile(canvas, true, xBorder, tileSize, BLUE, 16);
-			}
+				drawTile(canvas, true, xBorder, tileSize, mNeutral ? settings.xColor() : settings.xColorDark(), 16);
 			else if (player == ENEMY) //o
-			{
-				if (!mNeutral)
-					drawTile(canvas, false, oBorder, tileSize, Color.rgb(230, 0, 0), 16);
-				else
-					drawTile(canvas, false, oBorder, tileSize, RED, 16);
-			}
+				drawTile(canvas, false, oBorder, tileSize, mNeutral ? settings.oColor() : settings.oColorDark(), 16);
 
 			canvas.translate(-xt, -yt);
 		}
@@ -140,18 +136,18 @@ public class BoardView extends View
 		//Make macro gray
 		if (!mNeutral)
 		{
-			paint.setColor(GRAY);
 			paint.setStyle(Paint.Style.FILL);
-			paint.setAlpha(50);
+			paint.setColor(settings.unavailableColor());
+			paint.setAlpha(settings.unavailableAlpha());
 			canvas.drawRect(0, 0, macroSizeFull - 2 * whiteSpace, macroSizeFull - 2 * whiteSpace, paint);
 			paint.setAlpha(100);
-		}
 
-		//Draw x and y over macros
-		if (mPlayer == PLAYER) //X
-			drawTile(canvas, true, xBorder, macroSizeSmall, BLUE, 40);
-		else if (mPlayer == ENEMY) //O
-			drawTile(canvas, false, oBorder, macroSizeSmall, RED, 40);
+			//Draw x and y over macros
+			if (mPlayer == PLAYER) //X
+				drawTile(canvas, true, xBorder, macroSizeSmall, settings.xColor(), 40);
+			else if (mPlayer == ENEMY) //O
+				drawTile(canvas, false, oBorder, macroSizeSmall, settings.oColor(), 40);
+		}
 
 		canvas.translate(-xmt, -ymt);
 	}
@@ -236,8 +232,15 @@ public class BoardView extends View
 					int xs = tile.first;
 					int ys = tile.second;
 
-					ab.play(Coord.coord(xm, ym, xs, ys));
-					Log.d("ClickEvent", "Clicked xm:" + xm + " ym:" + ym + " xs:" + xs + " ys:" + ys);
+					if (ab != null)
+					{
+						ab.play(Coord.coord(xm, ym, xs, ys));
+						Log.d("ClickEvent", "Clicked xm:" + xm + " ym:" + ym + " xs:" + xs + " ys:" + ys);
+					}
+					else
+					{
+						Log.d("ERROR", "Clickevent called without ab");
+					}
 				}
 				else
 				{

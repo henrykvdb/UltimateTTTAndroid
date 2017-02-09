@@ -1,6 +1,5 @@
 package com.henrykvdb;
 
-import android.util.Log;
 import com.flaghacker.uttt.common.AbstractBot;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
@@ -17,14 +16,13 @@ public class AndroidBot extends AbstractBot
 	{
 		Coord result;
 
-		while (move == null || ! board.availableMoves().contains(move))
+		while (move == null || !board.availableMoves().contains(move))
 		{
 			synchronized (playerLock)
 			{
 				try
 				{
 					playerLock.wait();
-					Log.d("TEST","TEST");
 				}
 				catch (InterruptedException e)
 				{
