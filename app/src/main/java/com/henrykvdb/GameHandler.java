@@ -1,39 +1,37 @@
 package com.henrykvdb;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import com.flaghacker.uttt.bots.RandomBot;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 
-import java.io.Serializable;
-
-public class GameHandler implements Serializable
+public class GameHandler implements Parcelable
 {
-	private static final long serialVersionUID = 2401679081831269036L;
-
 	private AndroidBot androidBot;
 	private BoardView boardView;
+
 	private Game game;
 
 	public GameHandler(BoardView boardView)
 	{
-		this.boardView = boardView;
-		this.androidBot = new AndroidBot();
-
-		boardView.setAndroidBot(androidBot);
+		setupGh(boardView, new AndroidBot());
 	}
 
-	public void setBoardView(BoardView boardView)
+	protected GameHandler(Parcel in)
 	{
-		this.boardView = boardView;
-		boardView.setAndroidBot(androidBot);
-
-		game.setBoardView(boardView);
-		game.redraw();
+		this.game = in.readParcelable(ClassLoader.getSystemClassLoader());
 	}
 
-	public void redraw()
+	public void setupGh(BoardView boardView, AndroidBot androidBot)
 	{
-		game.redraw();
+		this.boardView = boardView;
+		this.androidBot = androidBot;
+
+		boardView.setAndroidBot(androidBot);
+
+		if (game != null)
+			game.setupGame(boardView, androidBot);
 	}
 
 	private void newGame(Bot p1, Bot p2)
@@ -55,5 +53,32 @@ public class GameHandler implements Serializable
 	public void botGame()
 	{
 		newGame(androidBot, new RandomBot());
+	}
+
+	public static final Creator<GameHandler> CREATOR = new Creator<GameHandler>()
+	{
+		@Override
+		public GameHandler createFromParcel(Parcel in)
+		{
+			return new GameHandler(in);
+		}
+
+		@Override
+		public GameHandler[] newArray(int size)
+		{
+			return new GameHandler[size];
+		}
+	};
+
+	@Override
+	public int describeContents()
+	{
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel parcel, int i)
+	{
+		parcel.writeParcelable(game, 0);
 	}
 }

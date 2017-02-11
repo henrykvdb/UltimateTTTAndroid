@@ -19,10 +19,8 @@ public class MainActivity extends AppCompatActivity
 
 		if (savedInstanceState != null)
 		{
-			gh = (GameHandler) savedInstanceState.getSerializable(GH_KEY);
-
-			gh.setBoardView((BoardView) findViewById(R.id.boardView));
-			gh.redraw();
+			gh = savedInstanceState.getParcelable(GH_KEY);
+			gh.setupGh((BoardView) findViewById(R.id.boardView), new AndroidBot());
 		}
 		else
 		{
@@ -35,7 +33,7 @@ public class MainActivity extends AppCompatActivity
 	protected void onSaveInstanceState(Bundle outState)
 	{
 		super.onSaveInstanceState(outState);
-		outState.putSerializable(GH_KEY, gh);
+		outState.putParcelable(GH_KEY, gh);
 	}
 
 	public void botGameClicked(View view)

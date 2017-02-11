@@ -4,11 +4,13 @@ import com.flaghacker.uttt.common.AbstractBot;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 
-public class AndroidBot extends AbstractBot
-{
-	private static final long serialVersionUID = -3427935534109445187L;
+import java.io.Serializable;
 
-	private final Object playerLock = new Object();
+public class AndroidBot extends AbstractBot implements Serializable
+{
+	private static final long serialVersionUID = 4410547411042635248L;
+
+	private final Object playerLock = new Object[0];
 	private Coord move;
 
 	@Override
@@ -16,7 +18,7 @@ public class AndroidBot extends AbstractBot
 	{
 		Coord result;
 
-		while (move == null || !board.availableMoves().contains(move))
+		while (move == null || ! board.availableMoves().contains(move))
 		{
 			synchronized (playerLock)
 			{
