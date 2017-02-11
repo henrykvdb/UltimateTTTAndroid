@@ -84,23 +84,30 @@ public class Game implements Closeable, Parcelable
 				{
 					prints("Round #" + nextRound++);
 
-					Coord m1 = Util.moveBotWithTimeOut(p1, board.copy(), timePerMove);
-					if (running)
+					if (board.nextPlayer() == PLAYER && running)
 					{
-						prints(p1 + " played: " + m1);
-						board.play(m1, PLAYER);
-						boardView.setBoard(board);
+						Coord m1 = Util.moveBotWithTimeOut(p1, board.copy(), timePerMove);
+						if (running)
+						{
+							prints(p1 + " played: " + m1);
+							board.play(m1, PLAYER);
+							boardView.setBoard(board);
+						}
 					}
 
 					if (board.isDone() || ! running)
 						continue;
 
-					Coord m2 = Util.moveBotWithTimeOut(p2, board.copy(), timePerMove);
-					if (running)
+
+					if (board.nextPlayer() == ENEMY && running)
 					{
-						prints(p2 + " played: " + m2);
-						board.play(m2, ENEMY);
-						boardView.setBoard(board);
+						Coord m2 = Util.moveBotWithTimeOut(p2, board.copy(), timePerMove);
+						if (running)
+						{
+							prints(p2 + " played: " + m2);
+							board.play(m2, ENEMY);
+							boardView.setBoard(board);
+						}
 					}
 				}
 			}
