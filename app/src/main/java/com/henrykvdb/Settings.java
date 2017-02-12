@@ -4,20 +4,28 @@ import android.graphics.Color;
 
 public class Settings
 {
-	//Colors of the ui elements
+	//ENEMY & PLAYER settings
 	private int xColor = Color.BLUE;
 	private int xColorDark = Color.rgb(0, 0, 230);
 	private int oColor = Color.RED;
 	private int oColorDark = Color.rgb(230, 0, 0);
+	private float playerTileSymbolStroke = 16f / 984;
+	private float playerMacroSymbolStroke = 40f / 984;
+
+	//Availability color settings
 	private int availableColor = Color.rgb(255, 255, 100);
 	private int unavailableColor = Color.GRAY;
+
+	//Grid-line settings
 	private int gridColor = Color.BLACK;
+	private float bigGridStroke = 8f / 984;
+	private float smallGridStroke = 1f / 984;
 
 	//Other settings
 	private int unavailableAlpha = 50;
-	private float relativeWhiteSpace = 0.02f;
-	private float relativeBorderX = 0.10f / 9;
-	private float relativeBorderO = 0.15f / 9;
+	private float whiteSpace = 0.02f;
+	private float borderX = 0.10f / 9;
+	private float borderO = 0.15f / 9;
 
 	public int xColor()
 	{
@@ -99,33 +107,73 @@ public class Settings
 		this.unavailableAlpha = unavailableAlpha;
 	}
 
-	public float relativeWhiteSpace()
+	public float whiteSpace()
 	{
-		return relativeWhiteSpace;
+		return whiteSpace;
 	}
 
-	public void setRelativeWhiteSpace(float relativeWhiteSpace)
+	public void setWhiteSpace(float whiteSpace)
 	{
-		this.relativeWhiteSpace = relativeWhiteSpace;
+		this.whiteSpace = whiteSpace;
 	}
 
-	public float relativeBorderX()
+	public float borderX()
 	{
-		return relativeBorderX;
+		return borderX;
 	}
 
-	public void setRelativeBorderX(float relativeBorderX)
+	public void setBorderX(float borderX)
 	{
-		this.relativeBorderX = relativeBorderX;
+		this.borderX = borderX;
 	}
 
-	public float relativeBorderO()
+	public float borderO()
 	{
-		return relativeBorderO;
+		return borderO;
 	}
 
-	public void setRelativeBorderO(float relativeBorderO)
+	public void setBorderO(float borderO)
 	{
-		this.relativeBorderO = relativeBorderO;
+		this.borderO = borderO;
+	}
+
+	public float playerTileSymbolStroke()
+	{
+		return playerTileSymbolStroke;
+	}
+
+	public void setPlayerTileSymbolStroke(float playerTileSymbolStroke)
+	{
+		this.playerTileSymbolStroke = playerTileSymbolStroke;
+	}
+
+	public float playerMacroSymbolStroke()
+	{
+		return playerMacroSymbolStroke;
+	}
+
+	public void setPlayerMacroSymbolStroke(float playerMacroSymbolStroke)
+	{
+		this.playerMacroSymbolStroke = playerMacroSymbolStroke;
+	}
+
+	public float bigGridStroke()
+	{
+		return bigGridStroke;
+	}
+
+	public void setBigGridStroke(float bigGridStroke)
+	{
+		this.bigGridStroke = bigGridStroke;
+	}
+
+	public float smallGridStroke()
+	{
+		return smallGridStroke;
+	}
+
+	public void setSmallGridStroke(float smallGridStroke)
+	{
+		this.smallGridStroke = smallGridStroke;
 	}
 }

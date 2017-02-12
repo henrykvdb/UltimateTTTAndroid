@@ -12,7 +12,6 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 import static com.flaghacker.uttt.common.Board.ENEMY;
@@ -59,8 +58,8 @@ public class Game implements Closeable, Parcelable
 		this.boardView = boardView;
 
 		//Replace bots if necessary
-		Bot p1 = Objects.equals(bots.get(0).toString(), "AndroidBot") ? androidBot : bots.get(0);
-		Bot p2 = Objects.equals(bots.get(1).toString(), "AndroidBot") ? androidBot : bots.get(1);
+		Bot p1 = (bots.get(0).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(0);
+		Bot p2 = (bots.get(1).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(1);
 		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
 
 		redraw();

@@ -19,7 +19,7 @@ import static com.flaghacker.uttt.common.Board.PLAYER;
 
 public class BoardView extends View implements Serializable
 {
-	private static final long serialVersionUID = -6067519139638476047L;
+	private static final long serialVersionUID = - 6067519139638476047L;
 	private Board board;
 	private Settings settings;
 	private AndroidBot ab;
@@ -32,6 +32,11 @@ public class BoardView extends View implements Serializable
 	private float xBorder;
 	private float oBorder;
 	private float fieldSize;
+
+	private int bigGridStroke;
+	private int smallGridStroke;
+	private int playerTileSymbolStroke;
+	private int playerMacroSymbolStroke;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
@@ -49,13 +54,18 @@ public class BoardView extends View implements Serializable
 		fieldSize = Math.min(getWidth(), getHeight());
 
 		macroSizeFull = fieldSize / 3;
-		whiteSpace = fieldSize * settings.relativeWhiteSpace();
+		whiteSpace = fieldSize * settings.whiteSpace();
 
 		macroSizeSmall = macroSizeFull - 2 * whiteSpace;
 		tileSize = macroSizeSmall / 3;
 
-		xBorder = fieldSize * settings.relativeBorderX();
-		oBorder = fieldSize * settings.relativeBorderO();
+		xBorder = fieldSize * settings.borderX();
+		oBorder = fieldSize * settings.borderO();
+
+		bigGridStroke = (int) (fieldSize * settings.bigGridStroke());
+		smallGridStroke = (int) (fieldSize * settings.smallGridStroke());
+		playerTileSymbolStroke = (int) (fieldSize * settings.playerTileSymbolStroke());
+		playerMacroSymbolStroke = (int) (fieldSize * settings.playerMacroSymbolStroke());
 	}
 
 	public void setBoard(Board board)
@@ -88,14 +98,14 @@ public class BoardView extends View implements Serializable
 
 			canvas.translate(x, y);
 			canvas.drawRect(0, 0, tileSize, tileSize, paint);
-			canvas.translate(-x, -y);
+			canvas.translate(- x, - y);
 		}
 
 		for (int om = 0; om < 9; om++)
 			drawMacro(canvas, om);
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, settings.gridColor(), 8);
+		drawGridBarriers(canvas, fieldSize, settings.gridColor(), bigGridStroke);
 	}
 
 	private void drawMacro(Canvas canvas, int om)
@@ -113,9 +123,9 @@ public class BoardView extends View implements Serializable
 		canvas.translate(xmt, ymt);
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, settings.gridColor(), 0);
+		drawGridBarriers(canvas, macroSizeSmall, settings.gridColor(), smallGridStroke);
 
-		//Loop through macro tiles
+		//Loop through tiles of the macro
 		for (Coord tile : Coord.macro(xm, ym))
 		{
 			byte player = board.tile(tile);
@@ -126,15 +136,17 @@ public class BoardView extends View implements Serializable
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, xBorder, tileSize, mNeutral ? settings.xColor() : settings.xColorDark(), 16);
+				drawTile(canvas, true, xBorder, tileSize,
+						mNeutral ? settings.xColor() : settings.xColorDark(), playerTileSymbolStroke);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, oBorder, tileSize, mNeutral ? settings.oColor() : settings.oColorDark(), 16);
+				drawTile(canvas, false, oBorder, tileSize,
+						mNeutral ? settings.oColor() : settings.oColorDark(), playerTileSymbolStroke);
 
-			canvas.translate(-xt, -yt);
+			canvas.translate(- xt, - yt);
 		}
 
 		//Make macro gray
-		if (!mNeutral)
+		if (! mNeutral)
 		{
 			paint.setStyle(Paint.Style.FILL);
 			paint.setColor(settings.unavailableColor());
@@ -144,12 +156,12 @@ public class BoardView extends View implements Serializable
 
 			//Draw x and y over macros
 			if (mPlayer == PLAYER) //X
-				drawTile(canvas, true, xBorder, macroSizeSmall, settings.xColor(), 40);
+				drawTile(canvas, true, xBorder, macroSizeSmall, settings.xColor(), playerMacroSymbolStroke);
 			else if (mPlayer == ENEMY) //O
-				drawTile(canvas, false, oBorder, macroSizeSmall, settings.oColor(), 40);
+				drawTile(canvas, false, oBorder, macroSizeSmall, settings.oColor(), playerMacroSymbolStroke);
 		}
 
-		canvas.translate(-xmt, -ymt);
+		canvas.translate(- xmt, - ymt);
 	}
 
 	private void drawTile(Canvas canvas, boolean isX, float border, float size, int color, int strokeWidth)
@@ -172,7 +184,7 @@ public class BoardView extends View implements Serializable
 			canvas.drawOval(0, 0, realSize, realSize, paint);
 		}
 
-		canvas.translate(-border, -border);
+		canvas.translate(- border, - border);
 	}
 
 	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)
@@ -262,6 +274,7 @@ public class BoardView extends View implements Serializable
 		int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
 		int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
 		int fieldSize = Math.min(parentWidth, parentHeight);
+		Log.d("FIELDSIZELOG", String.valueOf(fieldSize));
 
 		this.setMeasuredDimension(fieldSize, fieldSize);
 	}
