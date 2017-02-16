@@ -10,12 +10,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
+import com.flaghacker.uttt.common.Player;
 
 import java.io.Serializable;
 
-import static com.flaghacker.uttt.common.Board.ENEMY;
-import static com.flaghacker.uttt.common.Board.NEUTRAL;
-import static com.flaghacker.uttt.common.Board.PLAYER;
+import static com.flaghacker.uttt.common.Player.ENEMY;
+import static com.flaghacker.uttt.common.Player.NEUTRAL;
+import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class BoardView extends View implements Serializable
 {
@@ -114,7 +115,7 @@ public class BoardView extends View implements Serializable
 		int ym = om / 3;
 
 		//Check if macro is finished
-		byte mPlayer = board.macro(xm, ym);
+		Player mPlayer = board.macro(xm, ym);
 		boolean mNeutral = mPlayer == NEUTRAL;
 
 		//Translate to macro
@@ -128,7 +129,7 @@ public class BoardView extends View implements Serializable
 		//Loop through tiles of the macro
 		for (Coord tile : Coord.macro(xm, ym))
 		{
-			byte player = board.tile(tile);
+			Player player = board.tile(tile);
 
 			//Translate to tile
 			float xt = tile.xs() * tileSize;
@@ -226,7 +227,7 @@ public class BoardView extends View implements Serializable
 
 		if (e.getAction() == MotionEvent.ACTION_UP)
 		{
-			Log.d("Pressed on", "x: " + x + " y: " + y);
+			//Log.d("Pressed on", "x: " + x + " y: " + y);
 
 			//If event is in the board
 			if (pointInSquare(x, y, 0, 0, fieldSize))

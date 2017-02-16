@@ -1,20 +1,14 @@
 package com.henrykvdb;
 
-import com.flaghacker.uttt.common.AbstractBot;
 import com.flaghacker.uttt.common.Board;
+import com.flaghacker.uttt.common.Bot;
 import com.flaghacker.uttt.common.Coord;
+import com.flaghacker.uttt.common.Timer;
 
-import java.io.Serializable;
-
-public class AndroidBot extends AbstractBot implements Serializable
+public class AndroidBot implements Bot
 {
-	private static final long serialVersionUID = 4410547411042635248L;
-
-	private final Object playerLock = new Object[0];
-	private Coord move;
-
 	@Override
-	public Coord move(Board board)
+	public Coord move(Board board, Timer timer)
 	{
 		Coord result;
 
@@ -38,6 +32,9 @@ public class AndroidBot extends AbstractBot implements Serializable
 
 		return result;
 	}
+
+	private final Object playerLock = new Object[0];
+	private Coord move;
 
 	public void play(Coord coord)
 	{

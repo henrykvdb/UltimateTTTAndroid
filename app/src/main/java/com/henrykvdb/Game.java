@@ -13,9 +13,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import static com.flaghacker.uttt.common.Board.ENEMY;
-import static com.flaghacker.uttt.common.Board.PLAYER;
+import static com.flaghacker.uttt.common.Player.ENEMY;
+import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class Game implements Closeable, Parcelable
 {
@@ -31,6 +35,7 @@ public class Game implements Closeable, Parcelable
 
 	private Board board;
 	private Thread thread;
+	private ExecutorService es;
 
 	public Game(BoardView boardView, Bot p1, Bot p2)
 	{
@@ -38,6 +43,7 @@ public class Game implements Closeable, Parcelable
 		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
 		board = new Board();
 		swapped = random.nextBoolean();
+		es = Executors.newSingleThreadExecutor();
 	}
 
 	protected Game(Parcel in)
@@ -51,6 +57,7 @@ public class Game implements Closeable, Parcelable
 		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
 
 		board = (Board) in.readSerializable();
+		es = Executors.newSingleThreadExecutor();
 	}
 
 	public void setupGame(BoardView boardView, AndroidBot androidBot)
@@ -84,34 +91,68 @@ public class Game implements Closeable, Parcelable
 					prints("Round #" + nextRound++);
 
 					if (board.nextPlayer() == PLAYER && running)
-					{
-						Coord m1 = Util.moveBotWithTimeOut(p1, board.copy(), timePerMove);
-						if (running)
-						{
-							prints(p1 + " played: " + m1);
-							board.play(m1, PLAYER);
-							boardView.setBoard(board);
-						}
-					}
+						aplay(p1);
 
 					if (board.isDone() || ! running)
 						continue;
 
-
 					if (board.nextPlayer() == ENEMY && running)
-					{
-						Coord m2 = Util.moveBotWithTimeOut(p2, board.copy(), timePerMove);
-						if (running)
-						{
-							prints(p2 + " played: " + m2);
-							board.play(m2, ENEMY);
-							boardView.setBoard(board);
-						}
-					}
+						aplay(p2);
 				}
 			}
 		});
 		thread.start();
+	}
+
+	private void play(Bot bot)
+	{
+		Coord move = Util.moveBotWithTimeOut(bot, board.copy(), timePerMove);
+		if (running)
+		{
+			prints(bot + " played: " + move);
+			board.play(move);
+			boardView.setBoard(board);
+		}
+	}
+
+	private void aplay(Bot bot)
+	{
+		Future<Coord> fMove = Util.moveBotWithTimeOutAsync(es, bot, board.copy(), timePerMove);
+
+		while (! fMove.isDone() && running)
+		{
+			try
+			{
+				Thread.sleep(10);
+			}
+			catch (InterruptedException e)
+			{
+				close();
+				//e.printStackTrace();
+			}
+		}
+
+		if (running)
+		{
+			Coord move = null;
+			try
+			{
+				move = fMove.get();
+			}
+			catch (InterruptedException | ExecutionException e)
+			{
+				close();
+				e.printStackTrace(); //NOP?
+			}
+
+			prints(bot + " played: " + move + " on instance " + this.hashCode());
+			board.play(move);
+			boardView.setBoard(board);
+		}
+		else
+		{
+			fMove.cancel(true);
+		}
 	}
 
 	private void prints(String s)

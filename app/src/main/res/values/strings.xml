@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">uttt</string>
+    <string name="app_name">UTTT</string>
+    <string name="app_name_long">Ultimate Tic Tac Toe</string>
 </resources>
