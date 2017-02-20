@@ -5,14 +5,17 @@ import com.flaghacker.uttt.common.Bot;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Timer;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class AndroidBot implements Bot
 {
+	private final Object playerLock = new Object[0];
+	private AtomicReference<Coord> move = new AtomicReference<>();
+
 	@Override
 	public Coord move(Board board, Timer timer)
 	{
-		Coord result;
-
-		while (move == null || ! board.availableMoves().contains(move))
+		while (move.get() == null || ! board.availableMoves().contains(move.get()))
 		{
 			synchronized (playerLock)
 			{
@@ -25,23 +28,20 @@ public class AndroidBot implements Bot
 					//NOP
 				}
 			}
+
+			if (timer.isInterrupted())
+				return null;
 		}
 
-		result = move;
-		move = null;
-
-		return result;
+		return move.getAndSet(null);
 	}
-
-	private final Object playerLock = new Object[0];
-	private Coord move;
 
 	public void play(Coord coord)
 	{
 		synchronized (playerLock)
 		{
-			this.move = coord;
-			playerLock.notifyAll();
+			move.set(coord);
+			playerLock.notify();
 		}
 	}
 

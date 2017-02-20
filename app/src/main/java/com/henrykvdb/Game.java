@@ -28,8 +28,6 @@ public class Game implements Closeable, Parcelable
 	private BoardView boardView;
 	private List<Bot> bots;
 
-	private int timePerMove = 500;
-
 	private boolean swapped;
 	private boolean running = true;
 
@@ -37,9 +35,9 @@ public class Game implements Closeable, Parcelable
 	private Thread thread;
 	private ExecutorService es;
 
-	public Game(BoardView boardView, Bot p1, Bot p2)
+	public Game(BoardView bv, Bot p1, Bot p2)
 	{
-		this.boardView = boardView;
+		boardView = bv;
 		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
 		board = new Board();
 		swapped = random.nextBoolean();
@@ -48,7 +46,6 @@ public class Game implements Closeable, Parcelable
 
 	protected Game(Parcel in)
 	{
-		timePerMove = in.readInt();
 		swapped = in.readByte() != 0;
 		running = in.readByte() != 0;
 
@@ -63,10 +60,12 @@ public class Game implements Closeable, Parcelable
 	public void setupGame(BoardView boardView, AndroidBot androidBot)
 	{
 		this.boardView = boardView;
+		running=true;
 
 		//Replace bots if necessary
 		Bot p1 = (bots.get(0).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(0);
 		Bot p2 = (bots.get(1).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(1);
+
 		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
 
 		redraw();
@@ -85,19 +84,18 @@ public class Game implements Closeable, Parcelable
 				Bot p2 = bots.get(swapped ? 0 : 1);
 
 				int nextRound = 0;
-				Log.d("DANKEST", "TEST");
 				while (! board.isDone() && running)
 				{
 					prints("Round #" + nextRound++);
 
 					if (board.nextPlayer() == PLAYER && running)
-						aplay(p1);
+						play(p1);
 
 					if (board.isDone() || ! running)
 						continue;
 
 					if (board.nextPlayer() == ENEMY && running)
-						aplay(p2);
+						play(p2);
 				}
 			}
 		});
@@ -106,52 +104,26 @@ public class Game implements Closeable, Parcelable
 
 	private void play(Bot bot)
 	{
-		Coord move = Util.moveBotWithTimeOut(bot, board.copy(), timePerMove);
-		if (running)
+		if (es == null)
+			es = Executors.newSingleThreadExecutor();
+
+		Future<Coord> fMove = Util.moveBotWithTimeOutAsync(es, bot, board.copy(), 500);
+		Coord move;
+
+		try
 		{
+			move = fMove.get();
+			board.play(move);
+			boardView.setBoard(board);
 			prints(bot + " played: " + move);
-			board.play(move);
-			boardView.setBoard(board);
 		}
-	}
-
-	private void aplay(Bot bot)
-	{
-		Future<Coord> fMove = Util.moveBotWithTimeOutAsync(es, bot, board.copy(), timePerMove);
-
-		while (! fMove.isDone() && running)
-		{
-			try
-			{
-				Thread.sleep(10);
-			}
-			catch (InterruptedException e)
-			{
-				close();
-				//e.printStackTrace();
-			}
-		}
-
-		if (running)
-		{
-			Coord move = null;
-			try
-			{
-				move = fMove.get();
-			}
-			catch (InterruptedException | ExecutionException e)
-			{
-				close();
-				e.printStackTrace(); //NOP?
-			}
-
-			prints(bot + " played: " + move + " on instance " + this.hashCode());
-			board.play(move);
-			boardView.setBoard(board);
-		}
-		else
+		catch (InterruptedException e)
 		{
 			fMove.cancel(true);
+		}
+		catch (ExecutionException e)
+		{
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -165,6 +137,11 @@ public class Game implements Closeable, Parcelable
 	{
 		running = false;
 		thread.interrupt();
+		if (es != null)
+		{
+			es.shutdown();
+			es = null;
+		}
 	}
 
 	public void redraw()
@@ -197,7 +174,6 @@ public class Game implements Closeable, Parcelable
 	@Override
 	public void writeToParcel(Parcel parcel, int i)
 	{
-		parcel.writeInt(timePerMove);
 		parcel.writeByte((byte) (swapped ? 1 : 0));
 		parcel.writeByte((byte) (running ? 1 : 0));
 

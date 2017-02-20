@@ -43,6 +43,17 @@ public class GameHandler implements Parcelable
 
 		game = new Game(boardView, p1, p2);
 		game.run();
+		/*Parcel parcel = Parcel.obtain();
+		parcel.writeValue(game);
+		parcel.setDataPosition(0);
+		Game gameCopy =(Game) parcel.readValue(Game.class.getClassLoader()); //Game.CREATOR.createFromParcel(parcel);
+		parcel.recycle();
+		gameCopy.setupGame(boardView,androidBot);*/
+	}
+
+	public void closeGame()
+	{
+		game.close();
 	}
 
 	public void newGame()

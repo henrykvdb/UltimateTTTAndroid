@@ -20,7 +20,7 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class BoardView extends View implements Serializable
 {
-	private static final long serialVersionUID = - 6067519139638476047L;
+	private static final long serialVersionUID = -6067519139638476047L;
 	private Board board;
 	private Settings settings;
 	private AndroidBot ab;
@@ -99,7 +99,7 @@ public class BoardView extends View implements Serializable
 
 			canvas.translate(x, y);
 			canvas.drawRect(0, 0, tileSize, tileSize, paint);
-			canvas.translate(- x, - y);
+			canvas.translate(-x, -y);
 		}
 
 		for (int om = 0; om < 9; om++)
@@ -143,11 +143,11 @@ public class BoardView extends View implements Serializable
 				drawTile(canvas, false, oBorder, tileSize,
 						mNeutral ? settings.oColor() : settings.oColorDark(), playerTileSymbolStroke);
 
-			canvas.translate(- xt, - yt);
+			canvas.translate(-xt, -yt);
 		}
 
 		//Make macro gray
-		if (! mNeutral)
+		if (!mNeutral)
 		{
 			paint.setStyle(Paint.Style.FILL);
 			paint.setColor(settings.unavailableColor());
@@ -162,7 +162,7 @@ public class BoardView extends View implements Serializable
 				drawTile(canvas, false, oBorder, macroSizeSmall, settings.oColor(), playerMacroSymbolStroke);
 		}
 
-		canvas.translate(- xmt, - ymt);
+		canvas.translate(-xmt, -ymt);
 	}
 
 	private void drawTile(Canvas canvas, boolean isX, float border, float size, int color, int strokeWidth)
@@ -185,7 +185,7 @@ public class BoardView extends View implements Serializable
 			canvas.drawOval(0, 0, realSize, realSize, paint);
 		}
 
-		canvas.translate(- border, - border);
+		canvas.translate(-border, -border);
 	}
 
 	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)
@@ -227,8 +227,6 @@ public class BoardView extends View implements Serializable
 
 		if (e.getAction() == MotionEvent.ACTION_UP)
 		{
-			//Log.d("Pressed on", "x: " + x + " y: " + y);
-
 			//If event is in the board
 			if (pointInSquare(x, y, 0, 0, fieldSize))
 			{
@@ -248,7 +246,7 @@ public class BoardView extends View implements Serializable
 					if (ab != null)
 					{
 						ab.play(Coord.coord(xm, ym, xs, ys));
-						Log.d("ClickEvent", "Clicked xm:" + xm + " ym:" + ym + " xs:" + xs + " ys:" + ys);
+						Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 					}
 					else
 					{
@@ -275,7 +273,6 @@ public class BoardView extends View implements Serializable
 		int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
 		int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
 		int fieldSize = Math.min(parentWidth, parentHeight);
-		Log.d("FIELDSIZELOG", String.valueOf(fieldSize));
 
 		this.setMeasuredDimension(fieldSize, fieldSize);
 	}

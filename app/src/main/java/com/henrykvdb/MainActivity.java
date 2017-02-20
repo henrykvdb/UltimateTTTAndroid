@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
+		gh.closeGame();
 		super.onSaveInstanceState(outState);
 		outState.putParcelable(GH_KEY, gh);
 	}
