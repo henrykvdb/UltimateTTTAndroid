@@ -1,9 +1,6 @@
 package com.henrykvdb.uttt;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
-import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Util;
@@ -11,8 +8,6 @@ import com.flaghacker.uttt.common.Util;
 import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,80 +16,66 @@ import java.util.concurrent.Future;
 import static com.flaghacker.uttt.common.Player.ENEMY;
 import static com.flaghacker.uttt.common.Player.PLAYER;
 
-public class Game implements Closeable, Parcelable
+public class Game implements Closeable
 {
-	private Random random = Util.loggedRandom();
-
 	private BoardView boardView;
-	private List<Bot> bots;
+	private GameState state;
 
-	private boolean swapped;
-	private boolean running = true;
-
-	private Board board;
 	private Thread thread;
 	private ExecutorService es;
 
-	public Game(BoardView bv, Bot p1, Bot p2)
+	public static Game newGame(BoardView boardView, Bot p1, Bot p2)
 	{
-		boardView = bv;
-		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
-		board = new Board();
-		swapped = random.nextBoolean();
-		es = Executors.newSingleThreadExecutor();
+		GameState state = new GameState(Collections.unmodifiableList(Arrays.asList(p1, p2)), true);
+
+		return new Game(state, boardView, new AndroidBot());
 	}
 
-	protected Game(Parcel in)
+	public Game(GameState state, BoardView boardView, AndroidBot androidBot)
 	{
-		swapped = in.readByte() != 0;
-		running = in.readByte() != 0;
+		this.boardView =  boardView;
+		this.state = state;
 
-		Bot p1 = (Bot) in.readSerializable();
-		Bot p2 = (Bot) in.readSerializable();
-		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
+		//Replace androidBots
+		Bot p1 = (state.bots().get(0).getClass().equals(AndroidBot.class)) ? androidBot : state.bots().get(0);
+		Bot p2 = (state.bots().get(1).getClass().equals(AndroidBot.class)) ? androidBot : state.bots().get(1);
+		state.setBots(Collections.unmodifiableList(Arrays.asList(p1, p2)));
 
-		board = (Board) in.readSerializable();
+		//Set up BoardView
+		boardView.setAndroidBot(androidBot);
+		boardView.setBoard(state.board());
+
+		//Start the tread
 		es = Executors.newSingleThreadExecutor();
-	}
-
-	public void setupGame(BoardView boardView, AndroidBot androidBot)
-	{
-		this.boardView = boardView;
-		running=true;
-
-		//Replace bots if necessary
-		Bot p1 = (bots.get(0).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(0);
-		Bot p2 = (bots.get(1).getClass().equals(AndroidBot.class)) ? androidBot : bots.get(1);
-
-		bots = Collections.unmodifiableList(Arrays.asList(p1, p2));
-
-		redraw();
 		run();
+	}
+
+	public GameState getState()
+	{
+		return state;
 	}
 
 	public void run()
 	{
+		state.setRunning(true);
 		thread = new Thread(() -> {
-			if (running)
+			if (state.running())
 			{
-				if (board == null)
-					board = new Board();
-
-				Bot p1 = bots.get(swapped ? 1 : 0);
-				Bot p2 = bots.get(swapped ? 0 : 1);
+				Bot p1 = state.bots().get(state.swapped() ? 1 : 0);
+				Bot p2 = state.bots().get(state.swapped() ? 0 : 1);
 
 				int nextRound = 0;
-				while (! board.isDone() && running)
+				while (!state.board().isDone() && state.running())
 				{
 					prints("Round #" + nextRound++);
 
-					if (board.nextPlayer() == PLAYER && running)
+					if (state.board().nextPlayer() == PLAYER && state.running())
 						play(p1);
 
-					if (board.isDone() || ! running)
+					if (state.board().isDone() || !state.running())
 						continue;
 
-					if (board.nextPlayer() == ENEMY && running)
+					if (state.board().nextPlayer() == ENEMY && state.running())
 						play(p2);
 				}
 			}
@@ -107,14 +88,14 @@ public class Game implements Closeable, Parcelable
 		if (es == null)
 			es = Executors.newSingleThreadExecutor();
 
-		Future<Coord> fMove = Util.moveBotWithTimeOutAsync(es, bot, board.copy(), 500);
+		Future<Coord> fMove = Util.moveBotWithTimeOutAsync(es, bot, state.board().copy(), 500);
 		Coord move;
 
 		try
 		{
 			move = fMove.get();
-			board.play(move);
-			boardView.setBoard(board);
+			state.board().play(move);
+			boardView.setBoard(state.board());
 			prints(bot + " played: " + move);
 		}
 		catch (InterruptedException e)
@@ -135,51 +116,13 @@ public class Game implements Closeable, Parcelable
 	@Override
 	public void close()
 	{
-		running = false;
+		state.setRunning(false);
 		thread.interrupt();
+
 		if (es != null)
 		{
 			es.shutdown();
 			es = null;
 		}
-	}
-
-	public void redraw()
-	{
-		if (board != null)
-			boardView.setBoard(board);
-	}
-
-	public static final Creator<Game> CREATOR = new Creator<Game>()
-	{
-		@Override
-		public Game createFromParcel(Parcel in)
-		{
-			return new Game(in);
-		}
-
-		@Override
-		public Game[] newArray(int size)
-		{
-			return new Game[size];
-		}
-	};
-
-	@Override
-	public int describeContents()
-	{
-		return 0;
-	}
-
-	@Override
-	public void writeToParcel(Parcel parcel, int i)
-	{
-		parcel.writeByte((byte) (swapped ? 1 : 0));
-		parcel.writeByte((byte) (running ? 1 : 0));
-
-		parcel.writeSerializable(bots.get(0));
-		parcel.writeSerializable(bots.get(1));
-
-		parcel.writeSerializable(board);
 	}
 }
