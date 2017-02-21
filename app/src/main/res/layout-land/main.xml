@@ -8,10 +8,10 @@
               android:paddingLeft="@dimen/activity_horizontal_margin"
               android:paddingRight="@dimen/activity_horizontal_margin"
               android:paddingTop="@dimen/activity_horizontal_margin"
-              tools:context="com.henrykvdb.MainActivity"
+              tools:context="com.henrykvdb.uttt.MainActivity"
               android:layout_centerVertical="true">
 
-    <com.henrykvdb.BoardView
+    <com.henrykvdb.uttt.BoardView
             android:id="@+id/boardView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

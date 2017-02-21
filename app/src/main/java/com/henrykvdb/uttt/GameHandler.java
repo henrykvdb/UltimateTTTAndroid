@@ -1,4 +1,4 @@
-package com.henrykvdb;
+package com.henrykvdb.uttt;
 
 import android.os.Parcel;
 import android.os.Parcelable;

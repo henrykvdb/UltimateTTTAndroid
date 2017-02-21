@@ -1,4 +1,4 @@
-package com.henrykvdb;
+package com.henrykvdb.uttt;
 
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
