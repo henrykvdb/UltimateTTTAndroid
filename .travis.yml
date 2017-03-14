@@ -1,0 +1,28 @@
+language: android
+jdk: oraclejdk8
+sudo: required
+android:
+  components:
+  - tools
+  - platform-tools
+  - tools
+  - build-tools-25.0.2
+  - android-25
+  - extra-android-m2repository
+  - extra-google-m2repository
+before_script:
+- echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+- emulator -avd test -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
+deploy:
+  provider: releases
+  api_key:
+    secure: F70sB3kfdrOCK5Lnu2omagHHdMy1NfBLs0/XF/JYyAxWv/3BVLxZN1+0Tz1Sx9eRPjGAMEhX99eTUSAdGCyis4AP5JCKFraPKZp6Od6evIq9FhBb5oQ5j27x1KePe0U/TMgS/gUFcAXPYnHzzNNGbGzBZuhIycfAoljvNYaKsVvYuYW8srNAa397gB/CoPL1uidsDNNhQv226aquTbRjrtWDI1Oez6YTflWjRG5skiZW62mS4JCt6Ahg3BPclkPGIlWkQsIl3D17RKoUpXylYqEK6NGEQVl17wQc+49In0fS/jsMUYrs1QpdwRLJyy3K4Wz1ZbH1XI8iUC/tNxNtK+55IgTnvq0idwJ5lwoTgtayV4qndR0wInk47aweyV32T5LaZnJP/m3twCFJ/xonDd9Sz99petn9Ni3xGMYo06EGuOrHXlbFwsLn0/VBcN595eeAB3uGIcQZ97JOZswfCqV0gl33NEViOYPJmXY0DrQzlx6fMrqLQcRYtpZTnO4bzChdyK6/babyT2MWGKO47EwLFFHsARepnqdjyV2SAH061o8eZoPVXLBK0hRPb3IL6TJ2GHTaj4q3vxetU3efLZymMI394rcAzjLsm0NbhAJ5HdE25rYcT97oY2h3jaDxu0VQq23RlBV24NgoHSPaEdBCwWElKyZ5hFQ0v+j2OR8=
+  file: C:\Users\Henrykvdb\Dropbox\IdeaProjects\UltimateTTTAndroid\app\build\outputs\apk\app-debug.apk
+  file_glob: "true"
+  skip_cleanup: true
+  on:
+    repo: henrykvdb/UltimateTTTAndroid
+    branch: master
+    tags: true
