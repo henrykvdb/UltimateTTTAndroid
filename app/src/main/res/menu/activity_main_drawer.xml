@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="New Game">
+        <menu>
+            <item
+                    android:id="@+id/nav_local"
+                    android:icon="@drawable/ic_menu_play"
+                    android:title="Local"/>
+            <item
+                    android:id="@+id/nav_bluetooth"
+                    android:icon="@drawable/ic_menu_bluetooth"
+                    android:title="Bluetooth"/>
+        </menu>
+    </item>
+</menu>

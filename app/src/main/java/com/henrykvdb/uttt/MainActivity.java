@@ -1,38 +1,107 @@
 package com.henrykvdb.uttt;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import com.flaghacker.uttt.bots.RandomBot;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import com.henrykvdb.utt.R;
 
 public class MainActivity extends AppCompatActivity
+		implements NavigationView.OnNavigationItemSelectedListener
 {
+
 	private static final String STATE_KEY = "game";
 
 	private Game game;
+
+	private static final int REQUEST_NEW_LOCAL = 100;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.activity_main);
+
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
+
+		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+		drawer.setDrawerListener(toggle);
+		toggle.syncState();
+
+		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		navigationView.setNavigationItemSelectedListener(this);
+
 
 		if (savedInstanceState != null)
 		{
 			GameState state = (GameState) savedInstanceState.getSerializable(STATE_KEY);
-			game = new Game(state,(BoardView) findViewById(R.id.boardView),new AndroidBot());
+			game = new Game(state, (BoardView) findViewById(R.id.boardView), new AndroidBot());
 		}
 		else
 		{
-			game = newGame();
+			AndroidBot androidBot = new AndroidBot();
+			game = Game.newGame((BoardView) findViewById(R.id.boardView), androidBot, androidBot);
 		}
+	}
+
+	@Override
+	public void onBackPressed()
+	{
+		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		if (drawer.isDrawerOpen(GravityCompat.START))
+			drawer.closeDrawer(GravityCompat.START);
+		else
+			super.onBackPressed();
+	}
+
+	@Override
+	public boolean onNavigationItemSelected(MenuItem item)
+	{
+		// Handle navigation view item clicks here.
+		int id = item.getItemId();
+
+		if (id == R.id.nav_local)
+		{
+			Intent serverIntent = new Intent(getApplicationContext(), NewGameActivity.class);
+			startActivityForResult(serverIntent, REQUEST_NEW_LOCAL);
+		}
+		else if (id == R.id.nav_bluetooth)
+		{
+		}
+
+		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		drawer.closeDrawer(GravityCompat.START);
+		return true;
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+
+		if (requestCode == REQUEST_NEW_LOCAL)
+		{
+			if (resultCode == RESULT_OK)
+			{
+				GameState gs = (GameState) data.getSerializableExtra("GameState");
+				Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+			}
+		}
+
+		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		if (game!=null)
+		if (game != null)
 			game.close();
 
 		super.onSaveInstanceState(outState);
@@ -43,7 +112,7 @@ public class MainActivity extends AppCompatActivity
 	protected void onResume()
 	{
 
-		if (game!=null && !game.getState().running())
+		if (game != null && !game.getState().running())
 			game.run();
 
 		super.onResume();
@@ -52,37 +121,9 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onPause()
 	{
-		if (game!=null)
+		if (game != null)
 			game.close();
 
 		super.onPause();
-	}
-
-	public void botGameClicked(View view)
-	{
-		game = botGame();
-	}
-
-	public void newGameClicked(View view)
-	{
-		game = newGame();
-	}
-
-	private Game newGame()
-	{
-		if (game!=null)
-			game.close();
-
-		AndroidBot androidBot = new AndroidBot();
-		return Game.newGame((BoardView) findViewById(R.id.boardView),androidBot, androidBot);
-	}
-
-	private Game botGame()
-	{
-		if (game!=null)
-			game.close();
-
-		AndroidBot androidBot = new AndroidBot();
-		return Game.newGame((BoardView) findViewById(R.id.boardView),androidBot, new RandomBot());
 	}
 }

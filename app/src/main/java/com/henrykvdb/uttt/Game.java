@@ -31,9 +31,14 @@ public class Game implements Closeable
 		return new Game(state, boardView, new AndroidBot());
 	}
 
+	public static Game newGame(GameState state, BoardView boardView, AndroidBot androidBot)
+	{
+		return new Game(state, boardView, androidBot);
+	}
+
 	public Game(GameState state, BoardView boardView, AndroidBot androidBot)
 	{
-		this.boardView =  boardView;
+		this.boardView = boardView;
 		this.state = state;
 
 		//Replace androidBots
