@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity
 		}
 		else
 		{
+			closeGame();
 			AndroidBot androidBot = new AndroidBot();
 			game = Game.newGame((BoardView) findViewById(R.id.boardView), androidBot, androidBot);
 		}
@@ -112,8 +113,9 @@ public class MainActivity extends AppCompatActivity
 		{
 			if (resultCode == RESULT_OK)
 			{
+				closeGame();
 				GameState gs = (GameState) data.getSerializableExtra("GameState");
-				Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+				game = Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
 			}
 		}
 
@@ -123,9 +125,7 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		if (game != null)
-			game.close();
-
+		closeGame();
 		super.onSaveInstanceState(outState);
 		outState.putSerializable(STATE_KEY, game.getState());
 	}
@@ -143,9 +143,13 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onPause()
 	{
+		closeGame();
+		super.onPause();
+	}
+
+	private void closeGame()
+	{
 		if (game != null)
 			game.close();
-
-		super.onPause();
 	}
 }
