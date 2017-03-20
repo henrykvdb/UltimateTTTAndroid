@@ -1,4 +1,4 @@
-package com.henrykvdb.utt;
+package com.henrykvdb.uttt;
 
 import org.junit.Test;
 

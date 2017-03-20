@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import com.henrykvdb.utt.R;
+
+import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
@@ -26,19 +28,7 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		setSupportActionBar(toolbar);
-
-		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-		drawer.setDrawerListener(toggle);
-		toggle.syncState();
-
-		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-		navigationView.setNavigationItemSelectedListener(this);
-
+		initGui();
 
 		if (savedInstanceState != null)
 		{
@@ -50,6 +40,38 @@ public class MainActivity extends AppCompatActivity
 			AndroidBot androidBot = new AndroidBot();
 			game = Game.newGame((BoardView) findViewById(R.id.boardView), androidBot, androidBot);
 		}
+	}
+
+	private void initGui()
+	{
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
+
+		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		try{
+			Field mDragger = drawer.getClass().getDeclaredField(
+					"mLeftDragger");
+			mDragger.setAccessible(true);
+			ViewDragHelper draggerObj = (ViewDragHelper) mDragger
+					.get(drawer);
+			Field mEdgeSize = draggerObj.getClass().getDeclaredField(
+					"mEdgeSize");
+			mEdgeSize.setAccessible(true);
+			int edge = mEdgeSize.getInt(draggerObj);
+			mEdgeSize.setInt(draggerObj, edge * 4);
+		}
+		catch (IllegalAccessException | NoSuchFieldException e)
+		{
+			e.printStackTrace();
+		}
+
+		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+		drawer.setDrawerListener(toggle);
+		toggle.syncState();
+
+		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		navigationView.setNavigationItemSelectedListener(this);
 	}
 
 	@Override
