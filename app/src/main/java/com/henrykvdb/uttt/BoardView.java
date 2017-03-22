@@ -135,10 +135,10 @@ public class BoardView extends View implements Serializable
 		int xm = om % 3;
 		int ym = om / 3;
 
-		//Check if macro is finished
 		Player mPlayer = board.macro(xm, ym);
 		boolean mNeutral = mPlayer == NEUTRAL;
-		boolean finished = board.isDone();
+		boolean finished = board.wonBy() != NEUTRAL;
+		Coord lastMove = board.getLastMove();
 
 		//Translate to macro
 		float xmt = macroSizeFull * xm + whiteSpace;
@@ -159,12 +159,12 @@ public class BoardView extends View implements Serializable
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, false, tileSize,
-						finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker()),
+				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.lastMoveColor()
+								: (finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker())),
 						tileSymbolStroke, xBorder);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, false, tileSize,
-						finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker()),
+				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.lastMoveColor()
+								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
 						tileSymbolStroke, oBorder);
 
 			canvas.translate(-xt, -yt);

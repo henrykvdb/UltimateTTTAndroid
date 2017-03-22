@@ -11,6 +11,7 @@ public class DrawSettings
 	private int oColor = Color.RED;
 	private int oColorDarker = Color.rgb(230, 0, 0);
 	private int oColorDarkest = Color.rgb(200, 0, 0);
+	private int lastMoveColor = Color.rgb(255,0,255);
 
 	//Symbol stroke width
 	private float tileSymbolStroke = 16f / 984;
@@ -210,5 +211,15 @@ public class DrawSettings
 	public void setBorderO(float borderO)
 	{
 		this.borderO = borderO;
+	}
+
+	public int lastMoveColor()
+	{
+		return lastMoveColor;
+	}
+
+	public void setLastMoveColor(int lastMoveColor)
+	{
+		this.lastMoveColor = lastMoveColor;
 	}
 }
