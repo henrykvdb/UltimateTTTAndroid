@@ -3,6 +3,7 @@ package com.henrykvdb.uttt;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
@@ -21,8 +22,9 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 public class BoardView extends View implements Serializable
 {
 	private static final long serialVersionUID = -6067519139638476047L;
+	private final Path path;
 	private Board board;
-	private Settings settings;
+	private DrawSettings ds;
 	private AndroidBot ab;
 	private Paint paint;
 
@@ -36,17 +38,19 @@ public class BoardView extends View implements Serializable
 
 	private int bigGridStroke;
 	private int smallGridStroke;
-	private int playerTileSymbolStroke;
-	private int playerMacroSymbolStroke;
+	private int tileSymbolStroke;
+	private int macroSymbolStroke;
+	private int wonSymbolStroke;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 
-		settings = new Settings();
+		ds = new DrawSettings();
 		paint = new Paint();
-		setVars();
+		path = new Path();
 
+		setVars();
 		setBoard(new Board());
 	}
 
@@ -55,18 +59,19 @@ public class BoardView extends View implements Serializable
 		fieldSize = Math.min(getWidth(), getHeight());
 
 		macroSizeFull = fieldSize / 3;
-		whiteSpace = fieldSize * settings.whiteSpace();
+		whiteSpace = fieldSize * ds.whiteSpace();
 
 		macroSizeSmall = macroSizeFull - 2 * whiteSpace;
 		tileSize = macroSizeSmall / 3;
 
-		xBorder = fieldSize * settings.borderX();
-		oBorder = fieldSize * settings.borderO();
+		xBorder = fieldSize * ds.borderX();
+		oBorder = fieldSize * ds.borderO();
 
-		bigGridStroke = (int) (fieldSize * settings.bigGridStroke());
-		smallGridStroke = (int) (fieldSize * settings.smallGridStroke());
-		playerTileSymbolStroke = (int) (fieldSize * settings.playerTileSymbolStroke());
-		playerMacroSymbolStroke = (int) (fieldSize * settings.playerMacroSymbolStroke());
+		bigGridStroke = (int) (fieldSize * ds.bigGridStroke());
+		smallGridStroke = (int) (fieldSize * ds.smallGridStroke());
+		tileSymbolStroke = (int) (fieldSize * ds.tileSymbolStroke());
+		macroSymbolStroke = (int) (fieldSize * ds.macroSymbolStroke());
+		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke());
 	}
 
 	public void setBoard(Board board)
@@ -75,9 +80,9 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setSettings(Settings settings)
+	public void setDrawSettings(DrawSettings drawSettings)
 	{
-		this.settings = settings;
+		this.ds = drawSettings;
 		setVars();
 		postInvalidate();
 	}
@@ -91,7 +96,7 @@ public class BoardView extends View implements Serializable
 	{
 		//Make available moves yellow
 		paint.setStyle(Paint.Style.FILL);
-		paint.setColor(settings.availableColor());
+		paint.setColor(ds.availableColor());
 		for (Coord coord : board.availableMoves())
 		{
 			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
@@ -106,7 +111,23 @@ public class BoardView extends View implements Serializable
 			drawMacro(canvas, om);
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, settings.gridColor(), bigGridStroke);
+		drawGridBarriers(canvas, fieldSize, ds.gridColor(), bigGridStroke);
+
+		if (board.isDone())
+		{
+			switch (board.wonBy())
+			{
+				case PLAYER:
+					drawTile(canvas, true, true, fieldSize, ds.xColor() - ds.symbolTransparency(), wonSymbolStroke, tileSize);
+					break;
+				case ENEMY:
+					drawTile(canvas, false, true, fieldSize, ds.oColor() - ds.symbolTransparency(), wonSymbolStroke, tileSize * oBorder / xBorder);
+					break;
+				default:
+					//Nobody won, so no need to draw anything
+					break;
+			}
+		}
 	}
 
 	private void drawMacro(Canvas canvas, int om)
@@ -117,6 +138,7 @@ public class BoardView extends View implements Serializable
 		//Check if macro is finished
 		Player mPlayer = board.macro(xm, ym);
 		boolean mNeutral = mPlayer == NEUTRAL;
+		boolean finished = board.isDone();
 
 		//Translate to macro
 		float xmt = macroSizeFull * xm + whiteSpace;
@@ -124,7 +146,7 @@ public class BoardView extends View implements Serializable
 		canvas.translate(xmt, ymt);
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, settings.gridColor(), smallGridStroke);
+		drawGridBarriers(canvas, macroSizeSmall, ds.gridColor(), smallGridStroke);
 
 		//Loop through tiles of the macro
 		for (Coord tile : Coord.macro(xm, ym))
@@ -137,51 +159,58 @@ public class BoardView extends View implements Serializable
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, xBorder, tileSize,
-						mNeutral ? settings.xColor() : settings.xColorDark(), playerTileSymbolStroke);
+				drawTile(canvas, true, false, tileSize,
+						finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker()),
+						tileSymbolStroke, xBorder);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, oBorder, tileSize,
-						mNeutral ? settings.oColor() : settings.oColorDark(), playerTileSymbolStroke);
+				drawTile(canvas, false, false, tileSize,
+						finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker()),
+						tileSymbolStroke, oBorder);
 
 			canvas.translate(-xt, -yt);
 		}
 
-		//Make macro gray
-		if (!mNeutral)
-		{
-			paint.setStyle(Paint.Style.FILL);
-			paint.setColor(settings.unavailableColor());
-			paint.setAlpha(settings.unavailableAlpha());
-			canvas.drawRect(0, 0, macroSizeFull - 2 * whiteSpace, macroSizeFull - 2 * whiteSpace, paint);
-			paint.setAlpha(100);
-
-			//Draw x and y over macros
-			if (mPlayer == PLAYER) //X
-				drawTile(canvas, true, xBorder, macroSizeSmall, settings.xColor(), playerMacroSymbolStroke);
-			else if (mPlayer == ENEMY) //O
-				drawTile(canvas, false, oBorder, macroSizeSmall, settings.oColor(), playerMacroSymbolStroke);
-		}
+		//Draw x and y over macros
+		if (mPlayer == PLAYER) //X
+			drawTile(canvas, true, !finished, macroSizeSmall,
+					finished ? (ds.xColorDarker() - ds.symbolTransparency()) : (ds.xColor() - ds.symbolTransparency()),
+					macroSymbolStroke, xBorder);
+		else if (mPlayer == ENEMY) //O
+			drawTile(canvas, false, !finished, macroSizeSmall,
+					finished ? (ds.oColorDarker() - ds.symbolTransparency()) : (ds.oColor() - ds.symbolTransparency()),
+					macroSymbolStroke, oBorder);
 
 		canvas.translate(-xmt, -ymt);
 	}
 
-	private void drawTile(Canvas canvas, boolean isX, float border, float size, int color, int strokeWidth)
+	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border)
 	{
+		if (grayBack)
+		{
+			paint.setStyle(Paint.Style.FILL);
+			paint.setColor(ds.unavailableColor());
+			canvas.drawRect(0, 0, size, size, paint);
+		}
+
+
 		float realSize = size - 2 * border;
 		canvas.translate(border, border);
 
+		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(strokeWidth);
 		paint.setColor(color);
-
 		if (isX)
 		{
-			paint.setStyle(Paint.Style.FILL);
-			canvas.drawLine(0, 0, realSize, realSize, paint);
-			canvas.drawLine(0, realSize, realSize, 0, paint);
+			path.moveTo(0, 0);
+			path.lineTo(realSize, realSize);
+			path.moveTo(0, realSize);
+			path.lineTo(realSize, 0);
+
+			canvas.drawPath(path, paint);
+			path.reset();
 		}
 		else
 		{
-			paint.setStyle(Paint.Style.STROKE);
 			canvas.drawOval(0, 0, realSize, realSize, paint);
 		}
 
