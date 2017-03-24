@@ -1,6 +1,7 @@
 package com.henrykvdb.uttt;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,7 +9,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -156,6 +159,7 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 		}
+
 		if (btService == null)
 			startBtService();
 	}
@@ -205,6 +209,7 @@ public class MainActivity extends AppCompatActivity
 	}
 
 	BluetoothService btService;
+	boolean isBtServiceOn;
 	protected ServiceConnection mServerConn = new ServiceConnection()
 	{
 		@Override
@@ -213,13 +218,15 @@ public class MainActivity extends AppCompatActivity
 			Log.d("LOGTAG", "onServiceConnected");
 			BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
 			btService = binder.getService();
+			btService.setHandler(mHandler);
+			isBtServiceOn = true;
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
 			Log.d("LOGTAG", "onServiceDisconnected");
-			btService = null;
+			isBtServiceOn = false;
 		}
 	};
 
@@ -233,6 +240,9 @@ public class MainActivity extends AppCompatActivity
 
 	public void stopBtService()
 	{
+		if (btService != null)
+			btService.stop();
+
 		stopService(new Intent(this, BluetoothService.class));
 		unbindService(mServerConn);
 	}
@@ -278,10 +288,7 @@ public class MainActivity extends AppCompatActivity
 	protected void onDestroy()
 	{
 		closeGame();
-		if (btService != null)
-		{
-			btService.stop();
-		}
+		stopBtService();
 		super.onDestroy();
 	}
 
@@ -289,5 +296,52 @@ public class MainActivity extends AppCompatActivity
 	{
 		if (game != null)
 			game.close();
+	}
+
+	/**
+	 * The Handler that gets information back from the BluetoothService
+	 */
+	private final Handler mHandler = new Handler()
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			Activity activity = getActivity();
+			switch (msg.what)
+			{
+				case Constants.MESSAGE_WRITE:
+					byte[] writeBuf = (byte[]) msg.obj;
+					// construct a string from the buffer
+					String writeMessage = new String(writeBuf);
+					Log.d("MACT", "write: " + writeMessage);
+					break;
+				case Constants.MESSAGE_READ:
+					byte[] readBuf = (byte[]) msg.obj;
+					// construct a string from the valid bytes in the buffer
+					String readMessage = new String(readBuf, 0, msg.arg1);
+					Log.d("MACT", "read: " + readMessage);
+					break;
+				case Constants.MESSAGE_DEVICE_NAME:
+					// save the connected device's name
+					if (null != activity)
+					{
+						Toast.makeText(activity, "Connected to "
+								+ msg.getData().getString(Constants.DEVICE_NAME), Toast.LENGTH_SHORT).show();
+					}
+					break;
+				case Constants.MESSAGE_TOAST:
+					if (null != activity)
+					{
+						Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
+								Toast.LENGTH_SHORT).show();
+					}
+					break;
+			}
+		}
+	};
+
+	private MainActivity getActivity()
+	{
+		return this;
 	}
 }
