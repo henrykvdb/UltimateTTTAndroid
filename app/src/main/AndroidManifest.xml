@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.henrykvdb.uttt">
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
     <application
             android:allowBackup="true"
@@ -15,9 +18,16 @@
             </intent-filter>
         </activity>
         <activity
-                android:name="com.henrykvdb.uttt.NewGameActivity"
-                android:configChanges="orientation|keyboardHidden"
+                android:name="com.henrykvdb.uttt.NewLocalActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
+        <activity
+                android:name="com.henrykvdb.uttt.NewBluetoothActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
+        <service
+                android:name=".BluetoothService"
+                android:exported="false"/>
     </application>
 
 </manifest>

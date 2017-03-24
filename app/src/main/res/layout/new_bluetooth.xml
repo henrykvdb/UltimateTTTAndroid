@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:paddingLeft="24dp"
+              android:paddingRight="24dp"
+              android:paddingTop="9dp"
+              android:paddingBottom="18dp">
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/action_bar_title"
+            android:text="New Bluetooth game"
+            android:textColor="@color/dialogTitle"
+            android:textSize="24sp"/>
+
+    <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+        <RadioButton
+                android:text="Host game"
+                android:id="@+id/radio_host"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:checked="true"
+                android:onClick="radioClick"/>
+        <RadioButton
+                android:text="Join game"
+                android:id="@+id/radio_join"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:onClick="radioClick"/>
+    </RadioGroup>
+
+    <LinearLayout android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/layout_host">
+        <CheckBox
+                android:text="Visible for other devices"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/checkBox_visible"
+                android:onClick="checkClick"/>
+
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical"
+                  android:visibility="gone"
+                  android:id="@+id/layout_join">
+        <TextView
+                android:id="@+id/title_paired_devices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#666"
+                android:paddingLeft="5dp"
+                android:text="@string/title_paired_devices"
+                android:textColor="#fff"
+                android:visibility="gone"/>
+        <ListView
+                android:id="@+id/paired_devices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:stackFromBottom="true"/>
+        <TextView
+                android:id="@+id/title_new_devices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#666"
+                android:paddingLeft="5dp"
+                android:text="@string/title_other_devices"
+                android:textColor="#fff"
+                android:visibility="gone"/>
+        <ListView
+                android:id="@+id/new_devices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:stackFromBottom="true"/>
+        <Button
+                android:id="@+id/button_scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/button_scan"/>
+    </LinearLayout>
+</LinearLayout>

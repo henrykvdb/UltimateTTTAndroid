@@ -1,15 +1,27 @@
 package com.henrykvdb.uttt;
 
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.lang.reflect.Field;
 
@@ -22,6 +34,10 @@ public class MainActivity extends AppCompatActivity
 	private Game game;
 
 	private static final int REQUEST_NEW_LOCAL = 100;
+	private static final int REQUEST_NEW_BLUETOOTH = 101;
+
+	private static final int REQUEST_ENABLE_BT = 200;
+	private static final int REQUEST_COARSE_LOCATION = 201;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -49,7 +65,8 @@ public class MainActivity extends AppCompatActivity
 		setSupportActionBar(toolbar);
 
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-		try{
+		try
+		{
 			Field mDragger = drawer.getClass().getDeclaredField(
 					"mLeftDragger");
 			mDragger.setAccessible(true);
@@ -93,11 +110,12 @@ public class MainActivity extends AppCompatActivity
 
 		if (id == R.id.nav_local)
 		{
-			Intent serverIntent = new Intent(getApplicationContext(), NewGameActivity.class);
+			Intent serverIntent = new Intent(getApplicationContext(), NewLocalActivity.class);
 			startActivityForResult(serverIntent, REQUEST_NEW_LOCAL);
 		}
 		else if (id == R.id.nav_bluetooth)
 		{
+			pickBluetooth();
 		}
 
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -105,21 +123,118 @@ public class MainActivity extends AppCompatActivity
 		return true;
 	}
 
+	private void pickBluetooth()
+	{
+		// Get local Bluetooth adapter
+		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+		// If the adapter is null, then Bluetooth is not supported
+		if (mBluetoothAdapter == null)
+			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+		else
+		{
+			// If BT is not on, request that it be enabled first.
+			if (! mBluetoothAdapter.isEnabled())
+			{
+				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+			}
+			else
+			{
+				//If we don't have the COARSE LOCATION permission, request it
+				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+						PackageManager.PERMISSION_GRANTED)
+				{
+					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+							REQUEST_COARSE_LOCATION);
+				}
+				else
+				{
+					//Make the bluetooth-picker activity
+					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
+					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
+				}
+			}
+		}
+		if (btService == null)
+			startBtService();
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-
-		if (requestCode == REQUEST_NEW_LOCAL)
+		switch (requestCode)
 		{
-			if (resultCode == RESULT_OK)
-			{
-				closeGame();
-				GameState gs = (GameState) data.getSerializableExtra("GameState");
-				game = Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
-			}
+			case REQUEST_ENABLE_BT:
+				if (resultCode == RESULT_OK)
+					pickBluetooth();
+				break;
+			case REQUEST_NEW_LOCAL:
+				if (resultCode == RESULT_OK)
+				{
+					closeGame();
+					GameState gs = (GameState) data.getSerializableExtra("GameState");
+					game = Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+				}
+				break;
+			case REQUEST_NEW_BLUETOOTH:
+				if (resultCode == RESULT_OK)
+				{
+					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
+					btService.write("test".getBytes());
+				}
+				break;
 		}
 
 		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_COARSE_LOCATION:
+				// If request is cancelled, the result arrays are empty.
+				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+					pickBluetooth();
+				break;
+		}
+
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+	}
+
+	BluetoothService btService;
+	protected ServiceConnection mServerConn = new ServiceConnection()
+	{
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			Log.d("LOGTAG", "onServiceConnected");
+			BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
+			btService = binder.getService();
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.d("LOGTAG", "onServiceDisconnected");
+			btService = null;
+		}
+	};
+
+	public void startBtService()
+	{
+		// mContext is defined upper in code, I think it is not necessary to explain what is it
+		Intent intent = new Intent(this, BluetoothService.class);
+		bindService(intent, mServerConn, Context.BIND_AUTO_CREATE);
+		startService(intent);
+	}
+
+	public void stopBtService()
+	{
+		stopService(new Intent(this, BluetoothService.class));
+		unbindService(mServerConn);
 	}
 
 	@Override
@@ -133,9 +248,21 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onResume()
 	{
-
-		if (game != null && !game.getState().running())
+		if (game != null && ! game.getState().running())
 			game.run();
+
+		// Performing this check in onResume() covers the case in which BT was
+		// not enabled during onStart(), so we were paused to enable it...
+		// onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
+		if (btService != null)
+		{
+			// Only if the state is STATE_NONE, do we know that we haven't started already
+			if (btService.getState() == BluetoothService.STATE_NONE)
+			{
+				// Start the Bluetooth chat services
+				btService.start();
+			}
+		}
 
 		super.onResume();
 	}
@@ -145,6 +272,17 @@ public class MainActivity extends AppCompatActivity
 	{
 		closeGame();
 		super.onPause();
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		closeGame();
+		if (btService != null)
+		{
+			btService.stop();
+		}
+		super.onDestroy();
 	}
 
 	private void closeGame()
