@@ -24,6 +24,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Field;
@@ -31,6 +32,7 @@ import java.lang.reflect.Field;
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
 {
+	TextView statusView;
 
 	private static final String STATE_KEY = "game";
 
@@ -93,6 +95,8 @@ public class MainActivity extends AppCompatActivity
 
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
+
+		statusView = (TextView) findViewById(R.id.statusView);
 	}
 
 	@Override
@@ -160,8 +164,11 @@ public class MainActivity extends AppCompatActivity
 			}
 		}
 
-		if (btService == null)
+		if (!isBtServiceOn)
+		{
+			stopBtService();
 			startBtService();
+		}
 	}
 
 	@Override
@@ -179,13 +186,15 @@ public class MainActivity extends AppCompatActivity
 					closeGame();
 					GameState gs = (GameState) data.getSerializableExtra("GameState");
 					game = Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+					statusView.setText("Local: " + game.getType());
 				}
 				break;
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
 				{
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
-					btService.write("test".getBytes());
+					statusView.setText("Local: " + game.getType());
+					//btService.write("test".getBytes());
 				}
 				break;
 		}
@@ -258,6 +267,8 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onResume()
 	{
+		super.onResume();
+
 		if (game != null && ! game.getState().running())
 			game.run();
 
@@ -265,31 +276,23 @@ public class MainActivity extends AppCompatActivity
 		// not enabled during onStart(), so we were paused to enable it...
 		// onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
 		if (btService != null)
-		{
-			// Only if the state is STATE_NONE, do we know that we haven't started already
 			if (btService.getState() == BluetoothService.STATE_NONE)
-			{
-				// Start the Bluetooth chat services
 				btService.start();
-			}
-		}
-
-		super.onResume();
 	}
 
 	@Override
 	protected void onPause()
 	{
-		closeGame();
 		super.onPause();
+		closeGame();
 	}
 
 	@Override
 	protected void onDestroy()
 	{
+		super.onDestroy();
 		closeGame();
 		stopBtService();
-		super.onDestroy();
 	}
 
 	private void closeGame()
@@ -303,38 +306,51 @@ public class MainActivity extends AppCompatActivity
 	 */
 	private final Handler mHandler = new Handler()
 	{
+		String connectedDeviceName;
+
 		@Override
 		public void handleMessage(Message msg)
 		{
 			Activity activity = getActivity();
 			switch (msg.what)
 			{
-				case Constants.MESSAGE_WRITE:
+				case BluetoothService.MESSAGE_STATE_CHANGE:
+					switch (msg.arg1)
+					{
+						case BluetoothService.STATE_CONNECTED:
+							statusView.setText("Bluetooth: connected to " + connectedDeviceName);
+							break;
+						case BluetoothService.STATE_CONNECTING:
+							statusView.setText("Bluetooth: connecting...");
+							break;
+						case BluetoothService.STATE_LISTEN:
+							statusView.setText("Bluetooth: listening");
+						case BluetoothService.STATE_NONE:
+							statusView.setText("Bluetooth: not connected");
+							break;
+					}
+					break;
+				case BluetoothService.MESSAGE_WRITE:
 					byte[] writeBuf = (byte[]) msg.obj;
 					// construct a string from the buffer
 					String writeMessage = new String(writeBuf);
 					Log.d("MACT", "write: " + writeMessage);
 					break;
-				case Constants.MESSAGE_READ:
+				case BluetoothService.MESSAGE_READ:
 					byte[] readBuf = (byte[]) msg.obj;
 					// construct a string from the valid bytes in the buffer
 					String readMessage = new String(readBuf, 0, msg.arg1);
 					Log.d("MACT", "read: " + readMessage);
 					break;
-				case Constants.MESSAGE_DEVICE_NAME:
+				case BluetoothService.MESSAGE_DEVICE_NAME:
 					// save the connected device's name
+					connectedDeviceName = (String) msg.obj;
 					if (null != activity)
-					{
-						Toast.makeText(activity, "Connected to "
-								+ msg.getData().getString(Constants.DEVICE_NAME), Toast.LENGTH_SHORT).show();
-					}
+						Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
 					break;
-				case Constants.MESSAGE_TOAST:
+				case BluetoothService.MESSAGE_TOAST:
 					if (null != activity)
-					{
-						Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
-								Toast.LENGTH_SHORT).show();
-					}
+						Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
 					break;
 			}
 		}

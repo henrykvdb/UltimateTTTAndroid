@@ -130,4 +130,13 @@ public class Game implements Closeable
 			es = null;
 		}
 	}
+
+	public String getType()
+	{
+		if (state.bots().get(0).getClass().equals(AndroidBot.class)
+				&& state.bots().get(1).getClass().equals(AndroidBot.class))
+			return "1v1";
+		else
+			return "against AI";
+	}
 }
