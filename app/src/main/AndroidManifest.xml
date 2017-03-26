@@ -26,7 +26,7 @@
                 android:configChanges="keyboardHidden|orientation|screenSize"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
         <service
-                android:name=".BluetoothService"
+                android:name=".BtService"
                 android:exported="false"/>
     </application>
 

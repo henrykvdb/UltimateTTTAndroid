@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
-	BluetoothService btService;
+	BtService btService;
 	boolean isBtServiceOn;
 	protected ServiceConnection mServerConn = new ServiceConnection()
 	{
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
 			Log.d("LOGTAG", "onServiceConnected");
-			BluetoothService.LocalBinder binder = (BluetoothService.LocalBinder) service;
+			BtService.LocalBinder binder = (BtService.LocalBinder) service;
 			btService = binder.getService();
 			btService.setHandler(mHandler);
 			isBtServiceOn = true;
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity
 	public void startBtService()
 	{
 		// mContext is defined upper in code, I think it is not necessary to explain what is it
-		Intent intent = new Intent(this, BluetoothService.class);
+		Intent intent = new Intent(this, BtService.class);
 		bindService(intent, mServerConn, Context.BIND_AUTO_CREATE);
 		startService(intent);
 	}
@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity
 		if (btService != null)
 			btService.stop();
 
-		stopService(new Intent(this, BluetoothService.class));
+		stopService(new Intent(this, BtService.class));
 		unbindService(mServerConn);
 	}
 
@@ -272,11 +272,8 @@ public class MainActivity extends AppCompatActivity
 		if (game != null && ! game.getState().running())
 			game.run();
 
-		// Performing this check in onResume() covers the case in which BT was
-		// not enabled during onStart(), so we were paused to enable it...
-		// onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
 		if (btService != null)
-			if (btService.getState() == BluetoothService.STATE_NONE)
+			if (btService.getState() == BtService.State.NONE)
 				btService.start();
 	}
 
@@ -312,46 +309,48 @@ public class MainActivity extends AppCompatActivity
 		public void handleMessage(Message msg)
 		{
 			Activity activity = getActivity();
-			switch (msg.what)
+
+			if (msg.what == BtService.Message.STATE_CHANGE.ordinal())
 			{
-				case BluetoothService.MESSAGE_STATE_CHANGE:
-					switch (msg.arg1)
-					{
-						case BluetoothService.STATE_CONNECTED:
-							statusView.setText("Bluetooth: connected to " + connectedDeviceName);
-							break;
-						case BluetoothService.STATE_CONNECTING:
-							statusView.setText("Bluetooth: connecting...");
-							break;
-						case BluetoothService.STATE_LISTEN:
-							statusView.setText("Bluetooth: listening");
-						case BluetoothService.STATE_NONE:
-							statusView.setText("Bluetooth: not connected");
-							break;
-					}
-					break;
-				case BluetoothService.MESSAGE_WRITE:
-					byte[] writeBuf = (byte[]) msg.obj;
-					// construct a string from the buffer
-					String writeMessage = new String(writeBuf);
-					Log.d("MACT", "write: " + writeMessage);
-					break;
-				case BluetoothService.MESSAGE_READ:
-					byte[] readBuf = (byte[]) msg.obj;
-					// construct a string from the valid bytes in the buffer
-					String readMessage = new String(readBuf, 0, msg.arg1);
-					Log.d("MACT", "read: " + readMessage);
-					break;
-				case BluetoothService.MESSAGE_DEVICE_NAME:
-					// save the connected device's name
-					connectedDeviceName = (String) msg.obj;
-					if (null != activity)
-						Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
-					break;
-				case BluetoothService.MESSAGE_TOAST:
-					if (null != activity)
-						Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
-					break;
+				switch (btService.getState())
+				{
+					case CONNECTED:
+						statusView.setText("Bluetooth: connected to " + connectedDeviceName);
+						break;
+					case CONNECTING:
+						statusView.setText("Bluetooth: connecting...");
+						break;
+					case LISTEN:
+						statusView.setText("Bluetooth: listening");
+					case NONE:
+						statusView.setText("Bluetooth: not connected");
+						break;
+				}
+			}
+			else if (msg.what == BtService.Message.WRITE.ordinal())
+			{
+				byte[] writeBuf = (byte[]) msg.obj;
+				// construct a string from the buffer
+				String writeMessage = new String(writeBuf);
+				Log.d("MACT", "write: " + writeMessage);
+			}
+			else if (msg.what == BtService.Message.READ.ordinal())
+			{
+				byte[] readBuf = (byte[]) msg.obj;
+				// construct a string from the valid bytes in the buffer
+				String readMessage = new String(readBuf, 0, msg.arg1);
+				Log.d("MACT", "read: " + readMessage);
+			}
+			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
+			{
+				connectedDeviceName = (String) msg.obj;
+				if (null != activity)
+					Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
+			}
+			else if (msg.what == BtService.Message.TOAST.ordinal())
+			{
+				if (null != activity)
+					Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
 			}
 		}
 	};
