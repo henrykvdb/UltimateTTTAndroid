@@ -32,6 +32,7 @@ import java.lang.reflect.Field;
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
 {
+	private static final String TAG = "MainActivity";
 	TextView statusView;
 
 	private static final String STATE_KEY = "game";
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity
 	}
 
 	@Override
-	public boolean onNavigationItemSelected(MenuItem item)
+	public boolean onNavigationItemSelected(@NonNull MenuItem item)
 	{
 		// Handle navigation view item clicks here.
 		int id = item.getItemId();
@@ -123,6 +124,13 @@ public class MainActivity extends AppCompatActivity
 		else if (id == R.id.nav_bluetooth)
 		{
 			pickBluetooth();
+			if (btService == null)
+			{
+				//Start btService
+				Intent intent = new Intent(this, BtService.class);
+				bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
+				startService(intent);
+			}
 		}
 
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -163,12 +171,6 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 		}
-
-		if (!isBtServiceOn)
-		{
-			stopBtService();
-			startBtService();
-		}
 	}
 
 	@Override
@@ -193,7 +195,6 @@ public class MainActivity extends AppCompatActivity
 				if (resultCode == RESULT_OK)
 				{
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
-					statusView.setText("Local: " + game.getType());
 					//btService.write("test".getBytes());
 				}
 				break;
@@ -219,12 +220,12 @@ public class MainActivity extends AppCompatActivity
 
 	BtService btService;
 	boolean isBtServiceOn;
-	protected ServiceConnection mServerConn = new ServiceConnection()
+	protected ServiceConnection btServerConn = new ServiceConnection()
 	{
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			Log.d("LOGTAG", "onServiceConnected");
+			Log.d(TAG, "onServiceConnected");
 			BtService.LocalBinder binder = (BtService.LocalBinder) service;
 			btService = binder.getService();
 			btService.setHandler(mHandler);
@@ -234,27 +235,28 @@ public class MainActivity extends AppCompatActivity
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
-			Log.d("LOGTAG", "onServiceDisconnected");
+			Log.d(TAG, "onServiceDisconnected");
+
+			try{
+
+				if (btService != null)
+					btService.stop();
+
+				stopService(new Intent(getActivity(), BtService.class));
+				unbindService(btServerConn);
+			}
+			catch (Throwable t)
+			{
+				Log.d(TAG,"Error closing btService");
+			}
+
+			//Start btService
+			Intent intent = new Intent(getActivity(), BtService.class);
+			bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
+			startService(intent);
 			isBtServiceOn = false;
 		}
 	};
-
-	public void startBtService()
-	{
-		// mContext is defined upper in code, I think it is not necessary to explain what is it
-		Intent intent = new Intent(this, BtService.class);
-		bindService(intent, mServerConn, Context.BIND_AUTO_CREATE);
-		startService(intent);
-	}
-
-	public void stopBtService()
-	{
-		if (btService != null)
-			btService.stop();
-
-		stopService(new Intent(this, BtService.class));
-		unbindService(mServerConn);
-	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
@@ -272,9 +274,8 @@ public class MainActivity extends AppCompatActivity
 		if (game != null && ! game.getState().running())
 			game.run();
 
-		if (btService != null)
-			if (btService.getState() == BtService.State.NONE)
-				btService.start();
+		if (btService != null && btService.getState() == BtService.State.NONE)
+			btService.start();
 	}
 
 	@Override
@@ -289,7 +290,12 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onDestroy();
 		closeGame();
-		stopBtService();
+
+		if (btService != null)
+			btService.stop();
+
+		stopService(new Intent(this, BtService.class));
+		unbindService(btServerConn);
 	}
 
 	private void closeGame()
@@ -332,14 +338,14 @@ public class MainActivity extends AppCompatActivity
 				byte[] writeBuf = (byte[]) msg.obj;
 				// construct a string from the buffer
 				String writeMessage = new String(writeBuf);
-				Log.d("MACT", "write: " + writeMessage);
+				Log.d(TAG, "write: " + writeMessage);
 			}
 			else if (msg.what == BtService.Message.READ.ordinal())
 			{
 				byte[] readBuf = (byte[]) msg.obj;
 				// construct a string from the valid bytes in the buffer
 				String readMessage = new String(readBuf, 0, msg.arg1);
-				Log.d("MACT", "read: " + readMessage);
+				Log.d(TAG, "read: " + readMessage);
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{

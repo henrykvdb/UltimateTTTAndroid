@@ -23,7 +23,7 @@ public class BtService extends Service
 	private static final String TAG = "BluetoothService";
 
 	// Unique UUID for this application
-	private static final UUID UUID = java.util.UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+	private static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
 	// Member fields
 	private BluetoothAdapter mAdapter;
@@ -119,11 +119,6 @@ public class BtService extends Service
 		{
 			mSecureAcceptThread = new AcceptThread();
 			mSecureAcceptThread.start();
-		}
-		if (mInsecureAcceptThread == null)
-		{
-			mInsecureAcceptThread = new AcceptThread();
-			mInsecureAcceptThread.start();
 		}
 		mHandler.obtainMessage(Message.STATE_CHANGE.ordinal(), -1, -1).sendToTarget();
 	}

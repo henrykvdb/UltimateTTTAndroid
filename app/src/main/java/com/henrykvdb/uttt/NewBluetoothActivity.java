@@ -43,7 +43,6 @@ public class NewBluetoothActivity extends Activity
 	 * Newly discovered devices
 	 */
 	private ArrayAdapter<String> mNewDevicesArrayAdapter;
-	private Button scanButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -59,11 +58,11 @@ public class NewBluetoothActivity extends Activity
 
 		radioHost = (RadioButton) findViewById(R.id.radio_host);
 		checkBoxVisible = (CheckBox) findViewById(R.id.checkBox_visible);
-		scanButton = (Button) findViewById(R.id.button_scan);
 		layoutHost = (LinearLayout) findViewById(R.id.layout_host);
 		layoutJoin = (LinearLayout) findViewById(R.id.layout_join);
 
 		// Initialize the button to perform device discovery
+		Button scanButton = (Button) findViewById(R.id.button_scan);
 		scanButton.setOnClickListener(v -> {
 			doDiscovery();
 			v.setVisibility(View.GONE);
