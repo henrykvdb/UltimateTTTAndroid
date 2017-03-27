@@ -112,14 +112,11 @@ public class NewBluetoothActivity extends Activity
 		{
 			findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
 			for (BluetoothDevice device : pairedDevices)
-			{
 				pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-			}
 		}
 		else
 		{
-			String noDevices = getResources().getText(R.string.none_paired).toString();
-			pairedDevicesArrayAdapter.add(noDevices);
+			pairedDevicesArrayAdapter.add(getResources().getText(R.string.none_paired).toString());
 		}
 	}
 
@@ -130,9 +127,7 @@ public class NewBluetoothActivity extends Activity
 
 		// Make sure we're not doing discovery anymore
 		if (mBtAdapter != null)
-		{
 			mBtAdapter.cancelDiscovery();
-		}
 
 		// Unregister broadcast listeners
 		this.unregisterReceiver(mReceiver);
