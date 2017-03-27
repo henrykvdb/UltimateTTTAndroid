@@ -351,20 +351,16 @@ public class MainActivity extends AppCompatActivity
 
 			if (msg.what == BtService.Message.STATE_CHANGE.ordinal())
 			{
-				switch (btService.getState())
-				{
-					case CONNECTED:
-						statusView.setText("Bluetooth: connected to " + connectedDeviceName);
-						break;
-					case CONNECTING:
-						statusView.setText("Bluetooth: connecting...");
-						break;
-					case LISTEN:
-						statusView.setText("Bluetooth: listening");
-					case NONE:
-						statusView.setText("Bluetooth: not connected");
-						break;
-				}
+				BtService.State state = (BtService.State) msg.getData().getSerializable(BtService.STATE);
+
+				if (state== BtService.State.CONNECTED)
+					statusView.setText("Bluetooth: connected to " + connectedDeviceName);
+				else if (state == BtService.State.CONNECTING)
+					statusView.setText("Bluetooth: connecting...");
+				else if (state == BtService.State.LISTEN)
+					statusView.setText("Bluetooth: listening");
+				else if (state == BtService.State.NONE)
+					statusView.setText("Bluetooth: not connected");
 			}
 			else if (msg.what == BtService.Message.WRITE.ordinal())
 			{

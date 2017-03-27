@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -23,6 +24,7 @@ public class BtService extends Service
 
 	// Unique UUID for this application
 	private static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
+	public static final String STATE = "STATE";
 
 	// Member fields
 	private BluetoothAdapter mAdapter;
@@ -89,7 +91,13 @@ public class BtService extends Service
 	public void setState(State newState)
 	{
 		state = newState;
-		handler.obtainMessage(Message.STATE_CHANGE.ordinal(), - 1, - 1).sendToTarget();
+		//handler.obtainMessage(Message.STATE_CHANGE.ordinal(), - 1, - 1).sendToTarget();
+
+		android.os.Message msg = handler.obtainMessage(Message.STATE_CHANGE.ordinal());
+		Bundle bundle = new Bundle();
+		bundle.putSerializable(STATE, state);
+		msg.setData(bundle);
+		handler.sendMessage(msg);
 	}
 
 	public synchronized State getState()
