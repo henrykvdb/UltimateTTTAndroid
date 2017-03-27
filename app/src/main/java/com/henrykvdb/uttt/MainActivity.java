@@ -3,9 +3,11 @@ package com.henrykvdb.uttt;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -44,13 +46,23 @@ public class MainActivity extends AppCompatActivity
 
 	private static final int REQUEST_ENABLE_BT = 200;
 	private static final int REQUEST_COARSE_LOCATION = 201;
+	private BluetoothAdapter btAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		//Prepare gui and bluetooth
 		initGui();
+
+		//Automatically start/close btService when you enable/disable bt
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+
+		//Start btService if bt is on
+		startBtService();
 
 		if (savedInstanceState != null)
 		{
@@ -59,9 +71,10 @@ public class MainActivity extends AppCompatActivity
 		}
 		else
 		{
-			closeGame();
+			//Create local 1v1 game
 			AndroidBot androidBot = new AndroidBot();
 			game = Game.newGame((BoardView) findViewById(R.id.boardView), androidBot, androidBot);
+			statusView.setText("Local: " + game.getType());
 		}
 	}
 
@@ -124,53 +137,11 @@ public class MainActivity extends AppCompatActivity
 		else if (id == R.id.nav_bluetooth)
 		{
 			pickBluetooth();
-			if (btService == null)
-			{
-				//Start btService
-				Intent intent = new Intent(this, BtService.class);
-				bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
-				startService(intent);
-			}
 		}
 
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		drawer.closeDrawer(GravityCompat.START);
 		return true;
-	}
-
-	private void pickBluetooth()
-	{
-		// Get local Bluetooth adapter
-		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-		// If the adapter is null, then Bluetooth is not supported
-		if (mBluetoothAdapter == null)
-			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-		else
-		{
-			// If BT is not on, request that it be enabled first.
-			if (! mBluetoothAdapter.isEnabled())
-			{
-				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-			}
-			else
-			{
-				//If we don't have the COARSE LOCATION permission, request it
-				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
-						PackageManager.PERMISSION_GRANTED)
-				{
-					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-							REQUEST_COARSE_LOCATION);
-				}
-				else
-				{
-					//Make the bluetooth-picker activity
-					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
-					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
-				}
-			}
-		}
 	}
 
 	@Override
@@ -218,8 +189,60 @@ public class MainActivity extends AppCompatActivity
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
+	private void pickBluetooth()
+	{
+		// If the adapter is null, then Bluetooth is not supported
+		if (btAdapter == null)
+			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+		else
+		{
+			// If BT is not on, request that it be enabled first.
+			if (! btAdapter.isEnabled())
+			{
+				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+			}
+			else
+			{
+				//If we don't have the COARSE LOCATION permission, request it
+				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+						PackageManager.PERMISSION_GRANTED)
+				{
+					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+							REQUEST_COARSE_LOCATION);
+				}
+				else
+				{
+					startBtService();
+
+					//Make the bluetooth-picker activity
+					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
+					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
+				}
+			}
+		}
+	}
+
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+
+			String action = intent.getAction();
+
+			// It means the user has changed his bluetooth state.
+			if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED))
+			{
+				if (btAdapter.getState() == BluetoothAdapter.STATE_ON)
+					startBtService();
+				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
+					closeBtService();
+			}
+		}
+	};
+
 	BtService btService;
-	boolean isBtServiceOn;
 	protected ServiceConnection btServerConn = new ServiceConnection()
 	{
 		@Override
@@ -228,8 +251,10 @@ public class MainActivity extends AppCompatActivity
 			Log.d(TAG, "onServiceConnected");
 			BtService.LocalBinder binder = (BtService.LocalBinder) service;
 			btService = binder.getService();
-			btService.setHandler(mHandler);
-			isBtServiceOn = true;
+
+			//Give the service a handler and start
+			btService.setHandler(btHandler);
+			btService.start();
 		}
 
 		@Override
@@ -237,24 +262,8 @@ public class MainActivity extends AppCompatActivity
 		{
 			Log.d(TAG, "onServiceDisconnected");
 
-			try{
-
-				if (btService != null)
-					btService.stop();
-
-				stopService(new Intent(getActivity(), BtService.class));
-				unbindService(btServerConn);
-			}
-			catch (Throwable t)
-			{
-				Log.d(TAG,"Error closing btService");
-			}
-
-			//Start btService
-			Intent intent = new Intent(getActivity(), BtService.class);
-			bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
-			startService(intent);
-			isBtServiceOn = false;
+			closeBtService();
+			startBtService();
 		}
 	};
 
@@ -273,9 +282,6 @@ public class MainActivity extends AppCompatActivity
 
 		if (game != null && ! game.getState().running())
 			game.run();
-
-		if (btService != null && btService.getState() == BtService.State.NONE)
-			btService.start();
 	}
 
 	@Override
@@ -290,12 +296,8 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onDestroy();
 		closeGame();
-
-		if (btService != null)
-			btService.stop();
-
-		stopService(new Intent(this, BtService.class));
-		unbindService(btServerConn);
+		closeBtService();
+		unregisterReceiver(btStateReceiver);
 	}
 
 	private void closeGame()
@@ -304,10 +306,41 @@ public class MainActivity extends AppCompatActivity
 			game.close();
 	}
 
+	private void closeBtService()
+	{
+		try
+		{
+
+			if (btService != null)
+				btService.stop();
+
+			stopService(new Intent(getActivity(), BtService.class));
+			unbindService(btServerConn);
+			btService = null;
+		}
+		catch (Throwable t)
+		{
+			Log.d(TAG, "Error closing btService");
+		}
+	}
+
+	private void startBtService()
+	{
+		if (btAdapter!=null)
+		{
+			if (btService == null && btAdapter.isEnabled())
+			{
+				Intent intent = new Intent(getActivity(), BtService.class);
+				bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
+				startService(intent);
+			}
+		}
+	}
+
 	/**
 	 * The Handler that gets information back from the BluetoothService
 	 */
-	private final Handler mHandler = new Handler()
+	private final Handler btHandler = new Handler()
 	{
 		String connectedDeviceName;
 
