@@ -25,7 +25,7 @@ public class BoardView extends View implements Serializable
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
-	private AndroidBot ab;
+	private WaitBot ab;
 	private Paint paint;
 
 	private float macroSizeFull;
@@ -87,7 +87,7 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setAndroidBot(AndroidBot ab)
+	public void setAndroidBot(WaitBot ab)
 	{
 		this.ab = ab;
 	}
