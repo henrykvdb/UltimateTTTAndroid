@@ -28,31 +28,37 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.flaghacker.uttt.common.Board;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
 {
 	private static final String TAG = "MainActivity";
-	TextView statusView;
-
 	private static final String STATE_KEY = "game";
 
 	private Game game;
+	private boolean btGame;
+
+	private TextView statusView;
 
 	private static final int REQUEST_NEW_LOCAL = 100;
 	private static final int REQUEST_NEW_BLUETOOTH = 101;
 
 	private static final int REQUEST_ENABLE_BT = 200;
 	private static final int REQUEST_COARSE_LOCATION = 201;
+
 	private BluetoothAdapter btAdapter;
+	private BoardView boardView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		boardView = (BoardView) findViewById(R.id.boardView);
 
 		//Prepare gui and bluetooth
 		initGui();
@@ -67,14 +73,37 @@ public class MainActivity extends AppCompatActivity
 		if (savedInstanceState != null)
 		{
 			GameState state = (GameState) savedInstanceState.getSerializable(STATE_KEY);
-			game = new Game(state, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+			game = new Game(state, boardView, new WaitBot());
+
+			//Switch the secondary bot out for a btBot if it is a bluetooth game
+			updateBtGame();
 		}
 		else
 		{
-			//Create local 1v1 game
-			AndroidBot androidBot = new AndroidBot();
-			game = Game.newGame((BoardView) findViewById(R.id.boardView), androidBot, androidBot);
+			//Create local 1v1 Game
+			WaitBot androidBot = new WaitBot();
+			game = Game.newGame(boardView, androidBot, androidBot);
 			statusView.setText("Local: " + game.getType());
+		}
+	}
+
+	private void updateBtGame()
+	{
+		if (game != null)
+		{
+			game.close();
+			GameState gs = game.getState();
+			boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
+
+			WaitBot aBot = new WaitBot(btGame ?btHandler:null);
+			WaitBot btBot = new WaitBot(btGame ?btHandler:null);
+
+			boardView.setAndroidBot(aBot);
+			btService.setBtBot(btBot);
+
+			gs.setBots(Arrays.asList(aBot, btGame?btBot:(isOtherWaitBot ?aBot:gs.bots().get(1))));
+
+			game = new Game(gs,boardView);
 		}
 	}
 
@@ -158,7 +187,9 @@ public class MainActivity extends AppCompatActivity
 				{
 					closeGame();
 					GameState gs = (GameState) data.getSerializableExtra("GameState");
-					game = Game.newGame(gs, (BoardView) findViewById(R.id.boardView), new AndroidBot());
+
+					btGame = false;
+					game = new Game(gs, boardView, new WaitBot());
 					statusView.setText("Local: " + game.getType());
 				}
 				break;
@@ -166,7 +197,7 @@ public class MainActivity extends AppCompatActivity
 				if (resultCode == RESULT_OK)
 				{
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
-					//btService.write("test".getBytes());
+					//btService.boardUpdate("test".getBytes());
 				}
 				break;
 		}
@@ -317,6 +348,8 @@ public class MainActivity extends AppCompatActivity
 			stopService(new Intent(getActivity(), BtService.class));
 			unbindService(btServerConn);
 			btService = null;
+			btGame=false;
+			updateBtGame();
 		}
 		catch (Throwable t)
 		{
@@ -326,7 +359,7 @@ public class MainActivity extends AppCompatActivity
 
 	private void startBtService()
 	{
-		if (btAdapter!=null)
+		if (btAdapter != null)
 		{
 			if (btService == null && btAdapter.isEnabled())
 			{
@@ -353,7 +386,7 @@ public class MainActivity extends AppCompatActivity
 			{
 				BtService.State state = (BtService.State) msg.getData().getSerializable(BtService.STATE);
 
-				if (state== BtService.State.CONNECTED)
+				if (state == BtService.State.CONNECTED)
 					statusView.setText("Bluetooth: connected to " + connectedDeviceName);
 				else if (state == BtService.State.CONNECTING)
 					statusView.setText("Bluetooth: connecting...");
@@ -362,19 +395,56 @@ public class MainActivity extends AppCompatActivity
 				else if (state == BtService.State.NONE)
 					statusView.setText("Bluetooth: not connected");
 			}
-			else if (msg.what == BtService.Message.WRITE.ordinal())
+			else if (msg.what == BtService.Message.SEND_BOARD_UPDATE.ordinal())
 			{
-				byte[] writeBuf = (byte[]) msg.obj;
-				// construct a string from the buffer
-				String writeMessage = new String(writeBuf);
-				Log.d(TAG, "write: " + writeMessage);
+				Board board = (Board) msg.getData().getSerializable("myBoard");
+
+				if (btService != null)
+					btService.writePlay(board);
+
+				Log.d(TAG, "boardUpdate: " + board.getLastMove());
 			}
-			else if (msg.what == BtService.Message.READ.ordinal())
+			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 			{
-				byte[] readBuf = (byte[]) msg.obj;
-				// construct a string from the valid bytes in the buffer
-				String readMessage = new String(readBuf, 0, msg.arg1);
-				Log.d(TAG, "read: " + readMessage);
+				btGame=true;
+				updateBtGame();
+
+				if (btService != null)
+					btService.writeSetup(game.getState());
+
+				Log.d(TAG, "SEND ENEMY REQUEST TO UPDATE BOARD");
+			}
+			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
+			{
+				closeGame();
+				btGame=true;
+
+				Bundle data = msg.getData();
+				boolean swapped = data.getBoolean("swapped");
+				Board board = (Board) data.getSerializable("board");
+
+				//Make a state with wrong bots
+				WaitBot aBot = new WaitBot(btHandler);
+				WaitBot btBot = new WaitBot();
+
+				boardView.setAndroidBot(aBot);
+				btService.setBtBot(btBot);
+
+				GameState gs = new GameState(Arrays.asList(btBot, aBot), swapped, false, board);
+				game = new Game(gs, boardView);
+				Log.d(TAG, "RECEIVED BOARD");
+
+				//Make a state with wrong bots
+				//WaitBot aBot = new WaitBot();
+				//WaitBot btBot = new WaitBot(btHandler);
+				//btService.setBtBot(btBot);
+				//GameState gs = new GameState(Arrays.asList(aBot, btBot), swapped, false, board);
+				//game = new Game(gs, boardView, btBot);
+				//Log.d(TAG, "RECEIVED BOARD");
+
+				//Fix the bots
+				//updateBtGame();
+
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{

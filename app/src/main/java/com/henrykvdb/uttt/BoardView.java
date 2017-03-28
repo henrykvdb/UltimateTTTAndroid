@@ -23,7 +23,7 @@ public class BoardView extends View implements Serializable
 	private static final long serialVersionUID = -6067519139638476047L;
 	private Board board;
 	private Settings settings;
-	private AndroidBot ab;
+	private WaitBot ab;
 	private Paint paint;
 
 	private float macroSizeFull;
@@ -82,7 +82,7 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setAndroidBot(AndroidBot ab)
+	public void setAndroidBot(WaitBot ab)
 	{
 		this.ab = ab;
 	}

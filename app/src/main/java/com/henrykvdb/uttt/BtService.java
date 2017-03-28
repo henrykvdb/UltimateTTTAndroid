@@ -11,6 +11,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import com.flaghacker.uttt.common.Board;
+import com.flaghacker.uttt.common.Coord;
+import com.flaghacker.uttt.common.JSONBoard;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,19 +24,22 @@ import java.util.UUID;
 
 public class BtService extends Service
 {
-	// Debugging
-	private static final String TAG = "BluetoothService";
-
 	// Unique UUID for this application
 	private static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
+	private static final String TAG = "BluetoothService";
 	public static final String STATE = "STATE";
 
 	// Member fields
 	private BluetoothAdapter mAdapter;
 	private Handler handler = null;
+	private WaitBot btBot = null;
+
+	//Threads
 	private AcceptThread acceptThread;
 	private ConnectThread connectThread;
 	private ConnectedThread connectedThread;
+
+	//State stuff
 	private State state = State.NONE;
 
 	public enum State
@@ -45,8 +53,9 @@ public class BtService extends Service
 	public enum Message
 	{
 		STATE_CHANGE,
-		READ,
-		WRITE,
+		SEND_BOARD_UPDATE,
+		SEND_SETUP,
+		RECEIVE_SETUP,
 		TOAST,
 		DEVICE_NAME
 	}
@@ -86,6 +95,11 @@ public class BtService extends Service
 	{
 		this.handler = handler;
 		setState(State.NONE);
+	}
+
+	public void setBtBot(WaitBot btBot)
+	{
+		this.btBot = btBot;
 	}
 
 	public void setState(State newState)
@@ -168,7 +182,7 @@ public class BtService extends Service
 	 * @param socket The BluetoothSocket on which the connection was made
 	 * @param device The BluetoothDevice that has been connected
 	 */
-	public synchronized void connected(BluetoothSocket socket, BluetoothDevice device)
+	public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, boolean isHost)
 	{
 		Log.d(TAG, "connected");
 
@@ -196,6 +210,9 @@ public class BtService extends Service
 		// Start the thread to manage the connection and perform transmissions
 		connectedThread = new ConnectedThread(socket);
 		connectedThread.start();
+
+		if (! isHost)
+			handler.obtainMessage(Message.SEND_SETUP.ordinal(), - 1, - 1).sendToTarget();
 	}
 
 	/**
@@ -229,10 +246,10 @@ public class BtService extends Service
 	/**
 	 * Write to the ConnectedThread in an unsynchronized manner
 	 *
-	 * @param out The bytes to write
-	 * @see ConnectedThread#write(byte[])
+	 * @param //out The bytes to boardUpdate //TODO
+	 * @see ConnectedThread#boardUpdate(Board)
 	 */
-	public void write(byte[] out)
+	public void writePlay(Board board)//byte[] out)
 	{
 		// Create temporary object
 		ConnectedThread r;
@@ -242,8 +259,29 @@ public class BtService extends Service
 			if (state != State.CONNECTED) return;
 			r = connectedThread;
 		}
-		// Perform the write unsynchronized
-		r.write(out);
+
+		r.boardUpdate(board);
+		// Perform the boardUpdate unsynchronized
+		//if (out.length > 0)
+		//	r.boardUpdate(out);
+	}
+
+	public void writeSetup(GameState gs)
+	{
+
+		// Create temporary object
+		ConnectedThread r;
+		// Synchronize a copy of the ConnectedThread
+		synchronized (this)
+		{
+			if (state != State.CONNECTED) return;
+			r = connectedThread;
+		}
+
+		r.setupEnemyGame(gs.board(), gs.swapped());
+		// Perform the boardUpdate unsynchronized
+		//if (out.length > 0)
+		//	r.boardUpdate(out);
 	}
 
 	/**
@@ -331,7 +369,7 @@ public class BtService extends Service
 							case LISTEN:
 							case CONNECTING:
 								// Situation normal. Start the connected thread.
-								connected(socket, socket.getRemoteDevice());
+								connected(socket, socket.getRemoteDevice(), true);
 								break;
 							case NONE:
 							case CONNECTED:
@@ -435,7 +473,7 @@ public class BtService extends Service
 			}
 
 			// Start the connected thread
-			connected(mmSocket, mmDevice);
+			connected(mmSocket, mmDevice, false);
 		}
 
 		public void cancel()
@@ -459,6 +497,8 @@ public class BtService extends Service
 		private final BluetoothSocket mmSocket;
 		private final InputStream mmInStream;
 		private final OutputStream mmOutStream;
+
+		private Board localBoard;
 
 		public ConnectedThread(BluetoothSocket socket)
 		{
@@ -498,8 +538,60 @@ public class BtService extends Service
 					// Read from the InputStream
 					bytes = mmInStream.read(buffer);
 
+					JSONObject json = new JSONObject(new String(buffer));
+
+					int message = json.getInt("message");
+					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
+
+					if (message == Message.SEND_BOARD_UPDATE.ordinal())
+					{
+						Coord newMove = newBoard.getLastMove();
+						//Test if it is a valid move
+
+						Board verifyBoard = localBoard.copy();
+						if (verifyBoard.equals(newBoard))
+						{
+							Log.d(TAG, "We received our own board, this is normal");
+						}
+						else
+						{
+							verifyBoard.play(newMove);
+							if (verifyBoard.equals(newBoard))
+							{
+								Log.d(TAG, "We received a good board");
+								//Received valid board
+								if (btBot != null)
+									btBot.play(newMove);
+								else
+									Log.d(TAG, "BTBOT WAS NULL :(");
+							}
+							else
+							{
+								Log.e(TAG, "Wrong board");
+								//Received invalid board
+							}
+						}
+					}
+					else if (message == Message.RECEIVE_SETUP.ordinal())
+					{
+						android.os.Message msg = handler.obtainMessage(Message.RECEIVE_SETUP.ordinal());
+						Bundle bundle = new Bundle();
+
+						bundle.putBoolean("swapped", json.getBoolean("swapped"));
+						bundle.putSerializable("board", JSONBoard.fromJSON(new JSONObject(json.getString("board"))));
+
+						msg.setData(bundle);
+						handler.sendMessage(msg);
+					}
+
+					//boolean swapped = (boolean) json.get("swapped");
+					//Board newBoard = (Board) json.get("board");
+
+					//Get enemy move
+
+
 					// Send the obtained bytes to the UI Activity
-					handler.obtainMessage(BtService.Message.READ.ordinal(), bytes, - 1, buffer).sendToTarget();
+					//handler.obtainMessage(BtService.Message.READ.ordinal(), bytes, - 1, buffer).sendToTarget();
 				}
 				catch (IOException e)
 				{
@@ -507,26 +599,73 @@ public class BtService extends Service
 					connectionLost();
 					break;
 				}
+				catch (JSONException e)
+				{
+					Log.e(TAG, "JSON read parsing failed");
+					e.printStackTrace();
+				}
 			}
 		}
 
 		/**
 		 * Write to the connected OutStream.
 		 *
-		 * @param buffer The bytes to write
+		 * @param //buffer The bytes to boardUpdate//TODO
 		 */
-		public void write(byte[] buffer)
+		public void boardUpdate(Board board)
 		{
 			try
 			{
-				mmOutStream.write(buffer);
+				localBoard = board;
 
-				// Share the sent message back to the UI Activity
-				handler.obtainMessage(BtService.Message.WRITE.ordinal(), - 1, - 1, buffer).sendToTarget();
+				JSONObject json = new JSONObject();
+				try
+				{
+					json.put("message", Message.SEND_BOARD_UPDATE.ordinal());
+					json.put("board", JSONBoard.toJSON(board).toString());
+				}
+				catch (JSONException e)
+				{
+					e.printStackTrace();
+				}
+
+				byte[] data = json.toString().getBytes();
+
+				//byte[] data = JSONBoard.toJSON(board).toString().getBytes();
+
+				mmOutStream.write(data);
 			}
 			catch (IOException e)
 			{
-				Log.e(TAG, "Exception during write", e);
+				Log.e(TAG, "Exception during boardUpdate", e);
+			}
+		}
+
+		public void setupEnemyGame(Board board, boolean swapped)
+		{
+			try
+			{
+				localBoard = board;
+
+				JSONObject json = new JSONObject();
+				try
+				{
+					json.put("message", Message.RECEIVE_SETUP.ordinal());
+					json.put("swapped", swapped);
+					json.put("board", JSONBoard.toJSON(board).toString());
+				}
+				catch (JSONException e)
+				{
+					e.printStackTrace();
+				}
+
+				byte[] data = json.toString().getBytes();
+
+				mmOutStream.write(data);
+			}
+			catch (IOException e)
+			{
+				Log.e(TAG, "Exception during boardUpdate", e);
 			}
 		}
 

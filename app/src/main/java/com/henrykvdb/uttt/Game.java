@@ -28,26 +28,32 @@ public class Game implements Closeable
 	{
 		GameState state = new GameState(Collections.unmodifiableList(Arrays.asList(p1, p2)), true);
 
-		return new Game(state, boardView, new AndroidBot());
+		return new Game(state, boardView, new WaitBot());
 	}
 
-	public static Game newGame(GameState state, BoardView boardView, AndroidBot androidBot)
-	{
-		return new Game(state, boardView, androidBot);
-	}
-
-	public Game(GameState state, BoardView boardView, AndroidBot androidBot)
+	public Game(GameState state, BoardView boardView, WaitBot waitBot)
 	{
 		this.boardView = boardView;
 		this.state = state;
 
 		//Replace androidBots
-		Bot p1 = (state.bots().get(0).getClass().equals(AndroidBot.class)) ? androidBot : state.bots().get(0);
-		Bot p2 = (state.bots().get(1).getClass().equals(AndroidBot.class)) ? androidBot : state.bots().get(1);
+		Bot p1 = (state.bots().get(0).getClass().equals(WaitBot.class)) ? waitBot : state.bots().get(0);
+		Bot p2 = (state.bots().get(1).getClass().equals(WaitBot.class)) ? waitBot : state.bots().get(1);
 		state.setBots(Collections.unmodifiableList(Arrays.asList(p1, p2)));
 
 		//Set up BoardView
-		boardView.setAndroidBot(androidBot);
+		boardView.setAndroidBot(waitBot);
+		boardView.setBoard(state.board());
+
+		//Start the tread
+		es = Executors.newSingleThreadExecutor();
+		run();
+	}
+
+	public Game(GameState state, BoardView boardView)
+	{
+		this.state = state;
+		this.boardView = boardView;
 		boardView.setBoard(state.board());
 
 		//Start the tread
@@ -69,11 +75,8 @@ public class Game implements Closeable
 				Bot p1 = state.bots().get(state.swapped() ? 1 : 0);
 				Bot p2 = state.bots().get(state.swapped() ? 0 : 1);
 
-				int nextRound = 0;
 				while (!state.board().isDone() && state.running())
 				{
-					prints("Round #" + nextRound++);
-
 					if (state.board().nextPlayer() == PLAYER && state.running())
 						play(p1);
 
@@ -133,8 +136,8 @@ public class Game implements Closeable
 
 	public String getType()
 	{
-		if (state.bots().get(0).getClass().equals(AndroidBot.class)
-				&& state.bots().get(1).getClass().equals(AndroidBot.class))
+		if (state.bots().get(0).getClass().equals(WaitBot.class)
+				&& state.bots().get(1).getClass().equals(WaitBot.class))
 			return "1v1";
 		else
 			return "against AI";

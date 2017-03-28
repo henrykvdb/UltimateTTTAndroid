@@ -12,7 +12,6 @@ import android.widget.RadioButton;
 import com.flaghacker.uttt.bots.RandomBot;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 public class NewLocalActivity extends Activity
 {
@@ -43,10 +42,9 @@ public class NewLocalActivity extends Activity
 			// Create the result Intent and include game settings
 			Intent intent = new Intent();
 
-			AndroidBot ab = new AndroidBot();
+			WaitBot ab = new WaitBot();
 			intent.putExtra("GameState",
-					new GameState(Collections.unmodifiableList(Arrays.asList(
-							ab, radio_ai.isChecked() ?new RandomBot():ab))
+					new GameState(Arrays.asList(ab, radio_ai.isChecked() ?new RandomBot():ab)
 							, shuffleCheckBox.isChecked()&&radio_ai.isChecked()));
 
 			// Set result and finish this Activity
