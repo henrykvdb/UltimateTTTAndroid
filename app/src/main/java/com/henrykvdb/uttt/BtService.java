@@ -245,33 +245,26 @@ public class BtService extends Service
 
 	/**
 	 * Write to the ConnectedThread in an unsynchronized manner
-	 *
-	 * @param //out The bytes to boardUpdate //TODO
-	 * @see ConnectedThread#boardUpdate(Board)
 	 */
-	public void writePlay(Board board)//byte[] out)
+	public void sendBoard(Board board)//byte[] out)
 	{
-		// Create temporary object
 		ConnectedThread r;
-		// Synchronize a copy of the ConnectedThread
 		synchronized (this)
 		{
 			if (state != State.CONNECTED) return;
 			r = connectedThread;
 		}
 
-		r.boardUpdate(board);
-		// Perform the boardUpdate unsynchronized
-		//if (out.length > 0)
-		//	r.boardUpdate(out);
+		if (board != null)
+			r.boardUpdate(board);
 	}
 
-	public void writeSetup(GameState gs)
+	/**
+	 * Write to the ConnectedThread in an unsynchronized manner
+	 */
+	public void sendState(GameState gs)
 	{
-
-		// Create temporary object
 		ConnectedThread r;
-		// Synchronize a copy of the ConnectedThread
 		synchronized (this)
 		{
 			if (state != State.CONNECTED) return;
@@ -279,9 +272,6 @@ public class BtService extends Service
 		}
 
 		r.setupEnemyGame(gs.board(), gs.swapped());
-		// Perform the boardUpdate unsynchronized
-		//if (out.length > 0)
-		//	r.boardUpdate(out);
 	}
 
 	/**
@@ -577,21 +567,15 @@ public class BtService extends Service
 						android.os.Message msg = handler.obtainMessage(Message.RECEIVE_SETUP.ordinal());
 						Bundle bundle = new Bundle();
 
+						Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
+						localBoard = board;
+
 						bundle.putBoolean("swapped", json.getBoolean("swapped"));
-						bundle.putSerializable("board", JSONBoard.fromJSON(new JSONObject(json.getString("board"))));
+						bundle.putSerializable("board", board);
 
 						msg.setData(bundle);
 						handler.sendMessage(msg);
 					}
-
-					//boolean swapped = (boolean) json.get("swapped");
-					//Board newBoard = (Board) json.get("board");
-
-					//Get enemy move
-
-
-					// Send the obtained bytes to the UI Activity
-					//handler.obtainMessage(BtService.Message.READ.ordinal(), bytes, - 1, buffer).sendToTarget();
 				}
 				catch (IOException e)
 				{
@@ -630,8 +614,6 @@ public class BtService extends Service
 				}
 
 				byte[] data = json.toString().getBytes();
-
-				//byte[] data = JSONBoard.toJSON(board).toString().getBytes();
 
 				mmOutStream.write(data);
 			}

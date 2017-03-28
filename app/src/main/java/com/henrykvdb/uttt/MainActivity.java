@@ -95,15 +95,15 @@ public class MainActivity extends AppCompatActivity
 			GameState gs = game.getState();
 			boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
 
-			WaitBot aBot = new WaitBot(btGame ?btHandler:null);
-			WaitBot btBot = new WaitBot(btGame ?btHandler:null);
+			WaitBot aBot = new WaitBot(btGame ? btHandler : null);
+			WaitBot btBot = new WaitBot(btGame ? btHandler : null);
 
 			boardView.setAndroidBot(aBot);
 			btService.setBtBot(btBot);
 
-			gs.setBots(Arrays.asList(aBot, btGame?btBot:(isOtherWaitBot ?aBot:gs.bots().get(1))));
+			gs.setBots(Arrays.asList(aBot, btGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
 
-			game = new Game(gs,boardView);
+			game = new Game(gs, boardView);
 		}
 	}
 
@@ -195,10 +195,7 @@ public class MainActivity extends AppCompatActivity
 				break;
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
-				{
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
-					//btService.boardUpdate("test".getBytes());
-				}
 				break;
 		}
 
@@ -348,7 +345,7 @@ public class MainActivity extends AppCompatActivity
 			stopService(new Intent(getActivity(), BtService.class));
 			unbindService(btServerConn);
 			btService = null;
-			btGame=false;
+			btGame = false;
 			updateBtGame();
 		}
 		catch (Throwable t)
@@ -400,24 +397,24 @@ public class MainActivity extends AppCompatActivity
 				Board board = (Board) msg.getData().getSerializable("myBoard");
 
 				if (btService != null)
-					btService.writePlay(board);
+					btService.sendBoard(board);
 
 				Log.d(TAG, "boardUpdate: " + board.getLastMove());
 			}
 			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 			{
-				btGame=true;
+				btGame = true;
 				updateBtGame();
 
 				if (btService != null)
-					btService.writeSetup(game.getState());
+					btService.sendState(game.getState());
 
 				Log.d(TAG, "SEND ENEMY REQUEST TO UPDATE BOARD");
 			}
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
 				closeGame();
-				btGame=true;
+				btGame = true;
 
 				Bundle data = msg.getData();
 				boolean swapped = data.getBoolean("swapped");
@@ -432,19 +429,6 @@ public class MainActivity extends AppCompatActivity
 
 				GameState gs = new GameState(Arrays.asList(btBot, aBot), swapped, false, board);
 				game = new Game(gs, boardView);
-				Log.d(TAG, "RECEIVED BOARD");
-
-				//Make a state with wrong bots
-				//WaitBot aBot = new WaitBot();
-				//WaitBot btBot = new WaitBot(btHandler);
-				//btService.setBtBot(btBot);
-				//GameState gs = new GameState(Arrays.asList(aBot, btBot), swapped, false, board);
-				//game = new Game(gs, boardView, btBot);
-				//Log.d(TAG, "RECEIVED BOARD");
-
-				//Fix the bots
-				//updateBtGame();
-
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{
