@@ -159,11 +159,11 @@ public class BoardView extends View implements Serializable
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.lastMoveColor()
+				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.xColorLast()
 								: (finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker())),
 						tileSymbolStroke, xBorder);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.lastMoveColor()
+				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.oColorLast()
 								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
 						tileSymbolStroke, oBorder);
 

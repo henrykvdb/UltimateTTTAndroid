@@ -4,14 +4,17 @@ import android.graphics.Color;
 
 public class DrawSettings
 {
-	//ENEMY & PLAYER settings
+	//PLAYER settings (X)
 	private int xColor = Color.BLUE;
 	private int xColorDarker = Color.rgb(0, 0, 230);
 	private int xColorDarkest = Color.rgb(0, 0, 200);
+	private int xColorLast = Color.rgb(75, 155, 255);
+
+	//ENEMY settings (O)
 	private int oColor = Color.RED;
 	private int oColorDarker = Color.rgb(230, 0, 0);
 	private int oColorDarkest = Color.rgb(200, 0, 0);
-	private int lastMoveColor = Color.rgb(255,0,255);
+	private int oColorLast = Color.rgb(255, 155, 75);
 
 	//Symbol stroke width
 	private float tileSymbolStroke = 16f / 984;
@@ -63,6 +66,16 @@ public class DrawSettings
 		this.xColorDarkest = xColorDarkest;
 	}
 
+	public int xColorLast()
+	{
+		return xColorLast;
+	}
+
+	public void setxColorLast(int xColorLast)
+	{
+		this.xColorLast = xColorLast;
+	}
+
 	public int oColor()
 	{
 		return oColor;
@@ -91,6 +104,16 @@ public class DrawSettings
 	public void setoColorDarkest(int oColorDarkest)
 	{
 		this.oColorDarkest = oColorDarkest;
+	}
+
+	public int oColorLast()
+	{
+		return oColorLast;
+	}
+
+	public void setoColorLast(int oColorLast)
+	{
+		this.oColorLast = oColorLast;
 	}
 
 	public float tileSymbolStroke()
@@ -211,15 +234,5 @@ public class DrawSettings
 	public void setBorderO(float borderO)
 	{
 		this.borderO = borderO;
-	}
-
-	public int lastMoveColor()
-	{
-		return lastMoveColor;
-	}
-
-	public void setLastMoveColor(int lastMoveColor)
-	{
-		this.lastMoveColor = lastMoveColor;
 	}
 }
