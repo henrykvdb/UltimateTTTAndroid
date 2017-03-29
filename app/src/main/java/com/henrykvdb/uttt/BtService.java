@@ -56,7 +56,7 @@ public class BtService extends Service
 		SEND_BOARD_UPDATE,
 		SEND_SETUP,
 		RECEIVE_SETUP,
-		TOAST,
+		ERROR_TOAST,
 		DEVICE_NAME
 	}
 
@@ -281,7 +281,7 @@ public class BtService extends Service
 	{
 		// Send a failure message back to the UI
 		setState(State.NONE);
-		handler.obtainMessage(Message.TOAST.ordinal(), - 1, - 1, "Unable to connect device").sendToTarget();
+		handler.obtainMessage(Message.ERROR_TOAST.ordinal(), - 1, - 1, "Unable to connect device").sendToTarget();
 
 		// Start the service over to restart listening mode
 		BtService.this.start();
@@ -294,7 +294,7 @@ public class BtService extends Service
 	{
 		// Send a failure message back to the UI
 		setState(State.NONE);
-		handler.obtainMessage(Message.TOAST.ordinal(), - 1, - 1, "Bluetooth connection lost").sendToTarget();
+		handler.obtainMessage(Message.ERROR_TOAST.ordinal(), - 1, - 1, "Bluetooth connection lost").sendToTarget();
 
 		// Start the service over to restart listening mode
 		start();

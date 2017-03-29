@@ -15,7 +15,7 @@ public class WaitBot implements Bot
 	private final Object playerLock = new Object[0];
 	private AtomicReference<Coord> move = new AtomicReference<>();
 
-	private Handler handler = null;
+	private transient Handler handler = null;
 
 	public WaitBot(Handler handler)
 	{
@@ -47,7 +47,6 @@ public class WaitBot implements Bot
 				return null;
 		}
 
-		Log.d("ab","HERe");
 		if (handler != null)
 		{
 			android.os.Message msg = handler.obtainMessage(BtService.Message.SEND_BOARD_UPDATE.ordinal());
@@ -61,7 +60,7 @@ public class WaitBot implements Bot
 			//Return the bundle
 			msg.setData(bundle);
 			handler.sendMessage(msg);
-			Log.d("ab","Called");
+			Log.d("WaitBot","Send move to opponent");
 		}
 
 		return move.getAndSet(null);

@@ -37,10 +37,12 @@ public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
 {
 	private static final String TAG = "MainActivity";
+
 	private static final String STATE_KEY = "game";
+	private static final String ISBT_KEY = "isBtGame";
 
 	private Game game;
-	private boolean btGame;
+	private boolean isBtGame;
 
 	private TextView statusView;
 
@@ -58,9 +60,6 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		boardView = (BoardView) findViewById(R.id.boardView);
-
-		//Prepare gui and bluetooth
 		initGui();
 
 		//Automatically start/close btService when you enable/disable bt
@@ -72,11 +71,15 @@ public class MainActivity extends AppCompatActivity
 
 		if (savedInstanceState != null)
 		{
+			//Load the old game and make it a isBtGame if necessary
 			GameState state = (GameState) savedInstanceState.getSerializable(STATE_KEY);
 			game = new Game(state, boardView, new WaitBot());
 
-			//Switch the secondary bot out for a btBot if it is a bluetooth game
-			updateBtGame();
+			//Turn it into a btGame if necessary
+			isBtGame = savedInstanceState.getBoolean(ISBT_KEY);
+			toggleBtGame(isBtGame);
+
+			Log.d(TAG,"BTGAME OR NOT?" + isBtGame);
 		}
 		else
 		{
@@ -87,28 +90,36 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 
-	private void updateBtGame()
+	private void updateBtGame(GameState gs)
 	{
-		if (game != null)
-		{
-			game.close();
-			GameState gs = game.getState();
-			boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
+		closeGame();
+		//GameState gs = game.getState();
+		boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
 
-			WaitBot aBot = new WaitBot(btGame ? btHandler : null);
-			WaitBot btBot = new WaitBot(btGame ? btHandler : null);
+		WaitBot aBot = new WaitBot(isBtGame ? btHandler : null);
+		WaitBot btBot = new WaitBot();
 
-			boardView.setAndroidBot(aBot);
+		boardView.setAndroidBot(aBot);
+		if (btService!=null)
 			btService.setBtBot(btBot);
 
-			gs.setBots(Arrays.asList(aBot, btGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
+		gs.setBots(Arrays.asList(aBot, isBtGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
 
-			game = new Game(gs, boardView);
-		}
+		game = new Game(gs, boardView);
+	}
+
+	private void toggleBtGame(boolean isBtGame)
+	{
+		this.isBtGame = isBtGame;
+		if (game.getState()!=null)
+			updateBtGame(game.getState());
 	}
 
 	private void initGui()
 	{
+		boardView = (BoardView) findViewById(R.id.boardView);
+		statusView = (TextView) findViewById(R.id.statusView);
+
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
@@ -138,8 +149,6 @@ public class MainActivity extends AppCompatActivity
 
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
-
-		statusView = (TextView) findViewById(R.id.statusView);
 	}
 
 	@Override
@@ -188,7 +197,7 @@ public class MainActivity extends AppCompatActivity
 					closeGame();
 					GameState gs = (GameState) data.getSerializableExtra("GameState");
 
-					btGame = false;
+					isBtGame = false;
 					game = new Game(gs, boardView, new WaitBot());
 					statusView.setText("Local: " + game.getType());
 				}
@@ -301,6 +310,7 @@ public class MainActivity extends AppCompatActivity
 		closeGame();
 		super.onSaveInstanceState(outState);
 		outState.putSerializable(STATE_KEY, game.getState());
+		outState.putSerializable(ISBT_KEY, isBtGame);
 	}
 
 	@Override
@@ -338,15 +348,14 @@ public class MainActivity extends AppCompatActivity
 	{
 		try
 		{
-
 			if (btService != null)
 				btService.stop();
 
 			stopService(new Intent(getActivity(), BtService.class));
 			unbindService(btServerConn);
 			btService = null;
-			btGame = false;
-			updateBtGame();
+
+			toggleBtGame(false);
 		}
 		catch (Throwable t)
 		{
@@ -403,8 +412,7 @@ public class MainActivity extends AppCompatActivity
 			}
 			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 			{
-				btGame = true;
-				updateBtGame();
+				toggleBtGame(true);
 
 				if (btService != null)
 					btService.sendState(game.getState());
@@ -414,7 +422,6 @@ public class MainActivity extends AppCompatActivity
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
 				closeGame();
-				btGame = true;
 
 				Bundle data = msg.getData();
 				boolean swapped = data.getBoolean("swapped");
@@ -436,10 +443,10 @@ public class MainActivity extends AppCompatActivity
 				if (null != activity)
 					Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
 			}
-			else if (msg.what == BtService.Message.TOAST.ordinal())
+			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
 			{
-				if (null != activity)
-					Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
+				toggleBtGame(false);
+				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
 			}
 		}
 	};
