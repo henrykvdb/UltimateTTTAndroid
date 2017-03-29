@@ -126,16 +126,12 @@ public class MainActivity extends AppCompatActivity
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		try
 		{
-			Field mDragger = drawer.getClass().getDeclaredField(
-					"mLeftDragger");
+			Field mDragger = drawer.getClass().getDeclaredField("mLeftDragger");
 			mDragger.setAccessible(true);
-			ViewDragHelper draggerObj = (ViewDragHelper) mDragger
-					.get(drawer);
-			Field mEdgeSize = draggerObj.getClass().getDeclaredField(
-					"mEdgeSize");
+			ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(drawer);
+			Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
 			mEdgeSize.setAccessible(true);
-			int edge = mEdgeSize.getInt(draggerObj);
-			mEdgeSize.setInt(draggerObj, edge * 4);
+			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
 		}
 		catch (IllegalAccessException | NoSuchFieldException e)
 		{
