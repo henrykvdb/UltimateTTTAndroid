@@ -250,13 +250,17 @@ public class NewBluetoothActivity extends Activity
 		if (checkBoxVisible.isChecked())
 		{
 			checkBoxVisible.setEnabled(false);
-			new CountDownTimer(300000, 1000) {
+			new CountDownTimer(300000, 1000)
+			{
 
-				public void onTick(long millisUntilFinished) {
+				public void onTick(long millisUntilFinished)
+				{
 					long s = millisUntilFinished / 1000;
-					checkBoxVisible.setText("Visible (" + s/60 + "m" + s%60 + "s left)");
+					checkBoxVisible.setText("Visible (" + s / 60 + "m" + s % 60 + "s left)");
 				}
-				public void onFinish() {
+
+				public void onFinish()
+				{
 					checkBoxVisible.setText("Visible for other devices");
 					checkBoxVisible.setEnabled(true);
 					checkBoxVisible.setChecked(false);

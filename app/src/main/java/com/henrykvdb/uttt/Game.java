@@ -75,12 +75,12 @@ public class Game implements Closeable
 				Bot p1 = state.bots().get(state.swapped() ? 1 : 0);
 				Bot p2 = state.bots().get(state.swapped() ? 0 : 1);
 
-				while (!state.board().isDone() && state.running())
+				while (! state.board().isDone() && state.running())
 				{
 					if (state.board().nextPlayer() == PLAYER && state.running())
 						play(p1);
 
-					if (state.board().isDone() || !state.running())
+					if (state.board().isDone() || ! state.running())
 						continue;
 
 					if (state.board().nextPlayer() == ENEMY && state.running())

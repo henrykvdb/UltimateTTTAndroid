@@ -21,7 +21,7 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class BoardView extends View implements Serializable
 {
-	private static final long serialVersionUID = -6067519139638476047L;
+	private static final long serialVersionUID = - 6067519139638476047L;
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
@@ -104,7 +104,7 @@ public class BoardView extends View implements Serializable
 
 			canvas.translate(x, y);
 			canvas.drawRect(0, 0, tileSize, tileSize, paint);
-			canvas.translate(-x, -y);
+			canvas.translate(- x, - y);
 		}
 
 		for (int om = 0; om < 9; om++)
@@ -167,20 +167,20 @@ public class BoardView extends View implements Serializable
 								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
 						tileSymbolStroke, oBorder);
 
-			canvas.translate(-xt, -yt);
+			canvas.translate(- xt, - yt);
 		}
 
 		//Draw x and y over macros
 		if (mPlayer == PLAYER) //X
-			drawTile(canvas, true, !finished, macroSizeSmall,
+			drawTile(canvas, true, ! finished, macroSizeSmall,
 					finished ? (ds.xColorDarker() - ds.symbolTransparency()) : (ds.xColor() - ds.symbolTransparency()),
 					macroSymbolStroke, xBorder);
 		else if (mPlayer == ENEMY) //O
-			drawTile(canvas, false, !finished, macroSizeSmall,
+			drawTile(canvas, false, ! finished, macroSizeSmall,
 					finished ? (ds.oColorDarker() - ds.symbolTransparency()) : (ds.oColor() - ds.symbolTransparency()),
 					macroSymbolStroke, oBorder);
 
-		canvas.translate(-xmt, -ymt);
+		canvas.translate(- xmt, - ymt);
 	}
 
 	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border)
@@ -214,7 +214,7 @@ public class BoardView extends View implements Serializable
 			canvas.drawOval(0, 0, realSize, realSize, paint);
 		}
 
-		canvas.translate(-border, -border);
+		canvas.translate(- border, - border);
 	}
 
 	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)

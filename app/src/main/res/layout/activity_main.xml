@@ -40,11 +40,6 @@
                 tools:context="com.henrykvdb.uttt.MainActivity"
                 android:orientation="vertical">
 
-            <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Local: 1v1"
-                    android:id="@+id/statusView"/>
             <com.henrykvdb.uttt.BoardView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

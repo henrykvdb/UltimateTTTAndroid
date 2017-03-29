@@ -21,12 +21,12 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 
@@ -43,8 +43,6 @@ public class MainActivity extends AppCompatActivity
 
 	private Game game;
 	private boolean isBtGame;
-
-	private TextView statusView;
 
 	private static final int REQUEST_NEW_LOCAL = 100;
 	private static final int REQUEST_NEW_BLUETOOTH = 101;
@@ -79,15 +77,22 @@ public class MainActivity extends AppCompatActivity
 			isBtGame = savedInstanceState.getBoolean(ISBT_KEY);
 			toggleBtGame(isBtGame);
 
-			Log.d(TAG,"BTGAME OR NOT?" + isBtGame);
+			Log.d(TAG, "BTGAME OR NOT?" + isBtGame);
 		}
 		else
 		{
 			//Create local 1v1 Game
 			WaitBot androidBot = new WaitBot();
 			game = Game.newGame(boardView, androidBot, androidBot);
-			statusView.setText("Local: " + game.getType());
 		}
+	}
+
+	private void setBtStatusMessage(String message)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+		if (null == actionBar)
+			return;
+		actionBar.setSubtitle("Bluetooth: " + message);
 	}
 
 	private void updateBtGame(GameState gs)
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity
 		WaitBot btBot = new WaitBot();
 
 		boardView.setAndroidBot(aBot);
-		if (btService!=null)
+		if (btService != null)
 			btService.setBtBot(btBot);
 
 		gs.setBots(Arrays.asList(aBot, isBtGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
@@ -111,14 +116,13 @@ public class MainActivity extends AppCompatActivity
 	private void toggleBtGame(boolean isBtGame)
 	{
 		this.isBtGame = isBtGame;
-		if (game.getState()!=null)
+		if (game.getState() != null)
 			updateBtGame(game.getState());
 	}
 
 	private void initGui()
 	{
 		boardView = (BoardView) findViewById(R.id.boardView);
-		statusView = (TextView) findViewById(R.id.statusView);
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
@@ -195,7 +199,6 @@ public class MainActivity extends AppCompatActivity
 
 					isBtGame = false;
 					game = new Game(gs, boardView, new WaitBot());
-					statusView.setText("Local: " + game.getType());
 				}
 				break;
 			case REQUEST_NEW_BLUETOOTH:
@@ -271,6 +274,8 @@ public class MainActivity extends AppCompatActivity
 					startBtService();
 				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 					closeBtService();
+				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
+					setBtStatusMessage("disabled");
 			}
 		}
 	};
@@ -363,13 +368,18 @@ public class MainActivity extends AppCompatActivity
 	{
 		if (btAdapter != null)
 		{
-			if (btService == null && btAdapter.isEnabled())
+			if (btAdapter.isEnabled())
 			{
-				Intent intent = new Intent(getActivity(), BtService.class);
-				bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
-				startService(intent);
+				if (btService == null)
+				{
+					Intent intent = new Intent(getActivity(), BtService.class);
+					bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
+					startService(intent);
+				}
 			}
+			else setBtStatusMessage("disabled");
 		}
+		else setBtStatusMessage("not available");
 	}
 
 	/**
@@ -389,13 +399,12 @@ public class MainActivity extends AppCompatActivity
 				BtService.State state = (BtService.State) msg.getData().getSerializable(BtService.STATE);
 
 				if (state == BtService.State.CONNECTED)
-					statusView.setText("Bluetooth: connected to " + connectedDeviceName);
+					setBtStatusMessage("connected to " + connectedDeviceName);
 				else if (state == BtService.State.CONNECTING)
-					statusView.setText("Bluetooth: connecting...");
-				else if (state == BtService.State.LISTEN)
-					statusView.setText("Bluetooth: listening");
+					setBtStatusMessage("connecting...");
 				else if (state == BtService.State.NONE)
-					statusView.setText("Bluetooth: not connected");
+					setBtStatusMessage("not connected");
+				//else if (state == BtService.State.LISTEN);
 			}
 			else if (msg.what == BtService.Message.SEND_BOARD_UPDATE.ordinal())
 			{

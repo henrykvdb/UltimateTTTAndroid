@@ -44,8 +44,8 @@ public class NewLocalActivity extends Activity
 
 			WaitBot ab = new WaitBot();
 			intent.putExtra("GameState",
-					new GameState(Arrays.asList(ab, radio_ai.isChecked() ?new RandomBot():ab)
-							, shuffleCheckBox.isChecked()&&radio_ai.isChecked()));
+					new GameState(Arrays.asList(ab, radio_ai.isChecked() ? new RandomBot() : ab)
+							, shuffleCheckBox.isChecked() && radio_ai.isChecked()));
 
 			// Set result and finish this Activity
 			setResult(Activity.RESULT_OK, intent);
@@ -55,7 +55,7 @@ public class NewLocalActivity extends Activity
 
 	public void radioClick(View view)
 	{
-		aiOptions.setVisibility(radio_ai.isChecked() ?LinearLayout.VISIBLE:View.GONE);
+		aiOptions.setVisibility(radio_ai.isChecked() ? LinearLayout.VISIBLE : View.GONE);
 		startButton.invalidate();
 	}
 }

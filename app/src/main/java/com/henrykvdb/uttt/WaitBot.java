@@ -60,7 +60,7 @@ public class WaitBot implements Bot
 			//Return the bundle
 			msg.setData(bundle);
 			handler.sendMessage(msg);
-			Log.d("WaitBot","Send move to opponent");
+			Log.d("WaitBot", "Send move to opponent");
 		}
 
 		return move.getAndSet(null);
