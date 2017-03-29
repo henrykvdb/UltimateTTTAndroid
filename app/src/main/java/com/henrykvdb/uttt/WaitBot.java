@@ -29,6 +29,7 @@ public class WaitBot implements Bot
 	@Override
 	public Coord move(Board board, Timer timer)
 	{
+		move.set(null);
 		while (move.get() == null || ! board.availableMoves().contains(move.get()))
 		{
 			synchronized (playerLock)

@@ -518,7 +518,6 @@ public class BtService extends Service
 		{
 			Log.i(TAG, "BEGIN connectedThread");
 			byte[] buffer = new byte[1024];
-			int bytes;
 
 			// Keep listening to the InputStream while connected
 			while (state == BtService.State.CONNECTED)
@@ -526,7 +525,7 @@ public class BtService extends Service
 				try
 				{
 					// Read from the InputStream
-					bytes = mmInStream.read(buffer);
+					mmInStream.read(buffer);
 
 					JSONObject json = new JSONObject(new String(buffer));
 
