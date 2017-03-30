@@ -36,20 +36,29 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
 {
+	//Debug
 	private static final String TAG = "MainActivity";
 
-	private static final String STATE_KEY = "game";
-	private static final String ISBT_KEY = "isBtGame";
-
-	private Game game;
-	private boolean isBtGame;
-
+	//New game picker activity launch codes
 	private static final int REQUEST_NEW_LOCAL = 100;
 	private static final int REQUEST_NEW_BLUETOOTH = 101;
 
+	//Permission request codes
 	private static final int REQUEST_ENABLE_BT = 200;
 	private static final int REQUEST_COARSE_LOCATION = 201;
 
+	//Serialization keys
+	private static final String STATE_KEY = "game";
+	private static final String ISBT_KEY = "isBtGame";
+
+	//Things that get serialized
+	private Game game;
+	private boolean isBtGame;
+
+	//Bluetooth Service
+	private BtService btService;
+
+	//Set in onCreate()
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 
@@ -87,37 +96,13 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 
-	private void setBtStatusMessage(String message)
+	@Override
+	protected void onDestroy()
 	{
-		final ActionBar actionBar = getSupportActionBar();
-		if (null == actionBar)
-			return;
-		actionBar.setSubtitle("Bluetooth: " + message);
-	}
-
-	private void updateBtGame(GameState gs)
-	{
+		super.onDestroy();
 		closeGame();
-		//GameState gs = game.getState();
-		boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
-
-		WaitBot aBot = new WaitBot(isBtGame ? btHandler : null);
-		WaitBot btBot = new WaitBot();
-
-		boardView.setAndroidBot(aBot);
-		if (btService != null)
-			btService.setBtBot(btBot);
-
-		gs.setBots(Arrays.asList(aBot, isBtGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
-
-		game = new Game(gs, boardView);
-	}
-
-	private void toggleBtGame(boolean isBtGame)
-	{
-		this.isBtGame = isBtGame;
-		if (game.getState() != null)
-			updateBtGame(game.getState());
+		closeBtService();
+		unregisterReceiver(btStateReceiver);
 	}
 
 	private void initGui()
@@ -151,14 +136,37 @@ public class MainActivity extends AppCompatActivity
 		navigationView.setNavigationItemSelectedListener(this);
 	}
 
-	@Override
-	public void onBackPressed()
+	private void setBtStatusMessage(String message)
 	{
-		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-		if (drawer.isDrawerOpen(GravityCompat.START))
-			drawer.closeDrawer(GravityCompat.START);
-		else
-			super.onBackPressed();
+		final ActionBar actionBar = getSupportActionBar();
+		if (null == actionBar)
+			return;
+		actionBar.setSubtitle("Bluetooth: " + message);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		closeGame();
+		super.onSaveInstanceState(outState);
+		outState.putSerializable(STATE_KEY, game.getState());
+		outState.putSerializable(ISBT_KEY, isBtGame);
+	}
+
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		closeGame();
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+
+		if (game != null && ! game.getState().running())
+			game.run();
 	}
 
 	@Override
@@ -180,6 +188,16 @@ public class MainActivity extends AppCompatActivity
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		drawer.closeDrawer(GravityCompat.START);
 		return true;
+	}
+
+	@Override
+	public void onBackPressed()
+	{
+		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		if (drawer.isDrawerOpen(GravityCompat.START))
+			drawer.closeDrawer(GravityCompat.START);
+		else
+			super.onBackPressed();
 	}
 
 	@Override
@@ -225,40 +243,6 @@ public class MainActivity extends AppCompatActivity
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
-	private void pickBluetooth()
-	{
-		// If the adapter is null, then Bluetooth is not supported
-		if (btAdapter == null)
-			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-		else
-		{
-			// If BT is not on, request that it be enabled first.
-			if (! btAdapter.isEnabled())
-			{
-				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-			}
-			else
-			{
-				//If we don't have the COARSE LOCATION permission, request it
-				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
-						PackageManager.PERMISSION_GRANTED)
-				{
-					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-							REQUEST_COARSE_LOCATION);
-				}
-				else
-				{
-					startBtService();
-
-					//Make the bluetooth-picker activity
-					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
-					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
-				}
-			}
-		}
-	}
-
 	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
 	{
 		@Override
@@ -280,8 +264,7 @@ public class MainActivity extends AppCompatActivity
 		}
 	};
 
-	BtService btService;
-	protected ServiceConnection btServerConn = new ServiceConnection()
+	private ServiceConnection btServerConn = new ServiceConnection()
 	{
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
@@ -304,40 +287,6 @@ public class MainActivity extends AppCompatActivity
 			startBtService();
 		}
 	};
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState)
-	{
-		closeGame();
-		super.onSaveInstanceState(outState);
-		outState.putSerializable(STATE_KEY, game.getState());
-		outState.putSerializable(ISBT_KEY, isBtGame);
-	}
-
-	@Override
-	protected void onResume()
-	{
-		super.onResume();
-
-		if (game != null && ! game.getState().running())
-			game.run();
-	}
-
-	@Override
-	protected void onPause()
-	{
-		super.onPause();
-		closeGame();
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-		closeGame();
-		closeBtService();
-		unregisterReceiver(btStateReceiver);
-	}
 
 	private void closeGame()
 	{
@@ -382,8 +331,67 @@ public class MainActivity extends AppCompatActivity
 		else setBtStatusMessage("not available");
 	}
 
+	private void updateBtGame(GameState gs)
+	{
+		closeGame();
+		//GameState gs = game.getState();
+		boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
+
+		WaitBot aBot = new WaitBot(isBtGame ? btHandler : null);
+		WaitBot btBot = new WaitBot();
+
+		boardView.setAndroidBot(aBot);
+		if (btService != null)
+			btService.setBtBot(btBot);
+
+		gs.setBots(Arrays.asList(aBot, isBtGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
+
+		game = new Game(gs, boardView);
+	}
+
+	private void toggleBtGame(boolean isBtGame)
+	{
+		this.isBtGame = isBtGame;
+		if (game.getState() != null)
+			updateBtGame(game.getState());
+	}
+
+	private void pickBluetooth()
+	{
+		// If the adapter is null, then Bluetooth is not supported
+		if (btAdapter == null)
+			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+		else
+		{
+			// If BT is not on, request that it be enabled first.
+			if (! btAdapter.isEnabled())
+			{
+				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+			}
+			else
+			{
+				//If we don't have the COARSE LOCATION permission, request it
+				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+						PackageManager.PERMISSION_GRANTED)
+				{
+					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+							REQUEST_COARSE_LOCATION);
+				}
+				else
+				{
+					startBtService();
+
+					//Make the bluetooth-picker activity
+					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
+					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
+				}
+			}
+		}
+	}
+
 	/**
-	 * The Handler that gets information back from the BluetoothService
+	 * The Handler that gets information back from the btService
 	 */
 	private final Handler btHandler = new Handler()
 	{
