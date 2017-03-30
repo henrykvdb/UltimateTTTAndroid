@@ -6,16 +6,18 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import com.flaghacker.uttt.bots.RandomBot;
+import com.flaghacker.uttt.common.Bot;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class NewLocalActivity extends Activity
 {
-	private CheckBox shuffleCheckBox;
 	private RadioButton radio_ai;
 	private LinearLayout aiOptions;
 	private Button startButton;
@@ -32,22 +34,32 @@ public class NewLocalActivity extends Activity
 		// Set result CANCELED in case the user backs out
 		setResult(Activity.RESULT_CANCELED);
 
-		shuffleCheckBox = (CheckBox) findViewById(R.id.shuffleCheckBox);
+		//Vars
 		radio_ai = (RadioButton) findViewById(R.id.radio_ai);
 		aiOptions = (LinearLayout) findViewById(R.id.aiOptions);
 		startButton = (Button) findViewById(R.id.button_start);
 
-		// Initialize the button to perform device discovery
+		//On start button click listener
 		startButton.setOnClickListener(v -> {
-			// Create the result Intent and include game settings
 			Intent intent = new Intent();
 
 			WaitBot ab = new WaitBot();
-			intent.putExtra("GameState",
-					new GameState(Arrays.asList(ab, radio_ai.isChecked() ? new RandomBot() : ab)
-							, shuffleCheckBox.isChecked() && radio_ai.isChecked()));
+			List<Bot> bots;
+			if (radio_ai.isChecked())
+			{
+				RandomBot rb = new RandomBot();
 
-			// Set result and finish this Activity
+				int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
+				boolean aiBegins = new Random().nextBoolean();
+
+				if (beginner == R.id.start_you) aiBegins = false;
+				else if (beginner == R.id.start_ai) aiBegins = true;
+
+				bots = Arrays.asList(aiBegins ? rb : ab, aiBegins ? ab : rb);
+			}
+			else bots = Arrays.asList(ab, ab);
+
+			intent.putExtra("GameState", new GameState(bots, false));
 			setResult(Activity.RESULT_OK, intent);
 			finish();
 		});
