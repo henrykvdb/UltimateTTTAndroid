@@ -8,27 +8,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.Set;
 
 public class NewBluetoothActivity extends Activity
 {
-	private RadioButton radioHost;
-	private CheckBox checkBoxVisible;
-	private LinearLayout layoutHost;
-	private LinearLayout layoutJoin;
 	/**
 	 * Return Intent extra
 	 */
@@ -56,23 +48,18 @@ public class NewBluetoothActivity extends Activity
 		// Set result CANCELED in case the user backs out
 		setResult(Activity.RESULT_CANCELED);
 
-		radioHost = (RadioButton) findViewById(R.id.radio_host);
-		checkBoxVisible = (CheckBox) findViewById(R.id.checkBox_visible);
-		layoutHost = (LinearLayout) findViewById(R.id.layout_host);
-		layoutJoin = (LinearLayout) findViewById(R.id.layout_join);
-
 		// Initialize the button to perform device discovery
 		Button scanButton = (Button) findViewById(R.id.button_scan);
 		scanButton.setOnClickListener(v -> {
 			doDiscovery();
-			v.setVisibility(View.GONE);
+			scanButton.setEnabled(false);
 			new java.util.Timer().schedule(
 					new java.util.TimerTask()
 					{
 						@Override
 						public void run()
 						{
-							runOnUiThread(() -> v.setVisibility(View.VISIBLE));
+							runOnUiThread(() -> scanButton.setEnabled(true));
 						}
 					}, 15000
 			);
@@ -225,60 +212,5 @@ public class NewBluetoothActivity extends Activity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		super.onActivityResult(requestCode, resultCode, data);
-	}
-
-	public void radioClick(View view)
-	{
-		boolean host = radioHost.isChecked();
-
-		layoutHost.setVisibility(host ? View.VISIBLE : View.GONE);
-		layoutJoin.setVisibility(host ? View.GONE : View.VISIBLE);
-
-		if (host)
-		{
-			if (mBtAdapter.isDiscovering())
-				mBtAdapter.cancelDiscovery();
-		}
-		else
-		{
-			//Make invisible again? TODO
-		}
-	}
-
-	public void checkClick(View view)
-	{
-		if (checkBoxVisible.isChecked())
-		{
-			checkBoxVisible.setEnabled(false);
-			new CountDownTimer(300000, 1000)
-			{
-
-				public void onTick(long millisUntilFinished)
-				{
-					long s = millisUntilFinished / 1000;
-					checkBoxVisible.setText("Visible (" + s / 60 + "m" + s % 60 + "s left)");
-				}
-
-				public void onFinish()
-				{
-					checkBoxVisible.setText("Visible for other devices");
-					checkBoxVisible.setEnabled(true);
-					checkBoxVisible.setChecked(false);
-				}
-			}.start();
-			ensureDiscoverable();
-		}
-	}
-
-	private void ensureDiscoverable()
-	{
-
-		if (mBtAdapter.getScanMode() !=
-				BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-		{
-			Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-			discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-			startActivity(discoverableIntent); //TODO check if user accept ffs
-		}
 	}
 }

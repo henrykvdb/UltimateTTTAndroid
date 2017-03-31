@@ -19,6 +19,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBar;
@@ -27,6 +28,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Switch;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 
@@ -45,7 +47,8 @@ public class MainActivity extends AppCompatActivity
 
 	//Permission request codes
 	private static final int REQUEST_ENABLE_BT = 200;
-	private static final int REQUEST_COARSE_LOCATION = 201;
+	private static final int REQUEST_ENABLE_DSC = 201;
+	private static final int REQUEST_COARSE_LOCATION = 202;
 
 	//Serialization keys
 	private static final String STATE_KEY = "game";
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity
 	//Set in onCreate()
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
+	private Switch btHostSwitch;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -134,6 +138,33 @@ public class MainActivity extends AppCompatActivity
 
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
+
+		MenuItem btHost = navigationView.getMenu().findItem(R.id.nav_bt_host_switch);
+		btHostSwitch = (Switch) MenuItemCompat.getActionView(btHost);
+		btHostSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			if (btAdapter != null)
+			{
+				if (btHostSwitch.isChecked())
+				{
+					if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+					{
+						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+						startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
+					}
+				}
+				else
+				{
+					if (btAdapter.isEnabled())
+						btAdapter.disable();
+				}
+			}
+			else
+			{
+				Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+				btHostSwitch.setChecked(false);
+			}
+		});
 	}
 
 	private void setBtStatusMessage(String message)
@@ -165,7 +196,7 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onResume();
 
-		if (game != null && ! game.getState().running())
+		if (game != null && !game.getState().running())
 			game.run();
 	}
 
@@ -180,14 +211,51 @@ public class MainActivity extends AppCompatActivity
 			Intent serverIntent = new Intent(getApplicationContext(), NewLocalActivity.class);
 			startActivityForResult(serverIntent, REQUEST_NEW_LOCAL);
 		}
-		else if (id == R.id.nav_bluetooth)
+		else if (id == R.id.nav_bt_join)
 		{
 			pickBluetooth();
 		}
 
-		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-		drawer.closeDrawer(GravityCompat.START);
+		if (id != R.id.nav_bt_host_switch)
+		{
+			DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+			drawer.closeDrawer(GravityCompat.START);
+		}
 		return true;
+	}
+
+	private void pickBluetooth()
+	{
+		// If the adapter is null, then Bluetooth is not supported
+		if (btAdapter == null)
+			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+		else
+		{
+			// If BT is not on, request that it be enabled first.
+			if (!btAdapter.isEnabled())
+			{
+				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+			}
+			else
+			{
+				//If we don't have the COARSE LOCATION permission, request it
+				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+						PackageManager.PERMISSION_GRANTED)
+				{
+					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+							REQUEST_COARSE_LOCATION);
+				}
+				else
+				{
+					startBtService();
+
+					//Make the bluetooth-picker activity
+					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
+					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -208,6 +276,10 @@ public class MainActivity extends AppCompatActivity
 			case REQUEST_ENABLE_BT:
 				if (resultCode == RESULT_OK)
 					pickBluetooth();
+				break;
+			case REQUEST_ENABLE_DSC:
+				if (resultCode == RESULT_CANCELED)
+					btHostSwitch.setChecked(false);
 				break;
 			case REQUEST_NEW_LOCAL:
 				if (resultCode == RESULT_OK)
@@ -354,40 +426,6 @@ public class MainActivity extends AppCompatActivity
 		this.isBtGame = isBtGame;
 		if (game.getState() != null)
 			updateBtGame(game.getState());
-	}
-
-	private void pickBluetooth()
-	{
-		// If the adapter is null, then Bluetooth is not supported
-		if (btAdapter == null)
-			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-		else
-		{
-			// If BT is not on, request that it be enabled first.
-			if (! btAdapter.isEnabled())
-			{
-				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-			}
-			else
-			{
-				//If we don't have the COARSE LOCATION permission, request it
-				if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
-						PackageManager.PERMISSION_GRANTED)
-				{
-					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-							REQUEST_COARSE_LOCATION);
-				}
-				else
-				{
-					startBtService();
-
-					//Make the bluetooth-picker activity
-					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
-					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
-				}
-			}
-		}
 	}
 
 	/**

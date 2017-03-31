@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="New Game">
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/nav_local"
+            android:icon="@drawable/ic_menu_play"
+            android:title="Create local"/>
+    <item android:title="Bluetooth">
         <menu>
             <item
-                    android:id="@+id/nav_local"
-                    android:icon="@drawable/ic_menu_play"
-                    android:title="Local"/>
-            <item
-                    android:id="@+id/nav_bluetooth"
+                    android:id="@+id/nav_bt_join"
                     android:icon="@drawable/ic_menu_bluetooth"
-                    android:title="Bluetooth"/>
+                    android:title="Join"/>
+            <item
+                    android:id="@+id/nav_bt_host_switch"
+                    android:icon="@drawable/ic_menu_bluetooth_host"
+                    android:menuCategory="system"
+                    android:title="Host"
+                    app:actionViewClass="android.widget.Switch"/>
         </menu>
     </item>
 </menu>
