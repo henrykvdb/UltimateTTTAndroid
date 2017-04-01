@@ -31,6 +31,9 @@
         <service
                 android:name=".BtService"
                 android:exported="false"/>
+        <service
+                android:name=".GameService"
+                android:exported="false"/>
     </application>
 
 </manifest>

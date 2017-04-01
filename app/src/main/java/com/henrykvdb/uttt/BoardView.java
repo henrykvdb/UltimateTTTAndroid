@@ -25,7 +25,7 @@ public class BoardView extends View implements Serializable
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
-	private WaitBot ab;
+	private GameService gameService;
 	private Paint paint;
 
 	private float macroSizeFull;
@@ -87,9 +87,9 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setAndroidBot(WaitBot ab)
+	public void setGame(GameService gameService)
 	{
-		this.ab = ab;
+		this.gameService = gameService;
 	}
 
 	protected void onDraw(Canvas canvas)
@@ -272,9 +272,9 @@ public class BoardView extends View implements Serializable
 					int xs = tile.first;
 					int ys = tile.second;
 
-					if (ab != null)
+					if (gameService != null)
 					{
-						ab.play(Coord.coord(xm, ym, xs, ys));
+						gameService.play(GameService.Source.Android,Coord.coord(xm, ym, xs, ys));
 						Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 					}
 					else

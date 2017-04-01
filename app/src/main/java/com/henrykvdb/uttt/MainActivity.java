@@ -31,9 +31,9 @@ import android.view.MenuItem;
 import android.widget.Switch;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
+import com.flaghacker.uttt.common.Player;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
@@ -55,16 +55,19 @@ public class MainActivity extends AppCompatActivity
 	private static final String ISBT_KEY = "isBtGame";
 
 	//Things that get serialized
-	private Game game;
-	private boolean isBtGame;
+	//private boolean isBtGame;
 
 	//Bluetooth Service
 	private BtService btService;
+	private GameService gameService;
 
 	//Set in onCreate()
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Switch btHostSwitch;
+
+
+	private GameState requestState;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -77,35 +80,17 @@ public class MainActivity extends AppCompatActivity
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
-		//Start btService if bt is on
+		//Start Services
+		startGameService();
 		startBtService();
-
-		if (savedInstanceState != null)
-		{
-			//Load the old game and make it a isBtGame if necessary
-			GameState state = (GameState) savedInstanceState.getSerializable(STATE_KEY);
-			game = new Game(state, boardView, new WaitBot());
-
-			//Turn it into a btGame if necessary
-			isBtGame = savedInstanceState.getBoolean(ISBT_KEY);
-			toggleBtGame(isBtGame);
-
-			Log.d(TAG, "BTGAME OR NOT?" + isBtGame);
-		}
-		else
-		{
-			//Create local 1v1 Game
-			WaitBot androidBot = new WaitBot();
-			game = Game.newGame(boardView, androidBot, androidBot);
-		}
 	}
 
 	@Override
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		closeGame();
 		closeBtService();
+		closeGameService();
 		unregisterReceiver(btStateReceiver);
 	}
 
@@ -178,17 +163,15 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		closeGame();
+		//closeGame();
 		super.onSaveInstanceState(outState);
-		outState.putSerializable(STATE_KEY, game.getState());
-		outState.putSerializable(ISBT_KEY, isBtGame);
 	}
 
 	@Override
 	protected void onPause()
 	{
 		super.onPause();
-		closeGame();
+		//closeGae();
 	}
 
 	@Override
@@ -196,8 +179,8 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onResume();
 
-		if (game != null && !game.getState().running())
-			game.run();
+		//if (gameService != null && !gameService.getState().running())
+		//	gameService.run();
 	}
 
 	@Override
@@ -284,16 +267,29 @@ public class MainActivity extends AppCompatActivity
 			case REQUEST_NEW_LOCAL:
 				if (resultCode == RESULT_OK)
 				{
-					closeGame();
-					GameState gs = (GameState) data.getSerializableExtra("GameState");
-
-					isBtGame = false;
-					game = new Game(gs, boardView, new WaitBot());
+					if (gameService != null)
+					{
+						GameState gs = (GameState) data.getSerializableExtra("GameState");
+						gameService.newGame(gs);
+					}
+					else
+					{
+						Log.e(TAG, "GameService == null @ case REQUEST_NEW_LOCAL:");
+					}
 				}
 				break;
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
+				{
+					boolean swapped = data.getExtras().getBoolean("start")
+							^ gameService.getState().board().nextPlayer() == Player.PLAYER;
+					requestState = new GameState(btHandler, swapped);
+
+					if (!data.getExtras().getBoolean("newBoard"))
+						requestState.setBoard(gameService.getState().board());
+
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
+				}
 				break;
 		}
 
@@ -345,6 +341,9 @@ public class MainActivity extends AppCompatActivity
 			BtService.LocalBinder binder = (BtService.LocalBinder) service;
 			btService = binder.getService();
 
+			if (gameService != null)
+				btService.setGame(gameService);
+
 			//Give the service a handler and start
 			btService.setHandler(btHandler);
 			btService.start();
@@ -360,12 +359,6 @@ public class MainActivity extends AppCompatActivity
 		}
 	};
 
-	private void closeGame()
-	{
-		if (game != null)
-			game.close();
-	}
-
 	private void closeBtService()
 	{
 		try
@@ -377,7 +370,7 @@ public class MainActivity extends AppCompatActivity
 			unbindService(btServerConn);
 			btService = null;
 
-			toggleBtGame(false);
+			gameService.turnLocal();
 		}
 		catch (Throwable t)
 		{
@@ -403,29 +396,59 @@ public class MainActivity extends AppCompatActivity
 		else setBtStatusMessage("not available");
 	}
 
-	private void updateBtGame(GameState gs)
+	private ServiceConnection gameServiceConn = new ServiceConnection()
 	{
-		closeGame();
-		//GameState gs = game.getState();
-		boolean isOtherWaitBot = gs.bots().get(1).getClass().equals(WaitBot.class);
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			Log.d(TAG, "gameService Connected");
+			GameService.LocalBinder binder = (GameService.LocalBinder) service;
+			gameService = binder.getService();
 
-		WaitBot aBot = new WaitBot(isBtGame ? btHandler : null);
-		WaitBot btBot = new WaitBot();
+			//Setup a new local game
+			gameService.setBoardView(boardView);
+			gameService.newLocal();
 
-		boardView.setAndroidBot(aBot);
-		if (btService != null)
-			btService.setBtBot(btBot);
+			if (btService != null)
+				btService.setGame(gameService);
+		}
 
-		gs.setBots(Arrays.asList(aBot, isBtGame ? btBot : (isOtherWaitBot ? aBot : gs.bots().get(1))));
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.d(TAG, "gameService Disconnected");
 
-		game = new Game(gs, boardView);
+			closeGameService();
+			startGameService();
+		}
+	};
+
+	private void startGameService()
+	{
+		if (gameService == null)
+		{
+			Log.d(TAG, "Attempting to start gameService");
+			Intent intent = new Intent(getActivity(), GameService.class);
+			bindService(intent, gameServiceConn, Context.BIND_AUTO_CREATE);
+			startService(intent);
+		}
 	}
 
-	private void toggleBtGame(boolean isBtGame)
+	private void closeGameService()
 	{
-		this.isBtGame = isBtGame;
-		if (game.getState() != null)
-			updateBtGame(game.getState());
+		try
+		{
+			if (gameService != null)
+				gameService.close();
+
+			stopService(new Intent(getActivity(), GameService.class));
+			unbindService(gameServiceConn);
+			gameService = null;
+		}
+		catch (Throwable t)
+		{
+			Log.d(TAG, "Error closing btService");
+		}
 	}
 
 	/**
@@ -463,30 +486,18 @@ public class MainActivity extends AppCompatActivity
 			}
 			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 			{
-				toggleBtGame(true);
+				gameService.newGame(new GameState(requestState, btHandler));
 
 				if (btService != null)
-					btService.sendState(game.getState());
-
-				Log.d(TAG, "SEND ENEMY REQUEST TO UPDATE BOARD");
+					btService.sendState(requestState);
 			}
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
-				closeGame();
-
 				Bundle data = msg.getData();
-				boolean swapped = data.getBoolean("swapped");
+				boolean swapped = !data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				//Make a state with wrong bots
-				WaitBot aBot = new WaitBot(btHandler);
-				WaitBot btBot = new WaitBot();
-
-				boardView.setAndroidBot(aBot);
-				btService.setBtBot(btBot);
-
-				GameState gs = new GameState(Arrays.asList(btBot, aBot), swapped, false, board);
-				game = new Game(gs, boardView);
+				gameService.newGame(new GameState(new GameState(swapped, board), btHandler));
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{
@@ -496,7 +507,8 @@ public class MainActivity extends AppCompatActivity
 			}
 			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
 			{
-				toggleBtGame(false);
+				gameService.turnLocal();
+				//toggleBtGame(false);
 				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
 			}
 		}

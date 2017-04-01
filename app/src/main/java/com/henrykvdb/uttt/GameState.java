@@ -1,39 +1,90 @@
 package com.henrykvdb.uttt;
 
+import android.os.Handler;
+import com.flaghacker.uttt.bots.RandomBot;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import static com.henrykvdb.uttt.GameService.Source.AI;
+import static com.henrykvdb.uttt.GameService.Source.Android;
+import static com.henrykvdb.uttt.GameService.Source.Bluetooth;
+
 public class GameState implements Serializable
 {
-	private List<Bot> bots;
+	private List<GameService.Source> bots = Arrays.asList(Android, Android);
 	private boolean swapped = new Random().nextBoolean();
-	private boolean running = true;
 	private Board board = new Board();
 
-	public GameState(List<Bot> bots, boolean shuffle)
-	{
-		this.bots = bots;
-		this.swapped = shuffle && swapped;
-	}
+	//AI
+	private Bot extraBot = new RandomBot();
 
-	public GameState(List<Bot> bots, boolean swapped, boolean running, Board board)
+	//Bluetooth
+	private boolean btGame;
+	private Handler btHandler;
+
+	//Local-game constructor
+	public GameState()
 	{
-		this.bots = bots;
+		this.swapped = false;
+	}
+	public GameState(boolean swapped)
+	{
 		this.swapped = swapped;
-		this.running = running;
+	}
+	public GameState(boolean swapped, Board board)
+	{
+		this.swapped = swapped;
 		this.board = board;
 	}
 
-	public List<Bot> bots()
+	//AI-game constructor
+	public GameState(Bot ai, boolean swapped)
+	{
+		this.extraBot = ai;
+		this.bots = Arrays.asList(Android, AI);
+		this.swapped = swapped;
+	}
+
+	//Bluetooth-game constructor
+	public GameState(Handler btHandler, boolean swapped)
+	{
+		this.btHandler = btHandler;
+		this.swapped=swapped;
+		this.bots = Arrays.asList(Android, Bluetooth);
+		btGame = true;
+	}
+	public GameState(GameState gameState, Handler btHandler)
+	{
+		bots = gameState.bots();
+		swapped = gameState.swapped();
+		board = gameState.board();
+
+		this.btHandler = btHandler;
+		this.bots = Arrays.asList(Android, Bluetooth);
+		btGame = true;
+	}
+
+	public Bot extraBot()
+	{
+		return extraBot;
+	}
+
+	public void setExtraBot(Bot extraBot)
+	{
+		this.extraBot = extraBot;
+	}
+
+	public List<GameService.Source> bots()
 	{
 		return bots;
 	}
 
-	public void setBots(List<Bot> bots)
+	public void setBots(List<GameService.Source> bots)
 	{
 		this.bots = bots;
 	}
@@ -48,16 +99,6 @@ public class GameState implements Serializable
 		this.swapped = swapped;
 	}
 
-	public boolean running()
-	{
-		return running;
-	}
-
-	public void setRunning(boolean running)
-	{
-		this.running = running;
-	}
-
 	public Board board()
 	{
 		return board;
@@ -66,5 +107,25 @@ public class GameState implements Serializable
 	public void setBoard(Board board)
 	{
 		this.board = board;
+	}
+
+	public boolean btGame()
+	{
+		return btGame;
+	}
+
+	public void setBtGame(boolean btGame)
+	{
+		this.btGame = btGame;
+	}
+
+	public Handler btHandler()
+	{
+		return btHandler;
+	}
+
+	public void setBtHandler(Handler btHandler)
+	{
+		this.btHandler = btHandler;
 	}
 }

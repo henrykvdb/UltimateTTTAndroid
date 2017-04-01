@@ -32,13 +32,14 @@ public class BtService extends Service
 	// Member fields
 	private BluetoothAdapter mAdapter;
 	private Handler handler = null;
-	private WaitBot btBot = null;
+	//private WaitBot btBot = null;
 	private State state = State.NONE;
 
 	//Threads
 	private AcceptThread acceptThread;
 	private ConnectThread connectThread;
 	private ConnectedThread connectedThread;
+	private GameService gameService;
 
 	public enum State
 	{
@@ -95,9 +96,9 @@ public class BtService extends Service
 		setState(State.NONE);
 	}
 
-	public void setBtBot(WaitBot btBot)
+	public void setGame(GameService gameService)
 	{
-		this.btBot = btBot;
+		this.gameService = gameService;
 	}
 
 	public void setState(State newState)
@@ -485,19 +486,26 @@ public class BtService extends Service
 						Coord newMove = newBoard.getLastMove();
 						//Test if it is a valid move
 
-						Board verifyBoard = localBoard.copy();
-						verifyBoard.play(newMove);
-						if (verifyBoard.equals(newBoard))
+						if (!newBoard.equals(localBoard))
 						{
-							Log.d(TAG, "We received a valid board");
-							if (btBot != null)
-								btBot.play(newMove);
+							Board verifyBoard = localBoard.copy();
+							verifyBoard.play(newBoard.getLastMove());
+							if (verifyBoard.equals(newBoard))
+							{
+								Log.d(TAG, "We received a valid board");
+								if (gameService != null)
+									gameService.play(GameService.Source.Bluetooth,newMove);
+								else
+									Log.e(TAG, "Error playing move, btBot is null");
+							}
 							else
-								Log.e(TAG, "Error playing move, btBot is null");
+							{
+								Log.e(TAG, "Received invalid board");
+							}
 						}
 						else
 						{
-							Log.e(TAG, "Received invalid board");
+							Log.d(TAG,"Received our own board, this is normal behavior, local-lastmove: " + localBoard.getLastMove());
 						}
 					}
 					else if (message == Message.RECEIVE_SETUP.ordinal())

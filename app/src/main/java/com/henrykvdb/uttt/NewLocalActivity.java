@@ -10,10 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import com.flaghacker.uttt.bots.RandomBot;
-import com.flaghacker.uttt.common.Bot;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 public class NewLocalActivity extends Activity
@@ -43,23 +40,20 @@ public class NewLocalActivity extends Activity
 		startButton.setOnClickListener(v -> {
 			Intent intent = new Intent();
 
-			WaitBot ab = new WaitBot();
-			List<Bot> bots;
 			if (radio_ai.isChecked())
 			{
-				RandomBot rb = new RandomBot();
+				RandomBot bot = new RandomBot();
 
 				int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
-				boolean aiBegins = new Random().nextBoolean();
 
-				if (beginner == R.id.start_you) aiBegins = false;
-				else if (beginner == R.id.start_ai) aiBegins = true;
+				boolean swapped = new Random().nextBoolean();
+				if (beginner == R.id.start_you) swapped = false;
+				else if (beginner == R.id.start_ai) swapped = true;
 
-				bots = Arrays.asList(aiBegins ? rb : ab, aiBegins ? ab : rb);
+				intent.putExtra("GameState", new GameState(bot,swapped));
 			}
-			else bots = Arrays.asList(ab, ab);
+			else intent.putExtra("GameState", new GameState());
 
-			intent.putExtra("GameState", new GameState(bots, false));
 			setResult(Activity.RESULT_OK, intent);
 			finish();
 		});
