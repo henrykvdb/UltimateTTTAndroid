@@ -82,23 +82,20 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textAppearance="@style/TextAppearance.AppCompat"
-                    android:checked="true"
-                    android:onClick="radioClick"/>
+                    android:checked="true"/>
             <RadioButton
                     android:text="@string/ai"
                     android:id="@+id/start_ai"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat"
-                    android:onClick="radioClick"/>
+                    android:textAppearance="@style/TextAppearance.AppCompat"/>
             <RadioButton
                     android:text="@string/random"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat"
-                    android:onClick="radioClick"/>
+                    android:textAppearance="@style/TextAppearance.AppCompat"/>
         </RadioGroup>
     </LinearLayout>
 

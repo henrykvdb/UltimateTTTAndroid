@@ -16,8 +16,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.util.Random;
 import java.util.Set;
 
 public class NewBluetoothActivity extends Activity
@@ -163,6 +166,14 @@ public class NewBluetoothActivity extends Activity
 			Intent intent = new Intent();
 			intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
 
+			int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
+			boolean start = new Random().nextBoolean();
+			if (beginner == R.id.start_you) start = true;
+			else if (beginner == R.id.start_other) start = false;
+
+			intent.putExtra("newBoard",((RadioButton)findViewById(R.id.board_new)).isChecked());
+			intent.putExtra("start",start);
+
 			// Set result and finish this Activity
 			setResult(Activity.RESULT_OK, intent);
 			finish();
@@ -189,7 +200,6 @@ public class NewBluetoothActivity extends Activity
 				{
 					newDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
 				}
-				// When discovery is finished, change the Activity title
 			}
 			else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))
 			{

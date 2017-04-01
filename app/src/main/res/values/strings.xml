@@ -13,6 +13,7 @@
     <string name="you">You</string>
     <string name="random">Random</string>
     <string name="ai">AI</string>
+    <string name="other">Other</string>
     <string name="opponent">Opponent</string>
     <string name="shuffle">Shuffle</string>
     <string name="starting_player">Beginning player</string>
