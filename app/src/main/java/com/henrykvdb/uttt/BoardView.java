@@ -101,10 +101,13 @@ public class BoardView extends View implements Serializable
 
 	protected void onDraw(Canvas canvas)
 	{
-		boolean swapped = gameService.getState().swapped();
-		boolean p1Next = board.nextPlayer() == PLAYER;
-		nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
-				+ gameService.getState().bots().get((swapped ^ p1Next)?0:1) + ")");
+		if (gameService!=null)
+		{
+			boolean swapped = gameService.getState().swapped();
+			boolean p1Next = board.nextPlayer() == PLAYER;
+			nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
+					+ gameService.getState().bots().get((swapped ^ p1Next)?0:1) + ")");
+		}
 
 		//Make available moves yellow
 		paint.setStyle(Paint.Style.FILL);

@@ -104,13 +104,15 @@ public class BtService extends Service
 	public void setState(State newState)
 	{
 		state = newState;
-		//handler.obtainMessage(Message.STATE_CHANGE.ordinal(), - 1, - 1).sendToTarget();
 
-		android.os.Message msg = handler.obtainMessage(Message.STATE_CHANGE.ordinal());
-		Bundle bundle = new Bundle();
-		bundle.putSerializable(STATE, state);
-		msg.setData(bundle);
-		handler.sendMessage(msg);
+		if (handler != null)
+		{
+			android.os.Message msg = handler.obtainMessage(Message.STATE_CHANGE.ordinal());
+			Bundle bundle = new Bundle();
+			bundle.putSerializable(STATE, state);
+			msg.setData(bundle);
+			handler.sendMessage(msg);
+		}
 	}
 
 	public synchronized void start()
@@ -245,8 +247,8 @@ public class BtService extends Service
 		connectedThread = new ConnectedThread(socket);
 		connectedThread.start();
 
-		if (! isHost)
-			handler.obtainMessage(Message.SEND_SETUP.ordinal(), - 1, - 1).sendToTarget();
+		if (!isHost)
+			handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
 	}
 
 	/**
@@ -398,7 +400,7 @@ public class BtService extends Service
 
 				// Send a failure message back to the UI
 				setState(BtService.State.NONE);
-				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), - 1, - 1, "Unable to connect device").sendToTarget();
+				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect device").sendToTarget();
 
 				// Start the service over to restart listening mode
 				BtService.this.start();
@@ -459,7 +461,7 @@ public class BtService extends Service
 
 			mmInStream = tmpIn;
 			mmOutStream = tmpOut;
-			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), - 1, - 1, socket.getRemoteDevice().getName()).sendToTarget();
+			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, socket.getRemoteDevice().getName()).sendToTarget();
 			setState(BtService.State.CONNECTED);
 		}
 
@@ -494,7 +496,7 @@ public class BtService extends Service
 							{
 								Log.d(TAG, "We received a valid board");
 								if (gameService != null)
-									gameService.play(GameService.Source.Bluetooth,newMove);
+									gameService.play(GameService.Source.Bluetooth, newMove);
 								else
 									Log.e(TAG, "Error playing move, btBot is null");
 							}
@@ -505,7 +507,7 @@ public class BtService extends Service
 						}
 						else
 						{
-							Log.d(TAG,"Received our own board, this is normal behavior, local-lastmove: " + localBoard.getLastMove());
+							Log.d(TAG, "Received our own board, this is normal behavior, local-lastmove: " + localBoard.getLastMove());
 						}
 					}
 					else if (message == Message.RECEIVE_SETUP.ordinal())
@@ -529,7 +531,7 @@ public class BtService extends Service
 
 					// Send a failure message back to the UI
 					setState(BtService.State.NONE);
-					handler.obtainMessage(Message.ERROR_TOAST.ordinal(), - 1, - 1, "Bluetooth connection lost").sendToTarget();
+					handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 
 					// Start the service over to restart listening mode
 					BtService.this.start();
