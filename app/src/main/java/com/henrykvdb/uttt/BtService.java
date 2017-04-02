@@ -507,7 +507,7 @@ public class BtService extends Service
 						}
 						else
 						{
-							Log.d(TAG, "Received our own board, this is normal behavior, local-lastmove: " + localBoard.getLastMove());
+							Log.d(TAG, "Received our own board, this is normal behavior");
 						}
 					}
 					else if (message == Message.RECEIVE_SETUP.ordinal())

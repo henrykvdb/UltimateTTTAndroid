@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity
 	private static final int REQUEST_ENABLE_DSC = 201;
 	private static final int REQUEST_COARSE_LOCATION = 202;
 
-	//Bluetooth Service
+	//Services
 	private BtService btService;
 	private GameService gameService;
 
@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Switch btHostSwitch;
-
 	private GameState requestState;
 
 	@Override
@@ -435,7 +434,7 @@ public class MainActivity extends AppCompatActivity
 
 				if (state == BtService.State.CONNECTED)
 					setBtStatusMessage("connected to " + connectedDeviceName);
-				//else if (state == BtService.State.CONNECTING)
+					//else if (state == BtService.State.CONNECTING)
 					//setBtStatusMessage("connecting...");
 				else if (state == BtService.State.NONE)
 					setBtStatusMessage(null);
@@ -474,7 +473,7 @@ public class MainActivity extends AppCompatActivity
 			}
 			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
 			{
-				if (gameService!=null)
+				if (gameService != null)
 					gameService.turnLocal();
 
 				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
