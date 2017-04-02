@@ -29,6 +29,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
@@ -58,7 +59,6 @@ public class MainActivity extends AppCompatActivity
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Switch btHostSwitch;
-
 
 	private GameState requestState;
 
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity
 	private void initGui()
 	{
 		boardView = (BoardView) findViewById(R.id.boardView);
+		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);

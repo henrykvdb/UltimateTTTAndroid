@@ -29,7 +29,7 @@ public class GameService extends Service implements Closeable
 
 	public enum Source
 	{
-		Android,
+		Local,
 		AI,
 		Bluetooth
 	}

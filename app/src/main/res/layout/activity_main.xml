@@ -44,6 +44,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/boardView"/>
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/next_move_view" android:textSize="18sp" android:textStyle="normal|bold"
+            />
+
         </LinearLayout>
     </android.support.design.widget.CoordinatorLayout>
 

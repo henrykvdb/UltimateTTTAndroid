@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Random;
 
 import static com.henrykvdb.uttt.GameService.Source.AI;
-import static com.henrykvdb.uttt.GameService.Source.Android;
+import static com.henrykvdb.uttt.GameService.Source.Local;
 import static com.henrykvdb.uttt.GameService.Source.Bluetooth;
 
 public class GameState implements Serializable
 {
-	private List<GameService.Source> bots = Arrays.asList(Android, Android);
+	private List<GameService.Source> bots = Arrays.asList(Local, Local);
 	private boolean swapped = new Random().nextBoolean();
 	private Board board = new Board();
 
@@ -46,7 +46,7 @@ public class GameState implements Serializable
 	public GameState(Bot ai, boolean swapped)
 	{
 		this.extraBot = ai;
-		this.bots = Arrays.asList(Android, AI);
+		this.bots = Arrays.asList(Local, AI);
 		this.swapped = swapped;
 	}
 
@@ -55,7 +55,7 @@ public class GameState implements Serializable
 	{
 		this.btHandler = btHandler;
 		this.swapped=swapped;
-		this.bots = Arrays.asList(Android, Bluetooth);
+		this.bots = Arrays.asList(Local, Bluetooth);
 		btGame = true;
 	}
 	public GameState(GameState gameState, Handler btHandler)
@@ -65,7 +65,7 @@ public class GameState implements Serializable
 		board = gameState.board();
 
 		this.btHandler = btHandler;
-		this.bots = Arrays.asList(Android, Bluetooth);
+		this.bots = Arrays.asList(Local, Bluetooth);
 		btGame = true;
 	}
 

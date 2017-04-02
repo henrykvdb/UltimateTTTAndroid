@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Player;
@@ -26,6 +27,7 @@ public class BoardView extends View implements Serializable
 	private Board board;
 	private DrawSettings ds;
 	private GameService gameService;
+	private TextView nextPlayerView;
 	private Paint paint;
 
 	private float macroSizeFull;
@@ -80,6 +82,11 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
+	public void setNextPlayerView(TextView nextPlayerView)
+	{
+		this.nextPlayerView = nextPlayerView;
+	}
+
 	public void setDrawSettings(DrawSettings drawSettings)
 	{
 		this.ds = drawSettings;
@@ -94,6 +101,11 @@ public class BoardView extends View implements Serializable
 
 	protected void onDraw(Canvas canvas)
 	{
+		boolean swapped = gameService.getState().swapped();
+		boolean p1Next = board.nextPlayer() == PLAYER;
+		nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
+				+ gameService.getState().bots().get((swapped ^ p1Next)?0:1) + ")");
+
 		//Make available moves yellow
 		paint.setStyle(Paint.Style.FILL);
 		paint.setColor(ds.availableColor());
@@ -274,7 +286,7 @@ public class BoardView extends View implements Serializable
 
 					if (gameService != null)
 					{
-						gameService.play(GameService.Source.Android,Coord.coord(xm, ym, xs, ys));
+						gameService.play(GameService.Source.Local,Coord.coord(xm, ym, xs, ys));
 						Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 					}
 					else
