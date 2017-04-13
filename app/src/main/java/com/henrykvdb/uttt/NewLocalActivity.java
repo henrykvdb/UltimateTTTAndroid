@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import com.flaghacker.uttt.bots.RandomBot;
+import android.widget.SeekBar;
 
 import java.util.Random;
 
@@ -42,7 +42,7 @@ public class NewLocalActivity extends Activity
 
 			if (radio_ai.isChecked())
 			{
-				RandomBot bot = new RandomBot();
+				MMBot bot = new MMBot(((SeekBar)findViewById(R.id.difficulty)).getProgress());
 
 				int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
 

@@ -49,12 +49,6 @@ public class GameService extends Service implements Closeable
 	}
 
 	@Override
-	public void onCreate()
-	{
-		super.onCreate();
-	}
-
-	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		return START_STICKY;
@@ -66,14 +60,11 @@ public class GameService extends Service implements Closeable
 		this.boardView = boardView;
 	}
 
-
 	public void newGame(GameState gs)
 	{
 		close();
 
 		this.gs = gs;
-
-
 
 		boardView.setBoard(gs.board());
 
@@ -88,7 +79,7 @@ public class GameService extends Service implements Closeable
 
 	public void turnLocal()
 	{
-		newGame(new GameState(gs.swapped(),gs.board()));
+		newGame(new GameState(gs.swapped(), gs.board()));
 	}
 
 	private class GameThread extends Thread implements Closeable
@@ -103,12 +94,12 @@ public class GameService extends Service implements Closeable
 			Source p1 = gs.bots().get(gs.swapped() ? 1 : 0);
 			Source p2 = gs.bots().get(gs.swapped() ? 0 : 1);
 
-			while (!gs.board().isDone() && running)
+			while (! gs.board().isDone() && running)
 			{
 				if (gs.board().nextPlayer() == PLAYER && running)
 					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), new Timer(0)));
 
-				if (gs.board().isDone() || !running)
+				if (gs.board().isDone() || ! running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
@@ -168,8 +159,8 @@ public class GameService extends Service implements Closeable
 	{
 		playerMove.set(new Pair<>(null, null));
 		while (playerMove.get().first == null
-				|| !gs.board().availableMoves().contains(playerMove.get().first)
-				|| !player.equals(playerMove.get().second))
+				|| ! gs.board().availableMoves().contains(playerMove.get().first)
+				|| ! player.equals(playerMove.get().second))
 		{
 			synchronized (playerLock)
 			{
