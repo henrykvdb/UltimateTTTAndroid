@@ -79,10 +79,10 @@ public class MMBot implements Bot
 		//boolean ourTurn = board.nextPlayer() == player;
 		int score = 0;
 
-		//Taking macros is good, losing them is bad
-		for (Coord c : Coord.macro(0, 0))
+		//Taking macros could be good, losing them could be bad
+		for (int om = 0; om < 9; om++)
 		{
-			Player owner = board.macro(c.x(), c.y());
+			Player owner = board.macro(om);
 
 			if (owner != Player.NEUTRAL)
 				score += (owner == player) ? 50 : - 50;
@@ -90,7 +90,14 @@ public class MMBot implements Bot
 
 		//Winning games is good, losing is bad
 		if (board.isDone())
-			score += (board.wonBy() == player)?9999:-9999;
+		{
+			if (board.wonBy() == player)
+				return Integer.MAX_VALUE;
+			else if (board.wonBy() == player.other())
+				return Integer.MIN_VALUE+1;
+			else
+				return Integer.MIN_VALUE;
+		}
 
 		return score;
 	}
