@@ -12,13 +12,20 @@ import java.util.Random;
 
 public class MMBot implements Bot
 {
+	private Random random = Util.loggedRandom();
+
+	private static final double TILE_VALUE = 1;
+	private static final double MACRO_VALUE = 100;
+
+	private static final double CENTER_FACTOR = 3;
+	private static final double CORNER_FACTOR = 2;
+	private static final double EDGE_FACTOR = 1;
+
 	private final int levels = 3;
 	private final int endLevels = 6;
 
-	private int difficulty = 50;
-
 	private Player player;
-	private Random random = Util.loggedRandom();
+	private int difficulty = 100;
 
 	public MMBot(int difficulty)
 	{
@@ -44,7 +51,7 @@ public class MMBot implements Bot
 			Board testBoard = board.copy();
 			testBoard.play(move);
 
-			int minMax = minMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
+			int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
 
 			if (minMax > bestScore)
 			{
@@ -56,7 +63,7 @@ public class MMBot implements Bot
 		return bestMove;
 	}
 
-	private int minMax(Board board, int depth, boolean maximizingPlayer)
+	private int miniMax(Board board, int depth, boolean maximizingPlayer)
 	{
 		if (depth == 0 || board.isDone())
 			return rateBoard(board);
@@ -68,24 +75,27 @@ public class MMBot implements Bot
 			deepBoard.play(move);
 
 			bestScore = (maximizingPlayer)
-					? Math.max(bestScore, minMax(deepBoard, depth - 1, false))
-					: Math.min(bestScore, minMax(deepBoard, depth - 1, true));
+					? Math.max(bestScore, miniMax(deepBoard, depth - 1, false))
+					: Math.min(bestScore, miniMax(deepBoard, depth - 1, true));
 		}
 		return bestScore;
 	}
 
 	private int rateBoard(Board board)
 	{
-		//boolean ourTurn = board.nextPlayer() == player;
 		int score = 0;
 
-		//Taking macros could be good, losing them could be bad
+		//Gives score for tiles
+		for (Coord coord : Coord.list())
+			score += TILE_VALUE * tileFactor(coord.os()) * tileFactor(coord.om()) * playerSign(board.tile(coord));
+
+		//Gives score for macros
 		for (int om = 0; om < 9; om++)
 		{
 			Player owner = board.macro(om);
 
 			if (owner != Player.NEUTRAL)
-				score += (owner == player) ? 50 : - 50;
+				score += tileFactor(om) * MACRO_VALUE * playerSign(owner);
 		}
 
 		//Winning games is good, losing is bad
@@ -94,12 +104,34 @@ public class MMBot implements Bot
 			if (board.wonBy() == player)
 				return Integer.MAX_VALUE;
 			else if (board.wonBy() == player.other())
-				return Integer.MIN_VALUE+1;
+				return Integer.MIN_VALUE + 1;
 			else
 				return Integer.MIN_VALUE;
 		}
 
 		return score;
+	}
+
+	private double tileFactor(int o)
+	{
+		int x = o % 3;
+		int y = o / 3;
+
+		if (x == 1 && y == 1)
+			return CENTER_FACTOR;
+		if (x == 1 || y == 1)
+			return EDGE_FACTOR;
+		return CORNER_FACTOR;
+	}
+
+	private int playerSign(Player p)
+	{
+		if (p == player)
+			return 1;
+		else if (p == player.other())
+			return - 1;
+		else
+			return 0;
 	}
 
 	@Override
