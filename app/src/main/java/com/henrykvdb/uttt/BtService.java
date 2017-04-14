@@ -25,7 +25,7 @@ import java.util.UUID;
 public class BtService extends Service
 {
 	// Unique UUID for this application
-	private static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
+	public static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 	private static final String TAG = "BluetoothService";
 	public static final String STATE = "STATE";
 
@@ -267,8 +267,7 @@ public class BtService extends Service
 			// Create a new listening server socket
 			try
 			{
-				tmp = mAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure",
-						UUID);
+				tmp = mAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure", UUID);
 			}
 			catch (IOException e)
 			{
