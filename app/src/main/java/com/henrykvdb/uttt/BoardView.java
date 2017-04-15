@@ -6,7 +6,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -22,7 +21,7 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class BoardView extends View implements Serializable
 {
-	private static final long serialVersionUID = - 6067519139638476047L;
+	private static final long serialVersionUID = -6067519139638476047L;
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
@@ -104,7 +103,7 @@ public class BoardView extends View implements Serializable
 
 	protected void onDraw(Canvas canvas)
 	{
-		if (gameState!=null)
+		if (gameState != null)
 		{
 			board = gameState.board();
 
@@ -112,11 +111,11 @@ public class BoardView extends View implements Serializable
 			boolean p1Next = board.nextPlayer() == PLAYER;
 
 			if (!board.isDone())
-				nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
-						+ gameState.players().get((swapped ^ p1Next)?0:1) + ")");
+				nextPlayerView.setText("Current Player: " + (p1Next ? "X" : "O") + " ("
+						+ gameState.players().get((swapped ^ p1Next) ? 0 : 1) + ")");
 			else
-				nextPlayerView.setText("Won by " + (board.wonBy()==PLAYER ?"X":"O") + " ("
-						+ gameState.players().get((swapped ^ board.wonBy()==PLAYER)?0:1) + ")");
+				nextPlayerView.setText("Won by " + (board.wonBy() == PLAYER ? "X" : "O") + " ("
+						+ gameState.players().get((swapped ^ board.wonBy() == PLAYER) ? 0 : 1) + ")");
 		}
 
 		//Make available moves yellow
@@ -129,7 +128,7 @@ public class BoardView extends View implements Serializable
 
 			canvas.translate(x, y);
 			canvas.drawRect(0, 0, tileSize, tileSize, paint);
-			canvas.translate(- x, - y);
+			canvas.translate(-x, -y);
 		}
 
 		for (int om = 0; om < 9; om++)
@@ -192,20 +191,20 @@ public class BoardView extends View implements Serializable
 								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
 						tileSymbolStroke, oBorder);
 
-			canvas.translate(- xt, - yt);
+			canvas.translate(-xt, -yt);
 		}
 
 		//Draw x and y over macros
 		if (mPlayer == PLAYER) //X
-			drawTile(canvas, true, ! finished, macroSizeSmall,
+			drawTile(canvas, true, !finished, macroSizeSmall,
 					finished ? (ds.xColorDarker() - ds.symbolTransparency()) : (ds.xColor() - ds.symbolTransparency()),
 					macroSymbolStroke, xBorder);
 		else if (mPlayer == ENEMY) //O
-			drawTile(canvas, false, ! finished, macroSizeSmall,
+			drawTile(canvas, false, !finished, macroSizeSmall,
 					finished ? (ds.oColorDarker() - ds.symbolTransparency()) : (ds.oColor() - ds.symbolTransparency()),
 					macroSymbolStroke, oBorder);
 
-		canvas.translate(- xmt, - ymt);
+		canvas.translate(-xmt, -ymt);
 	}
 
 	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border)
@@ -239,7 +238,7 @@ public class BoardView extends View implements Serializable
 			canvas.drawOval(0, 0, realSize, realSize, paint);
 		}
 
-		canvas.translate(- border, - border);
+		canvas.translate(-border, -border);
 	}
 
 	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)
@@ -252,19 +251,6 @@ public class BoardView extends View implements Serializable
 			canvas.drawLine(i * size / 3, 0, i * size / 3, size, paint);
 			canvas.drawLine(0, i * size / 3, size, i * size / 3, paint);
 		}
-	}
-
-	private boolean pointInSquare(float pointX, float pointY, float startX, float startY, float squareSize)
-	{
-		return pointX > startX && pointY > startY && pointX < startX + squareSize && pointY < startY + squareSize;
-	}
-
-	private Pair<Integer, Integer> findLocation(float x, float y, float startX, float startY, float step)
-	{
-		int x_ = (int) ((x - startX) / step);
-		int y_ = (int) ((y - startY) / step);
-
-		return Pair.create(x_, y_);
 	}
 
 	@Override
@@ -281,35 +267,28 @@ public class BoardView extends View implements Serializable
 
 		if (e.getAction() == MotionEvent.ACTION_UP)
 		{
-			//If event is in the board
-			if (pointInSquare(x, y, 0, 0, fieldSize))
+			if (x > (float) 0 && y > (float) 0 && x < (float) 0 + fieldSize && y < (float) 0 + fieldSize)
 			{
-
 				//Get event's macro
-				Pair<Integer, Integer> macro = findLocation(x, y, 0, 0, macroSizeFull);
-				int xm = macro.first;
-				int ym = macro.second;
+				int xm = (int) (x / macroSizeFull);
+				int ym = (int) (y / macroSizeFull);
 
-				//Check if event is not in whitespace area
-				if (pointInSquare(x, y, xm * macroSizeFull + whiteSpace, ym * macroSizeFull + whiteSpace, macroSizeFull - 2 * whiteSpace))
+				//Get event's tile
+				int xs = (int) ((x - xm * macroSizeFull) / (macroSizeSmall / 3));
+				int ys = (int) ((y - ym * macroSizeFull) / (macroSizeSmall / 3));
+
+				//Fix coordinates being too big due to whitespace
+				xs = xs > 2 ? --xs : xs;
+				ys = ys > 2 ? --ys : ys;
+
+				if (gameService != null)
 				{
-					Pair<Integer, Integer> tile = findLocation(x, y, xm * macroSizeFull + whiteSpace, ym * macroSizeFull + whiteSpace, tileSize);
-					int xs = tile.first;
-					int ys = tile.second;
-
-					if (gameService != null)
-					{
-						gameService.play(GameService.Source.Local,Coord.coord(xm, ym, xs, ys));
-						Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
-					}
-					else
-					{
-						Log.d("ERROR", "Clickevent called without ab");
-					}
+					gameService.play(GameService.Source.Local, Coord.coord(xm, ym, xs, ys));
+					Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 				}
 				else
 				{
-					Log.d("ClickEvent", "Clicked in whitespace");
+					Log.d("ERROR", "Clicked without gameService");
 				}
 			}
 			else
