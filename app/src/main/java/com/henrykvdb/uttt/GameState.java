@@ -16,7 +16,7 @@ import static com.henrykvdb.uttt.GameService.Source.Bluetooth;
 
 public class GameState implements Serializable
 {
-	private List<GameService.Source> bots = Arrays.asList(Local, Local);
+	private List<GameService.Source> players = Arrays.asList(Local, Local);
 	private boolean swapped = new Random().nextBoolean();
 	private Board board = new Board();
 
@@ -46,7 +46,7 @@ public class GameState implements Serializable
 	public GameState(Bot ai, boolean swapped)
 	{
 		this.extraBot = ai;
-		this.bots = Arrays.asList(Local, AI);
+		this.players = Arrays.asList(Local, AI);
 		this.swapped = swapped;
 	}
 
@@ -55,17 +55,17 @@ public class GameState implements Serializable
 	{
 		this.btHandler = btHandler;
 		this.swapped=swapped;
-		this.bots = Arrays.asList(Local, Bluetooth);
+		this.players = Arrays.asList(Local, Bluetooth);
 		btGame = true;
 	}
 	public GameState(GameState gameState, Handler btHandler)
 	{
-		bots = gameState.bots();
+		players = gameState.players();
 		swapped = gameState.swapped();
 		board = gameState.board();
 
 		this.btHandler = btHandler;
-		this.bots = Arrays.asList(Local, Bluetooth);
+		this.players = Arrays.asList(Local, Bluetooth);
 		btGame = true;
 	}
 
@@ -79,14 +79,14 @@ public class GameState implements Serializable
 		this.extraBot = extraBot;
 	}
 
-	public List<GameService.Source> bots()
+	public List<GameService.Source> players()
 	{
-		return bots;
+		return players;
 	}
 
-	public void setBots(List<GameService.Source> bots)
+	public void setPlayers(List<GameService.Source> players)
 	{
-		this.bots = bots;
+		this.players = players;
 	}
 
 	public boolean swapped()

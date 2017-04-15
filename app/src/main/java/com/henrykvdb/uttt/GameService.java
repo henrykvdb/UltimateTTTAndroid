@@ -65,8 +65,7 @@ public class GameService extends Service implements Closeable
 		close();
 
 		this.gs = gs;
-
-		boardView.setBoard(gs.board());
+		boardView.drawState(gs);
 
 		thread = new GameThread();
 		thread.start();
@@ -91,8 +90,8 @@ public class GameService extends Service implements Closeable
 		{
 			running = true;
 
-			Source p1 = gs.bots().get(gs.swapped() ? 1 : 0);
-			Source p2 = gs.bots().get(gs.swapped() ? 0 : 1);
+			Source p1 = gs.players().get(gs.swapped() ? 1 : 0);
+			Source p2 = gs.players().get(gs.swapped() ? 0 : 1);
 
 			while (! gs.board().isDone() && running)
 			{
@@ -135,7 +134,7 @@ public class GameService extends Service implements Closeable
 		}
 
 		gs.setBoard(newBoard);
-		boardView.setBoard(newBoard);
+		boardView.drawState(gs);
 	}
 
 	public void play(Source source, Coord move)

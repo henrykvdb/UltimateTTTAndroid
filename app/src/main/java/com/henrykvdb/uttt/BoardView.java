@@ -26,7 +26,7 @@ public class BoardView extends View implements Serializable
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
-	private GameService gameService;
+	private GameState gameState;
 	private TextView nextPlayerView;
 	private Paint paint;
 
@@ -43,6 +43,7 @@ public class BoardView extends View implements Serializable
 	private int tileSymbolStroke;
 	private int macroSymbolStroke;
 	private int wonSymbolStroke;
+	private GameService gameService;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
@@ -53,7 +54,9 @@ public class BoardView extends View implements Serializable
 		path = new Path();
 
 		setVars();
-		setBoard(new Board());
+		board = new Board();
+
+		postInvalidate();
 	}
 
 	private void setVars()
@@ -76,9 +79,9 @@ public class BoardView extends View implements Serializable
 		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke());
 	}
 
-	public void setBoard(Board board)
+	public void drawState(GameState gameState)
 	{
-		this.board = board;
+		this.gameState = gameState;
 		postInvalidate();
 	}
 
@@ -101,12 +104,19 @@ public class BoardView extends View implements Serializable
 
 	protected void onDraw(Canvas canvas)
 	{
-		if (gameService!=null)
+		if (gameState!=null)
 		{
-			boolean swapped = gameService.getState().swapped();
+			board = gameState.board();
+
+			boolean swapped = gameState.swapped();
 			boolean p1Next = board.nextPlayer() == PLAYER;
-			nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
-					+ gameService.getState().bots().get((swapped ^ p1Next)?0:1) + ")");
+
+			if (!board.isDone())
+				nextPlayerView.setText("Current Player: " + (p1Next ?"X":"O") + " ("
+						+ gameState.players().get((swapped ^ p1Next)?0:1) + ")");
+			else
+				nextPlayerView.setText("Won by " + (board.wonBy()==PLAYER ?"X":"O") + " ("
+						+ gameState.players().get((swapped ^ board.wonBy()==PLAYER)?0:1) + ")");
 		}
 
 		//Make available moves yellow
