@@ -7,19 +7,20 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class NewBluetoothActivity extends Activity
@@ -31,7 +32,7 @@ public class NewBluetoothActivity extends Activity
 
 	private BluetoothAdapter btAdapter;
 	private ArrayAdapter<String> devicesArrayAdapter;
-	//private ProgressBar spinner;
+	private LinearLayout devicesLayout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -69,11 +70,16 @@ public class NewBluetoothActivity extends Activity
 		});
 
 		devicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
-
-		ListView devicesListView = (ListView) findViewById(R.id.devices);
-		devicesListView.setAdapter(devicesArrayAdapter);
-		devicesListView.setOnItemClickListener(mDeviceClickListener);
-
+		devicesLayout = (LinearLayout) findViewById(R.id.devices);
+		devicesArrayAdapter.registerDataSetObserver(new DataSetObserver()
+		{
+			@Override
+			public void onChanged()
+			{
+				updateLayout();
+				super.onChanged();
+			}
+		});
 		devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
 
 		// Register filters
@@ -86,6 +92,43 @@ public class NewBluetoothActivity extends Activity
 
 		// Get the local Bluetooth adapter
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
+	}
+
+	private void updateLayout()
+	{
+		devicesLayout.removeAllViews();
+		for (int i = 0; i < devicesArrayAdapter.getCount(); i++)
+		{
+			View item = devicesArrayAdapter.getView(i, null, null);
+			if (!Objects.equals(((TextView) item).getText().toString(), getResources().getText(R.string.none_found).toString()))
+			{
+				item.setOnClickListener(v -> {
+					// Cancel discovery because it's costly and we're about to connect
+					btAdapter.cancelDiscovery();
+
+					// Get the device MAC address, which is the last 17 chars in the View
+					String info = ((TextView) v).getText().toString();
+					String address = info.substring(info.length() - 17);
+
+					// Create the result Intent and include the MAC address
+					Intent intent = new Intent();
+					intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
+
+					int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
+					boolean start = new Random().nextBoolean();
+					if (beginner == R.id.start_you) start = true;
+					else if (beginner == R.id.start_other) start = false;
+
+					intent.putExtra("newBoard", ((RadioButton) findViewById(R.id.board_new)).isChecked());
+					intent.putExtra("start", start);
+
+					// Set result and finish this Activity
+					setResult(Activity.RESULT_OK, intent);
+					finish();
+				});
+			}
+			devicesLayout.addView(item);
+		}
 	}
 
 	@Override
@@ -116,45 +159,11 @@ public class NewBluetoothActivity extends Activity
 
 		// If we're already discovering, stop it
 		if (btAdapter.isDiscovering())
-		{
 			btAdapter.cancelDiscovery();
-		}
 
 		// Request discover from BluetoothAdapter
 		btAdapter.startDiscovery();
 	}
-
-	/**
-	 * The on-click listener for all devices in the ListViews
-	 */
-	private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener()
-	{
-		public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3)
-		{
-			// Cancel discovery because it's costly and we're about to connect
-			btAdapter.cancelDiscovery();
-
-			// Get the device MAC address, which is the last 17 chars in the View
-			String info = ((TextView) v).getText().toString();
-			String address = info.substring(info.length() - 17);
-
-			// Create the result Intent and include the MAC address
-			Intent intent = new Intent();
-			intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
-
-			int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
-			boolean start = new Random().nextBoolean();
-			if (beginner == R.id.start_you) start = true;
-			else if (beginner == R.id.start_other) start = false;
-
-			intent.putExtra("newBoard", ((RadioButton) findViewById(R.id.board_new)).isChecked());
-			intent.putExtra("start", start);
-
-			// Set result and finish this Activity
-			setResult(Activity.RESULT_OK, intent);
-			finish();
-		}
-	};
 
 	/**
 	 * The BroadcastReceiver that listens for discovered devices and changes the title when discovery is finished
