@@ -27,6 +27,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -35,6 +36,7 @@ import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
@@ -55,7 +57,7 @@ public class MainActivity extends AppCompatActivity
 	private BtService btService;
 	private GameService gameService;
 
-	//Set in onCreate()
+	//Other
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Switch btHostSwitch;
@@ -155,6 +157,25 @@ public class MainActivity extends AppCompatActivity
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		getMenuInflater().inflate(R.menu.menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		if (item.getItemId()==R.id.action_undo)
+		{
+			if (gameService!=null)
+				gameService.undo();
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	public boolean onNavigationItemSelected(@NonNull MenuItem item)
 	{
 		// Handle navigation view item clicks here.
@@ -171,10 +192,8 @@ public class MainActivity extends AppCompatActivity
 		}
 
 		if (id != R.id.nav_bt_host_switch)
-		{
-			DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-			drawer.closeDrawer(GravityCompat.START);
-		}
+			((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
+
 		return true;
 	}
 
@@ -204,7 +223,7 @@ public class MainActivity extends AppCompatActivity
 				{
 					startBtService();
 
-					//Make the bluetooth-picker activity
+					//Make the bluetooth-picker activity //TODO kill if bluetooth gets turned off
 					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
 					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
 				}
@@ -257,7 +276,7 @@ public class MainActivity extends AppCompatActivity
 					requestState = new GameState(btHandler, swapped);
 
 					if (!data.getExtras().getBoolean("newBoard"))
-						requestState.setBoard(gameService.getState().board());
+						requestState.setBoards(Collections.singletonList(gameService.getState().board()));
 
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
 				}
@@ -463,7 +482,7 @@ public class MainActivity extends AppCompatActivity
 				boolean swapped = !data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				gameService.newGame(new GameState(new GameState(swapped, board), btHandler));
+				gameService.newGame(new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler));
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{

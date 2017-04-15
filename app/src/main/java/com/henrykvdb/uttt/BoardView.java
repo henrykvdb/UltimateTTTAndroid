@@ -96,7 +96,7 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setGame(GameService gameService)
+	public void setGameService(GameService gameService)
 	{
 		this.gameService = gameService;
 	}

@@ -144,9 +144,6 @@ public class NewBluetoothActivity extends Activity
 		this.unregisterReceiver(mReceiver);
 	}
 
-	/**
-	 * Start device discover with the BluetoothAdapter
-	 */
 	private void doDiscovery()
 	{
 		devicesArrayAdapter.clear();
@@ -165,9 +162,6 @@ public class NewBluetoothActivity extends Activity
 		btAdapter.startDiscovery();
 	}
 
-	/**
-	 * The BroadcastReceiver that listens for discovered devices and changes the title when discovery is finished
-	 */
 	private final BroadcastReceiver mReceiver = new BroadcastReceiver()
 	{
 		@Override

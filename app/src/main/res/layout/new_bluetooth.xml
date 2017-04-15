@@ -41,7 +41,7 @@
         </RelativeLayout>
 
         <TextView
-                android:text="Select board"
+                android:text="Select boards"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat"

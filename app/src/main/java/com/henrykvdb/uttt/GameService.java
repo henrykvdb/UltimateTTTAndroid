@@ -6,10 +6,10 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.util.Pair;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Timer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,8 +24,9 @@ public class GameService extends Service implements Closeable
 	private final IBinder mBinder = new GameService.LocalBinder();
 
 	private BoardView boardView;
-	private GameState gs;
+
 	private GameThread thread;
+	private GameState gs;
 
 	public enum Source
 	{
@@ -56,8 +57,22 @@ public class GameService extends Service implements Closeable
 
 	public void setBoardView(BoardView boardView)
 	{
-		boardView.setGame(this);
+		boardView.setGameService(this);
 		this.boardView = boardView;
+	}
+
+	public void undo()
+	{
+		if (gs.boards().size()>1)
+		{
+			GameState newState = new GameState(gs);
+			Log.d(String.valueOf(gs), String.valueOf(newState.boards().size()));
+			newState.boards().pop();
+			Log.d(String.valueOf(gs), String.valueOf(newState.boards().size()));
+
+			newGame(newState);
+			Log.d(String.valueOf(gs), "newgame");
+		}
 	}
 
 	public void newGame(GameState gs)
@@ -65,6 +80,7 @@ public class GameService extends Service implements Closeable
 		close();
 
 		this.gs = gs;
+
 		boardView.drawState(gs);
 
 		thread = new GameThread();
@@ -78,7 +94,7 @@ public class GameService extends Service implements Closeable
 
 	public void turnLocal()
 	{
-		newGame(new GameState(gs.swapped(), gs.board()));
+		newGame(new GameState(gs.swapped(), gs.boards()));
 	}
 
 	private class GameThread extends Thread implements Closeable
@@ -93,16 +109,16 @@ public class GameService extends Service implements Closeable
 			Source p1 = gs.players().get(gs.swapped() ? 1 : 0);
 			Source p2 = gs.players().get(gs.swapped() ? 0 : 1);
 
-			while (! gs.board().isDone() && running)
+			while (!gs.board().isDone() && running)
 			{
 				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), new Timer(0)));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), null));
 
-				if (gs.board().isDone() || ! running)
+				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), new Timer(0)));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), null));
 			}
 		}
 
@@ -116,10 +132,10 @@ public class GameService extends Service implements Closeable
 
 	private void playAndUpdateBoard(Coord move)
 	{
-		Board newBoard = gs.board();
-
 		if (move != null)
 		{
+			Board newBoard = gs.board().copy();
+
 			newBoard.play(move);
 			if (gs.btGame())
 			{
@@ -131,9 +147,10 @@ public class GameService extends Service implements Closeable
 
 				gs.btHandler().sendMessage(msg);
 			}
+
+			gs.addBoard(newBoard);
 		}
 
-		gs.setBoard(newBoard);
 		boardView.drawState(gs);
 	}
 
@@ -158,8 +175,8 @@ public class GameService extends Service implements Closeable
 	{
 		playerMove.set(new Pair<>(null, null));
 		while (playerMove.get().first == null
-				|| ! gs.board().availableMoves().contains(playerMove.get().first)
-				|| ! player.equals(playerMove.get().second))
+				|| !gs.board().availableMoves().contains(playerMove.get().first)
+				|| !player.equals(playerMove.get().second))
 		{
 			synchronized (playerLock)
 			{
