@@ -35,10 +35,12 @@ public class GameState implements Serializable
 	{
 		this.swapped = false;
 	}
+
 	public GameState(boolean swapped)
 	{
 		this.swapped = swapped;
 	}
+
 	public GameState(boolean swapped, List<Board> boards)
 	{
 		this.swapped = swapped;
@@ -57,10 +59,11 @@ public class GameState implements Serializable
 	public GameState(Handler btHandler, boolean swapped)
 	{
 		this.btHandler = btHandler;
-		this.swapped=swapped;
+		this.swapped = swapped;
 		this.players = Arrays.asList(Local, Bluetooth);
 		btGame = true;
 	}
+
 	public GameState(GameState gameState, Handler btHandler)
 	{
 		players = gameState.players();
@@ -79,7 +82,7 @@ public class GameState implements Serializable
 		this.boards = gs.boards();
 
 		List<Board> boardList = new ArrayList<>();
-		for (Board board:gs.boards())
+		for (Board board : gs.boards())
 			boardList.add(board.copy());
 
 		boards = new LinkedList<>(boardList);
@@ -119,9 +122,14 @@ public class GameState implements Serializable
 		this.boards = new LinkedList<>(boards);
 	}
 
-	public void addBoard(Board board)
+	public void pushBoard(Board board)
 	{
 		this.boards.push(board);
+	}
+
+	public void popBoard()
+	{
+		this.boards.pop();
 	}
 
 	public Board board()

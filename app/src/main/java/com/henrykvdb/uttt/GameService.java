@@ -6,10 +6,10 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 import android.util.Pair;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
+import com.flaghacker.uttt.common.Util;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -63,15 +63,16 @@ public class GameService extends Service implements Closeable
 
 	public void undo()
 	{
-		if (gs.boards().size()>1)
+		if (gs.boards().size() > 1)
 		{
 			GameState newState = new GameState(gs);
-			Log.d(String.valueOf(gs), String.valueOf(newState.boards().size()));
-			newState.boards().pop();
-			Log.d(String.valueOf(gs), String.valueOf(newState.boards().size()));
+			newState.popBoard();
+			if (gs.players().contains(Source.AI)
+					&& Source.Local == gs.players().get(gs.board().nextPlayer() != PLAYER ^ gs.swapped() ? 1 : 0)
+					&& newState.boards().size()>1)
+				newState.popBoard();
 
 			newGame(newState);
-			Log.d(String.valueOf(gs), "newgame");
 		}
 	}
 
@@ -112,13 +113,13 @@ public class GameService extends Service implements Closeable
 			while (!gs.board().isDone() && running)
 			{
 				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), null));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : Util.moveBotWithTimeOut(gs.extraBot(),gs.board(),500));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), null));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : Util.moveBotWithTimeOut(gs.extraBot(),gs.board(),500));
 			}
 		}
 
@@ -148,7 +149,7 @@ public class GameService extends Service implements Closeable
 				gs.btHandler().sendMessage(msg);
 			}
 
-			gs.addBoard(newBoard);
+			gs.pushBoard(newBoard);
 		}
 
 		boardView.drawState(gs);

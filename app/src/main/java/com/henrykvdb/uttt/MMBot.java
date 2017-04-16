@@ -26,6 +26,7 @@ public class MMBot implements Bot
 
 	private Player player;
 	private int difficulty = 100;
+	private Timer timer;
 
 	public MMBot(int difficulty)
 	{
@@ -35,29 +36,37 @@ public class MMBot implements Bot
 	@Override
 	public Coord move(Board board, Timer timer)
 	{
+		this.timer = timer;
 		player = board.nextPlayer();
 
 		int bestScore = Integer.MIN_VALUE;
 		Coord bestMove = board.availableMoves().get(new Random().nextInt(board.availableMoves().size()));
 
-		if (random.nextInt(100)>difficulty)
+		if (random.nextInt(100) > difficulty)
 		{
-			Log.d("MMBot","Played random");
+			Log.d("MMBot", "Played random");
 			return bestMove;
 		}
 
+		if (board.freeTiles().size() == 81)
+			return Coord.coord(4, 4);
+
 		for (Coord move : board.availableMoves())
 		{
-			Board testBoard = board.copy();
-			testBoard.play(move);
-
-			int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
-
-			if (minMax > bestScore)
+			if (timer.running())
 			{
-				bestScore = minMax;
-				bestMove = move;
+				Board testBoard = board.copy();
+				testBoard.play(move);
+
+				int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
+
+				if (minMax > bestScore)
+				{
+					bestScore = minMax;
+					bestMove = move;
+				}
 			}
+			else break;
 		}
 
 		return bestMove;
@@ -65,7 +74,7 @@ public class MMBot implements Bot
 
 	private int miniMax(Board board, int depth, boolean maximizingPlayer)
 	{
-		if (depth == 0 || board.isDone())
+		if (depth == 0 || board.isDone() || timer.running())
 			return rateBoard(board);
 
 		int bestScore = maximizingPlayer ? Integer.MIN_VALUE : Integer.MAX_VALUE;
@@ -129,7 +138,7 @@ public class MMBot implements Bot
 		if (p == player)
 			return 1;
 		else if (p == player.other())
-			return - 1;
+			return -1;
 		else
 			return 0;
 	}
