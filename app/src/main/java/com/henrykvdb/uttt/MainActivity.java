@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -24,6 +25,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -166,10 +168,15 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		if (item.getItemId()==R.id.action_undo)
+		if (item.getItemId() == R.id.action_undo && gameService != null)
 		{
-			if (gameService!=null)
-				gameService.undo();
+			if (gameService.getState().players().contains(GameService.Source.Bluetooth))
+			{
+				if (btService != null)
+					btService.requestUndo(false);
+				else gameService.turnLocal();
+			}
+			else gameService.undo();
 			return true;
 		}
 		return false;
@@ -471,10 +478,25 @@ public class MainActivity extends AppCompatActivity
 			}
 			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 			{
-				gameService.newGame(new GameState(requestState, btHandler));
-
 				if (btService != null)
-					btService.sendState(requestState);
+					btService.sendState(requestState, false);
+			}
+			else if (msg.what == BtService.Message.RECEIVE_UNDO.ordinal())
+			{
+				boolean force = (boolean) msg.obj;
+
+				if (!force)
+				{
+					askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow -> {
+						if (allow && btService != null && gameService != null)
+						{
+							gameService.undo();
+							btService.updateLocalBoard(gameService.getState().board());
+							btService.requestUndo(true);
+						}
+					});
+				}
+				else gameService.undo();
 			}
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
@@ -482,12 +504,33 @@ public class MainActivity extends AppCompatActivity
 				boolean swapped = !data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				gameService.newGame(new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler));
+				if (!data.getBoolean("force"))
+				{
+					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow -> {
+						if (btService != null)
+						{
+							if (allow)
+							{
+								requestState = new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler);
+								btService.sendState(requestState, true);
+								gameService.newGame(requestState);
+							}
+							else
+							{
+								btService.start();
+							}
+						}
+					});
+				}
+				else
+				{
+					gameService.newGame(new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler));
+				}
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
 			{
 				connectedDeviceName = (String) msg.obj;
-				if (null != activity)
+				if (activity != null)
 					Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
 			}
 			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
@@ -499,4 +542,31 @@ public class MainActivity extends AppCompatActivity
 			}
 		}
 	};
+
+	private interface CallBack<T>
+	{
+		void callback(T t);
+	}
+
+	private void askUser(String message, CallBack<Boolean> callBack)
+	{
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					callBack.callback(true);
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					callBack.callback(false);
+					break;
+			}
+		};
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(message)
+				.setPositiveButton("Yes", dialogClickListener)
+				.setNegativeButton("No", dialogClickListener)
+				.show();
+	}
 }

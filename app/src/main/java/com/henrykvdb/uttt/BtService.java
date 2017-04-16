@@ -54,6 +54,7 @@ public class BtService extends Service
 		STATE_CHANGE,
 		SEND_BOARD_UPDATE,
 		SEND_SETUP,
+		RECEIVE_UNDO,
 		RECEIVE_SETUP,
 		ERROR_TOAST,
 		DEVICE_NAME
@@ -193,7 +194,7 @@ public class BtService extends Service
 		setState(State.NONE);
 	}
 
-	public void sendBoard(Board board)//byte[] out)
+	public void sendBoard(Board board)
 	{
 		ConnectedThread r;
 		synchronized (this)
@@ -206,7 +207,7 @@ public class BtService extends Service
 			r.boardUpdate(board);
 	}
 
-	public void sendState(GameState gs)
+	public void sendState(GameState gs, boolean force)
 	{
 		ConnectedThread r;
 		synchronized (this)
@@ -215,7 +216,25 @@ public class BtService extends Service
 			r = connectedThread;
 		}
 
-		r.setupEnemyGame(gs.board(), gs.swapped());
+		r.setupEnemyGame(gs.board(), gs.swapped(), force);
+	}
+
+	public void requestUndo(boolean force)
+	{
+		ConnectedThread r;
+		synchronized (this)
+		{
+			if (state != State.CONNECTED) return;
+			r = connectedThread;
+		}
+
+		r.requestUndo(force);
+	}
+
+	public void updateLocalBoard(Board verifyBoard)
+	{
+		if (connectedThread != null)
+			connectedThread.localBoard = verifyBoard;
 	}
 
 	private synchronized void connected(BluetoothSocket socket, boolean isHost)
@@ -480,14 +499,12 @@ public class BtService extends Service
 					JSONObject json = new JSONObject(new String(buffer));
 
 					int message = json.getInt("message");
-					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 
 					if (message == Message.SEND_BOARD_UPDATE.ordinal())
 					{
+						Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 						Coord newMove = newBoard.getLastMove();
-						//Test if it is a valid move
-
-						if (!newBoard.equals(localBoard))
+						try
 						{
 							Board verifyBoard = localBoard.copy();
 							verifyBoard.play(newBoard.getLastMove());
@@ -504,24 +521,29 @@ public class BtService extends Service
 								Log.e(TAG, "Received invalid board");
 							}
 						}
-						else
+						catch (IllegalArgumentException e)
 						{
-							Log.d(TAG, "Received our own board, this is normal behavior");
+							Log.e(TAG, "Received invalid board");
 						}
 					}
 					else if (message == Message.RECEIVE_SETUP.ordinal())
 					{
-						android.os.Message msg = handler.obtainMessage(Message.RECEIVE_SETUP.ordinal());
+						android.os.Message msg = handler.obtainMessage(message);
 						Bundle bundle = new Bundle();
 
 						Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 						localBoard = board;
 
 						bundle.putBoolean("swapped", json.getBoolean("swapped"));
+						bundle.putBoolean("force", json.getBoolean("force"));
 						bundle.putSerializable("board", board);
 
 						msg.setData(bundle);
 						handler.sendMessage(msg);
+					}
+					else if (message == Message.RECEIVE_UNDO.ordinal())
+					{
+						handler.obtainMessage(Message.RECEIVE_UNDO.ordinal(), json.getBoolean("force")).sendToTarget();
 					}
 				}
 				catch (IOException e)
@@ -571,7 +593,7 @@ public class BtService extends Service
 			}
 		}
 
-		private void setupEnemyGame(Board board, boolean swapped)
+		private void setupEnemyGame(Board board, boolean swapped, boolean force)
 		{
 			try
 			{
@@ -581,6 +603,7 @@ public class BtService extends Service
 				try
 				{
 					json.put("message", Message.RECEIVE_SETUP.ordinal());
+					json.put("force", force);
 					json.put("swapped", swapped);
 					json.put("board", JSONBoard.toJSON(board).toString());
 				}
@@ -596,6 +619,31 @@ public class BtService extends Service
 			catch (IOException e)
 			{
 				Log.e(TAG, "Exception during boardUpdate", e);
+			}
+		}
+
+		private void requestUndo(boolean force)
+		{
+			try
+			{
+				JSONObject json = new JSONObject();
+				try
+				{
+					json.put("message", Message.RECEIVE_UNDO.ordinal());
+					json.put("force", force);
+				}
+				catch (JSONException e)
+				{
+					e.printStackTrace();
+				}
+
+				byte[] data = json.toString().getBytes();
+
+				mmOutStream.write(data);
+			}
+			catch (IOException e)
+			{
+				Log.e(TAG, "Exception during requestUndo", e);
 			}
 		}
 
