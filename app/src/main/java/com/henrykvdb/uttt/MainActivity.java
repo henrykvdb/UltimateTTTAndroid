@@ -38,7 +38,6 @@ import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity
 		implements NavigationView.OnNavigationItemSelectedListener
@@ -280,10 +279,11 @@ public class MainActivity extends AppCompatActivity
 				{
 					boolean swapped = data.getExtras().getBoolean("start")
 							^ gameService.getState().board().nextPlayer() == Player.PLAYER;
-					requestState = new GameState(btHandler, swapped);
 
+					GameState.Builder builder = GameState.builder().bt(btHandler).swapped(swapped);
 					if (!data.getExtras().getBoolean("newBoard"))
-						requestState.setBoards(Collections.singletonList(gameService.getState().board()));
+						builder.board(gameService.getState().board());
+					requestState = builder.build();
 
 					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
 				}
@@ -476,11 +476,6 @@ public class MainActivity extends AppCompatActivity
 
 				Log.d(TAG, "boardUpdate: " + board.getLastMove());
 			}
-			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
-			{
-				if (btService != null)
-					btService.sendState(requestState, false);
-			}
 			else if (msg.what == BtService.Message.RECEIVE_UNDO.ordinal())
 			{
 				boolean force = (boolean) msg.obj;
@@ -496,7 +491,16 @@ public class MainActivity extends AppCompatActivity
 						}
 					});
 				}
-				else gameService.undo();
+				else
+				{
+					gameService.undo();
+					btService.updateLocalBoard(gameService.getState().board());
+				}
+			}
+			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
+			{
+				if (btService != null)
+					btService.sendState(requestState, false);
 			}
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
@@ -511,7 +515,8 @@ public class MainActivity extends AppCompatActivity
 						{
 							if (allow)
 							{
-								requestState = new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler);
+								requestState = GameState.builder().bt(btHandler).swapped(swapped).board(board).build();
+								btService.updateLocalBoard(requestState.board());
 								btService.sendState(requestState, true);
 								gameService.newGame(requestState);
 							}
@@ -524,7 +529,9 @@ public class MainActivity extends AppCompatActivity
 				}
 				else
 				{
-					gameService.newGame(new GameState(new GameState(swapped, Collections.singletonList(board)), btHandler));
+					requestState = GameState.builder().bt(btHandler).swapped(swapped).board(board).build();
+					btService.updateLocalBoard(requestState.board());
+					gameService.newGame(requestState);
 				}
 			}
 			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())

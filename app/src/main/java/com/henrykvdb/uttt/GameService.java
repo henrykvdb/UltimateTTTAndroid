@@ -65,11 +65,11 @@ public class GameService extends Service implements Closeable
 	{
 		if (gs.boards().size() > 1)
 		{
-			GameState newState = new GameState(gs);
+			GameState newState = GameState.builder().gs(gs).build();
 			newState.popBoard();
 			if (gs.players().contains(Source.AI)
-					&& Source.Local == gs.players().get(gs.board().nextPlayer() != PLAYER ^ gs.swapped() ? 1 : 0)
-					&& newState.boards().size()>1)
+					&& Source.Local == gs.players().get(gs.board().nextPlayer() == PLAYER ? 1 : 0)
+					&& newState.boards().size() > 1)
 				newState.popBoard();
 
 			newGame(newState);
@@ -90,12 +90,12 @@ public class GameService extends Service implements Closeable
 
 	public void newLocal()
 	{
-		newGame(new GameState());
+		newGame(GameState.builder().swapped(false).build());
 	}
 
 	public void turnLocal()
 	{
-		newGame(new GameState(gs.swapped(), gs.boards()));
+		newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
 	private class GameThread extends Thread implements Closeable
@@ -107,19 +107,19 @@ public class GameService extends Service implements Closeable
 		{
 			running = true;
 
-			Source p1 = gs.players().get(gs.swapped() ? 1 : 0);
-			Source p2 = gs.players().get(gs.swapped() ? 0 : 1);
+			Source p1 = gs.players().get(0);
+			Source p2 = gs.players().get(1);
 
 			while (!gs.board().isDone() && running)
 			{
 				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : Util.moveBotWithTimeOut(gs.extraBot(),gs.board(),500));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : Util.moveBotWithTimeOut(gs.extraBot(), gs.board(), 500));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : Util.moveBotWithTimeOut(gs.extraBot(),gs.board(),500));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : Util.moveBotWithTimeOut(gs.extraBot(), gs.board(), 500));
 			}
 		}
 
@@ -136,9 +136,9 @@ public class GameService extends Service implements Closeable
 		if (move != null)
 		{
 			Board newBoard = gs.board().copy();
-
 			newBoard.play(move);
-			if (gs.btGame())
+
+			if (gs.players().contains(GameService.Source.Bluetooth))
 			{
 				Message msg = gs.btHandler().obtainMessage(BtService.Message.SEND_BOARD_UPDATE.ordinal());
 

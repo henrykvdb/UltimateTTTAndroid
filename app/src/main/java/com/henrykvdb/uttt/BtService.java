@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+import static com.henrykvdb.uttt.GameService.Source.Local;
+
 public class BtService extends Service
 {
 	// Unique UUID for this application
@@ -216,7 +218,7 @@ public class BtService extends Service
 			r = connectedThread;
 		}
 
-		r.setupEnemyGame(gs.board(), gs.swapped(), force);
+		r.setupEnemyGame(gs.board(), gs.players().get(1).equals(Local), force);
 	}
 
 	public void requestUndo(boolean force)
@@ -503,28 +505,36 @@ public class BtService extends Service
 					if (message == Message.SEND_BOARD_UPDATE.ordinal())
 					{
 						Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
-						Coord newMove = newBoard.getLastMove();
-						try
+
+						if (!newBoard.equals(localBoard))
 						{
-							Board verifyBoard = localBoard.copy();
-							verifyBoard.play(newBoard.getLastMove());
-							if (verifyBoard.equals(newBoard))
+							try
 							{
-								Log.d(TAG, "We received a valid board");
-								if (gameService != null)
-									gameService.play(GameService.Source.Bluetooth, newMove);
+								Coord newMove = newBoard.getLastMove();
+								Board verifyBoard = localBoard.copy();
+								verifyBoard.play(newBoard.getLastMove());
+								if (verifyBoard.equals(newBoard))
+								{
+									Log.d(TAG, "We received a valid board");
+									if (gameService != null)
+										gameService.play(GameService.Source.Bluetooth, newMove);
+									else
+										Log.e(TAG, "Error playing move, btBot is null");
+								}
 								else
-									Log.e(TAG, "Error playing move, btBot is null");
+								{
+									Log.e(TAG,"Invalid move, desync");
+									BtService.this.start();
+									handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+								}
 							}
-							else
+							catch (Throwable t)
 							{
-								Log.e(TAG, "Received invalid board");
+								BtService.this.start();
+								handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 							}
 						}
-						catch (IllegalArgumentException e)
-						{
-							Log.e(TAG, "Received invalid board");
-						}
+
 					}
 					else if (message == Message.RECEIVE_SETUP.ordinal())
 					{
@@ -597,8 +607,6 @@ public class BtService extends Service
 		{
 			try
 			{
-				localBoard = board;
-
 				JSONObject json = new JSONObject();
 				try
 				{

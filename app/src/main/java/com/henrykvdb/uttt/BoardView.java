@@ -107,15 +107,14 @@ public class BoardView extends View implements Serializable
 		{
 			board = gameState.board();
 
-			boolean swapped = gameState.swapped();
 			boolean p1Next = board.nextPlayer() == PLAYER;
 
 			if (!board.isDone())
 				nextPlayerView.setText("Current Player: " + (p1Next ? "X" : "O") + " ("
-						+ gameState.players().get((swapped ^ p1Next) ? 0 : 1) + ")");
+						+ gameState.players().get(p1Next ? 0 : 1) + ")");
 			else
 				nextPlayerView.setText("Won by " + (board.wonBy() == PLAYER ? "X" : "O") + " ("
-						+ gameState.players().get((swapped ^ board.wonBy() == PLAYER) ? 0 : 1) + ")");
+						+ gameState.players().get(board.wonBy() == PLAYER ? 0 : 1) + ")");
 		}
 
 		//Make available moves yellow

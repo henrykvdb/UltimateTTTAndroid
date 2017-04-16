@@ -50,9 +50,9 @@ public class NewLocalActivity extends Activity
 				if (beginner == R.id.start_you) swapped = false;
 				else if (beginner == R.id.start_ai) swapped = true;
 
-				intent.putExtra("GameState", new GameState(bot,swapped));
+				intent.putExtra("GameState", GameState.builder().ai(bot).swapped(swapped).build());
 			}
-			else intent.putExtra("GameState", new GameState());
+			else intent.putExtra("GameState", GameState.builder().swapped(false).build());
 
 			setResult(Activity.RESULT_OK, intent);
 			finish();
