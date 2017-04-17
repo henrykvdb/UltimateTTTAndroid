@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Pair;
+import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Util;
@@ -59,6 +60,11 @@ public class GameService extends Service implements Closeable
 	{
 		boardView.setGameService(this);
 		this.boardView = boardView;
+
+		if (thread == null || !thread.running)
+			newLocal();
+
+		boardView.drawState(gs);
 	}
 
 	public void undo()
@@ -73,6 +79,10 @@ public class GameService extends Service implements Closeable
 				newState.popBoard();
 
 			newGame(newState);
+		}
+		else
+		{
+			Toast.makeText(this,"Could not undo further",Toast.LENGTH_SHORT).show();
 		}
 	}
 

@@ -32,7 +32,7 @@ public class BtService extends Service
 	public static final String STATE = "STATE";
 
 	// Member fields
-	private BluetoothAdapter mAdapter;
+	private BluetoothAdapter btAdapter;
 	private Handler handler = null;
 	//private WaitBot btBot = null;
 	private State state = State.NONE;
@@ -80,28 +80,23 @@ public class BtService extends Service
 	}
 
 	@Override
-	public void onDestroy()
+	public int onStartCommand(Intent intent, int flags, int startId)
 	{
-		stop();
-		super.onDestroy();
+		return START_STICKY;
 	}
 
-	@Override
-	public void onCreate()
+	public void setup(GameService gameService, Handler handler)
 	{
-		mAdapter = BluetoothAdapter.getDefaultAdapter();
-		super.onCreate();
-	}
-
-	public void setHandler(Handler handler)
-	{
-		this.handler = handler;
-		setState(State.NONE);
-	}
-
-	public void setGame(GameService gameService)
-	{
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		this.gameService = gameService;
+		this.handler = handler;
+		setState(state);
+
+		if (state!=State.CONNECTED)
+			start();
+		else
+			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, connectedThread.mmSocket.getRemoteDevice().getName()).sendToTarget();
+
 	}
 
 	public void setState(State newState)
@@ -122,19 +117,9 @@ public class BtService extends Service
 	{
 		Log.d(TAG, "start");
 
-		// Cancel any thread attempting to make a connection
-		if (connectThread != null)
-		{
-			connectThread.cancel();
-			connectThread = null;
-		}
-
-		// Cancel any thread currently running a connection
-		if (connectedThread != null)
-		{
-			connectedThread.cancel();
-			connectedThread = null;
-		}
+		closeConnecting();
+		closeConnected();
+		//closeAccept(); //TODO
 
 		// Start the thread to listen on a BluetoothServerSocket
 		if (acceptThread == null)
@@ -146,25 +131,15 @@ public class BtService extends Service
 
 	public synchronized void connect(String address)
 	{
-		BluetoothDevice device = mAdapter.getRemoteDevice(address);
+		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.d(TAG, "connect to: " + device);
 
 		// Cancel any thread attempting to make a connection
 		if (state == State.CONNECTING)
-		{
-			if (connectThread != null)
-			{
-				connectThread.cancel();
-				connectThread = null;
-			}
-		}
+			closeConnected();
 
 		// Cancel any thread currently running a connection
-		if (connectedThread != null)
-		{
-			connectedThread.cancel();
-			connectedThread = null;
-		}
+		closeConnected();
 
 		// Start the thread to connect with the given device
 		connectThread = new ConnectThread(device);
@@ -175,25 +150,38 @@ public class BtService extends Service
 	{
 		Log.d(TAG, "stop");
 
-		if (connectThread != null)
-		{
-			connectThread.cancel();
-			connectThread = null;
-		}
+		closeConnecting();
+		closeConnected();
+		closeAccept();
 
-		if (connectedThread != null)
-		{
-			connectedThread.cancel();
-			connectedThread = null;
-		}
+		setState(State.NONE);
+	}
 
+	private void closeAccept()
+	{
 		if (acceptThread != null)
 		{
 			acceptThread.cancel();
 			acceptThread = null;
 		}
+	}
 
-		setState(State.NONE);
+	private void closeConnecting()
+	{
+		if (connectThread != null)
+		{
+			connectThread.cancel();
+			connectThread = null;
+		}
+	}
+
+	private void closeConnected()
+	{
+		if (connectedThread != null)
+		{
+			connectedThread.cancel();
+			connectedThread = null;
+		}
 	}
 
 	public void sendBoard(Board board)
@@ -288,7 +276,7 @@ public class BtService extends Service
 			// Create a new listening server socket
 			try
 			{
-				tmp = mAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure", UUID);
+				tmp = btAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure", UUID);
 			}
 			catch (IOException e)
 			{
@@ -398,7 +386,7 @@ public class BtService extends Service
 			setName("ConnectThread");
 
 			// Always cancel discovery because it will slow down a connection
-			mAdapter.cancelDiscovery();
+			btAdapter.cancelDiscovery();
 
 			// Make a connection to the BluetoothSocket
 			try
@@ -523,7 +511,7 @@ public class BtService extends Service
 								}
 								else
 								{
-									Log.e(TAG,"Invalid move, desync");
+									Log.e(TAG, "Invalid move, desync");
 									BtService.this.start();
 									handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 								}
@@ -576,7 +564,7 @@ public class BtService extends Service
 			}
 		}
 
-		public void boardUpdate(Board board)
+		private void boardUpdate(Board board)
 		{
 			try
 			{
@@ -655,7 +643,7 @@ public class BtService extends Service
 			}
 		}
 
-		public void cancel()
+		private void cancel()
 		{
 			try
 			{

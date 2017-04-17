@@ -69,25 +69,56 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		initGui();
 
 		//Automatically start/close btService when you enable/disable bt
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-		btAdapter.disable();
+		//btAdapter.disable();
 
 		//Start Services
-		startGameService();
-		startBtService();
+		toggleBtService(true);
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+
+		//Start GameService
+		Intent intent = new Intent(this, GameService.class);
+		bindService(intent, gameServiceConn, Context.BIND_AUTO_CREATE);
+		startService(intent);
+
+		//Start BtService
+		toggleBtService(true);
+		startService(new Intent(this, BtService.class));
 	}
 
 	@Override
 	protected void onDestroy()
 	{
 		super.onDestroy();
-		closeBtService();
-		closeGameService();
+
+		//Stop BtService
+		try
+		{
+			if (btService != null)
+				unbindService(btServerConn);
+		}
+		catch (Throwable t)
+		{
+			Log.d(TAG, "Error closing btService");
+		}
 		unregisterReceiver(btStateReceiver);
+
+		//Close GameService
+		if (gameService != null)
+		{
+			//gameService.close();
+			unbindService(gameServiceConn);
+			//gameService = null;
+		}
 	}
 
 	private void initGui()
@@ -123,7 +154,9 @@ public class MainActivity extends AppCompatActivity
 
 		MenuItem btHost = navigationView.getMenu().findItem(R.id.nav_bt_host_switch);
 		btHostSwitch = (Switch) MenuItemCompat.getActionView(btHost);
-		btHostSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+		btHostSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+		{
 			if (btAdapter != null)
 			{
 				if (btHostSwitch.isChecked())
@@ -227,8 +260,6 @@ public class MainActivity extends AppCompatActivity
 				}
 				else
 				{
-					startBtService();
-
 					//Make the bluetooth-picker activity //TODO kill if bluetooth gets turned off
 					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
 					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
@@ -316,9 +347,9 @@ public class MainActivity extends AppCompatActivity
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED))
 			{
 				if (btAdapter.getState() == BluetoothAdapter.STATE_ON)
-					startBtService();
+					toggleBtService(true);
 				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
-					closeBtService();
+					toggleBtService(false);
 				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
 					setBtStatusMessage(null);
 			}
@@ -331,62 +362,55 @@ public class MainActivity extends AppCompatActivity
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
 			Log.d(TAG, "bt: onServiceConnected");
-			BtService.LocalBinder binder = (BtService.LocalBinder) service;
-			btService = binder.getService();
+			btService = ((BtService.LocalBinder) service).getService();
 
-			if (gameService != null)
-				btService.setGame(gameService);
-
-			//Give the service a handler and start
-			btService.setHandler(btHandler);
-			btService.start();
+			btService.setup(gameService,btHandler);
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
 			Log.d(TAG, "bt: onServiceDisconnected");
-
-			closeBtService();
-			startBtService();
+			btService = null;
 		}
 	};
 
-	private void closeBtService()
+	private void toggleBtService(boolean enable)
 	{
-		try
+		if (enable)
 		{
-			if (btService != null)
-				btService.stop();
-
-			stopService(new Intent(this, BtService.class));
-			unbindService(btServerConn);
-			btService = null;
-
-			gameService.turnLocal();
-		}
-		catch (Throwable t)
-		{
-			Log.d(TAG, "Error closing btService");
-		}
-	}
-
-	private void startBtService()
-	{
-		if (btAdapter != null)
-		{
-			if (btAdapter.isEnabled())
+			if (btAdapter != null && btAdapter.isEnabled())
 			{
 				if (btService == null)
-				{
-					Intent intent = new Intent(this, BtService.class);
-					startService(intent);
-					bindService(intent, btServerConn, Context.BIND_AUTO_CREATE);
-				}
+					bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
 			}
-			else setBtStatusMessage(null);
+			else
+			{
+				setBtStatusMessage(null);
+			}
 		}
-		else setBtStatusMessage(null);
+		else
+		{
+			try
+			{
+				gameService.turnLocal();
+
+				if (btService != null)
+				{
+					//btService.stop();
+					unbindService(btServerConn);
+					btService = null;
+
+					//stopService(new Intent(this, BtService.class));
+				}
+
+				setBtStatusMessage(null);
+			}
+			catch (Throwable t)
+			{
+				Log.d(TAG, "Error closing btService");
+			}
+		}
 	}
 
 	private ServiceConnection gameServiceConn = new ServiceConnection()
@@ -394,54 +418,22 @@ public class MainActivity extends AppCompatActivity
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			Log.d(TAG, "gameService Connected");
-			GameService.LocalBinder binder = (GameService.LocalBinder) service;
-			gameService = binder.getService();
+			Log.d(TAG, "GameService Connected");
 
-			//Setup a new local game
+			gameService = ((GameService.LocalBinder) service).getService();
 			gameService.setBoardView(boardView);
-			gameService.newLocal();
 
 			if (btService != null)
-				btService.setGame(gameService);
+				btService.setup(gameService,btHandler);
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
-			Log.d(TAG, "gameService Disconnected");
-
-			closeGameService();
-			startGameService();
-		}
-	};
-
-	private void startGameService()
-	{
-		if (gameService == null)
-		{
-			Intent intent = new Intent(this, GameService.class);
-			startService(intent);
-			bindService(intent, gameServiceConn, Context.BIND_AUTO_CREATE);
-		}
-	}
-
-	private void closeGameService()
-	{
-		try
-		{
-			if (gameService != null)
-				gameService.close();
-
-			stopService(new Intent(this, GameService.class));
-			unbindService(gameServiceConn);
+			Log.d(TAG, "GameService Disconnected");
 			gameService = null;
 		}
-		catch (Throwable t)
-		{
-			Log.d(TAG, "Error closing btService");
-		}
-	}
+	};
 
 	/**
 	 * The Handler that gets information back from the btService
@@ -482,7 +474,8 @@ public class MainActivity extends AppCompatActivity
 
 				if (!force)
 				{
-					askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow -> {
+					askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
+					{
 						if (allow && btService != null && gameService != null)
 						{
 							gameService.undo();
@@ -510,7 +503,8 @@ public class MainActivity extends AppCompatActivity
 
 				if (!data.getBoolean("force"))
 				{
-					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow -> {
+					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
+					{
 						if (btService != null)
 						{
 							if (allow)
@@ -557,7 +551,8 @@ public class MainActivity extends AppCompatActivity
 
 	private void askUser(String message, CallBack<Boolean> callBack)
 	{
-		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
 			switch (which)
 			{
 				case DialogInterface.BUTTON_POSITIVE:
