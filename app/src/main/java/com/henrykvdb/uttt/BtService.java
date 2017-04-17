@@ -10,7 +10,9 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.JSONBoard;
@@ -92,7 +94,7 @@ public class BtService extends Service
 		this.handler = handler;
 		setState(state);
 
-		if (state!=State.CONNECTED)
+		if (state != State.CONNECTED)
 			start();
 		else
 			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, connectedThread.mmSocket.getRemoteDevice().getName()).sendToTarget();
@@ -258,6 +260,12 @@ public class BtService extends Service
 
 		if (!isHost)
 			handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
+	}
+
+	private void toast(String message, int length)
+	{
+		new Handler(Looper.getMainLooper()).post(()
+				-> Toast.makeText(BtService.this.getApplicationContext(), message, length).show());
 	}
 
 	/**
@@ -469,6 +477,7 @@ public class BtService extends Service
 
 			mmInStream = tmpIn;
 			mmOutStream = tmpOut;
+			toast("Connected to " + socket.getRemoteDevice().getName(), Toast.LENGTH_SHORT);
 			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, socket.getRemoteDevice().getName()).sendToTarget();
 			setState(BtService.State.CONNECTED);
 		}
