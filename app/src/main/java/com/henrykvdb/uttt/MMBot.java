@@ -36,6 +36,7 @@ public class MMBot implements Bot
 	@Override
 	public Coord move(Board board, Timer timer)
 	{
+		timer.start();
 		this.timer = timer;
 		player = board.nextPlayer();
 
@@ -53,28 +54,27 @@ public class MMBot implements Bot
 
 		for (Coord move : board.availableMoves())
 		{
-			if (timer.running())
+			if (timer.isInterrupted())
+				break;
+
+			Board testBoard = board.copy();
+			testBoard.play(move);
+
+			int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
+
+			if (minMax > bestScore)
 			{
-				Board testBoard = board.copy();
-				testBoard.play(move);
-
-				int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
-
-				if (minMax > bestScore)
-				{
-					bestScore = minMax;
-					bestMove = move;
-				}
+				bestScore = minMax;
+				bestMove = move;
 			}
-			else break;
 		}
 
-		return bestMove;
+		return timer.isInterrupted() ? null : bestMove;
 	}
 
 	private int miniMax(Board board, int depth, boolean maximizingPlayer)
 	{
-		if (depth == 0 || board.isDone() || timer.running())
+		if (depth == 0 || board.isDone() || timer.isInterrupted())
 			return rateBoard(board);
 
 		int bestScore = maximizingPlayer ? Integer.MIN_VALUE : Integer.MAX_VALUE;

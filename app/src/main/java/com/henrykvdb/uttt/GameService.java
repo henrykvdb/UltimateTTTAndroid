@@ -10,7 +10,7 @@ import android.util.Pair;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Util;
+import com.flaghacker.uttt.common.Timer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -111,6 +111,7 @@ public class GameService extends Service implements Closeable
 	private class GameThread extends Thread implements Closeable
 	{
 		private boolean running;
+		private Timer timer;
 
 		@Override
 		public void run()
@@ -122,14 +123,16 @@ public class GameService extends Service implements Closeable
 
 			while (!gs.board().isDone() && running)
 			{
+				timer = new Timer(5000);
+
 				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : Util.moveBotWithTimeOut(gs.extraBot(), gs.board(), 500));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(),timer));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : Util.moveBotWithTimeOut(gs.extraBot(), gs.board(), 500));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(),timer));
 			}
 		}
 
@@ -137,6 +140,7 @@ public class GameService extends Service implements Closeable
 		public void close() throws IOException
 		{
 			running = false;
+			timer.interrupt();
 			interrupt();
 		}
 	}
