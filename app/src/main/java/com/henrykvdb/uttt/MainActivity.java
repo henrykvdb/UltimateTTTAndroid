@@ -29,8 +29,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,9 +43,9 @@ import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
 
 import java.lang.reflect.Field;
+import java.util.Random;
 
-public class MainActivity extends AppCompatActivity
-		implements NavigationView.OnNavigationItemSelectedListener
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
 	//Debug
 	private static final String TAG = "MainActivity";
@@ -63,6 +68,7 @@ public class MainActivity extends AppCompatActivity
 	private BoardView boardView;
 	private Switch btHostSwitch;
 	private GameState requestState;
+	private Random random = new Random();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -77,7 +83,7 @@ public class MainActivity extends AppCompatActivity
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
 		//Start Services
-		toggleBtService();
+		enableBtService();
 	}
 
 	@Override
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity
 		startService(intent);
 
 		//Start BtService
-		toggleBtService();
+		enableBtService();
 		startService(new Intent(this, BtService.class));
 	}
 
@@ -213,10 +219,62 @@ public class MainActivity extends AppCompatActivity
 		// Handle navigation view item clicks here.
 		int id = item.getItemId();
 
-		if (id == R.id.nav_local)
+		if (id == R.id.nav_local_human)
 		{
-			Intent serverIntent = new Intent(getApplicationContext(), NewLocalActivity.class);
-			startActivityForResult(serverIntent, REQUEST_NEW_LOCAL);
+			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+			{
+				switch (which)
+				{
+					case DialogInterface.BUTTON_POSITIVE:
+						gameService.newLocal();
+						break;
+
+					case DialogInterface.BUTTON_NEGATIVE:
+						dialog.dismiss();
+						break;
+				}
+			};
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Start a new game?");
+			builder.setMessage("This wil create a new local two player game.")
+					.setPositiveButton("Start", dialogClickListener)
+					.setNegativeButton("Close", dialogClickListener)
+					.show();
+		}
+		if (id == R.id.nav_local_ai)
+		{
+			final boolean[] swapped = new boolean[1];
+
+			LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.new_ai_dialog, (ViewGroup)findViewById(R.id.new_ai_layout));
+
+			RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
+			beginner.setOnCheckedChangeListener((group, checkedId) ->
+					swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || random.nextBoolean()));
+
+			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+			{
+				switch (which)
+				{
+					case DialogInterface.BUTTON_POSITIVE:
+						gameService.newGame(GameState.builder()
+								.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
+								.swapped(swapped[0]).build());
+						break;
+
+					case DialogInterface.BUTTON_NEGATIVE:
+						dialog.dismiss();
+						break;
+				}
+			};
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Start a new ai game?");
+			builder.setView(layout)
+					.setPositiveButton("Start", dialogClickListener)
+					.setNegativeButton("Close", dialogClickListener)
+					.show();
 		}
 		else if (id == R.id.nav_bt_join)
 		{
@@ -340,7 +398,7 @@ public class MainActivity extends AppCompatActivity
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED))
 			{
 				if (btAdapter.getState() == BluetoothAdapter.STATE_ON)
-					toggleBtService();
+					enableBtService();
 				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 				{
 					gameService.turnLocal();
@@ -378,7 +436,7 @@ public class MainActivity extends AppCompatActivity
 		}
 	};
 
-	private void toggleBtService()
+	private void enableBtService()
 	{
 		if (btAdapter != null && btAdapter.isEnabled() && btService == null)
 		{

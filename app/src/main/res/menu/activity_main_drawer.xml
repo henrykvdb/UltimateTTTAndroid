@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-            android:id="@+id/nav_local"
-            android:icon="@drawable/ic_menu_play"
-            android:title="Create local"/>
+    <item android:title="Local">
+        <menu>
+            <item
+                    android:id="@+id/nav_local_human"
+                    android:icon="@drawable/ic_menu_human"
+                    android:title="Human"/>
+            <item
+                    android:id="@+id/nav_local_ai"
+                    android:icon="@drawable/ic_menu_ai"
+                    android:menuCategory="system"
+                    android:title="AI"/>
+        </menu>
+    </item>
     <item android:title="Bluetooth">
         <menu>
             <item
