@@ -19,10 +19,6 @@
             </intent-filter>
         </activity>
         <activity
-                android:name="com.henrykvdb.uttt.NewLocalActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
-        <activity
                 android:name="com.henrykvdb.uttt.NewBluetoothActivity"
                 android:configChanges="keyboardHidden|orientation|screenSize"
                 android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
