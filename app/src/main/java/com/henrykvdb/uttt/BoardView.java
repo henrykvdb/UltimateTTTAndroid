@@ -110,10 +110,12 @@ public class BoardView extends View implements Serializable
 			boolean p1Next = board.nextPlayer() == PLAYER;
 
 			if (!board.isDone())
-				nextPlayerView.setText("Current Player: " + (p1Next ? "X" : "O") + " ("
+				nextPlayerView.setText(getResources().getText(R.string.current_player)
+						+ ": " + (p1Next ? "X" : "O") + " ("
 						+ gameState.players().get(p1Next ? 0 : 1) + ")");
 			else
-				nextPlayerView.setText("Won by " + (board.wonBy() == PLAYER ? "X" : "O") + " ("
+				nextPlayerView.setText(getResources().getText(R.string.won_by)
+						+ " " + (board.wonBy() == PLAYER ? "X" : "O") + " ("
 						+ gameState.players().get(board.wonBy() == PLAYER ? 0 : 1) + ")");
 		}
 

@@ -29,11 +29,11 @@
         <menu>
             <item
                     android:id="@+id/nav_other_feedback"
-                    android:icon="@drawable/ic_menu_feedback1"
+                    android:icon="@drawable/ic_menu_feedback"
                     android:title="@string/feedback"/>
             <item
                     android:id="@+id/nav_other_about"
-                    android:icon="@drawable/ic_menu_about1"
+                    android:icon="@drawable/ic_menu_about"
                     android:title="@string/about"/>
         </menu>
     </item>

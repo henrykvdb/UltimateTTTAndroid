@@ -2,6 +2,7 @@
     <!--  App name -->
     <string name="app_name">UTTT</string>
     <string name="app_name_long">Ultimate Tic Tac Toe</string>
+    <string name="drawer_subtitle">No inspirational quote here</string>
 
     <!--  Single word -->
     <string name="difficulty">Difficulty</string>
@@ -29,9 +30,10 @@
     <string name="none_found">No devices found</string>
     <string name="button_scan">Scan for devices</string>
     <string name="select_boards">Select boards</string>
+    <string name="app_icon">app icon</string>
+    <string name="current_player">Current Player</string>
+    <string name="won_by">Won by</string>
 
     <!-- Other -->
-    <string name="title_connected_to">connected to
-        <xliff:g id="device_name">%1$s</xliff:g>
-    </string>
+    <string name="title_connected_to">connected to %1$s</string>
 </resources>
