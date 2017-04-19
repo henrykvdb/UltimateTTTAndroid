@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-		drawer.setDrawerListener(toggle);
+		drawer.addDrawerListener(toggle);
 		toggle.syncState();
 
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -246,8 +246,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			final boolean[] swapped = new boolean[1];
 
-			LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.new_ai_dialog, (ViewGroup)findViewById(R.id.new_ai_layout));
+			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.new_ai_dialog, (ViewGroup) findViewById(R.id.new_ai_layout));
 
 			RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
 			beginner.setOnCheckedChangeListener((group, checkedId) ->
@@ -501,7 +501,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				if (btService != null)
 					btService.sendBoard(board);
 
-				Log.d(TAG, "boardUpdate: " + board.getLastMove());
+				if (board != null)
+					Log.d(TAG, "boardUpdate: " + board.getLastMove());
 			}
 			else if (msg.what == BtService.Message.RECEIVE_UNDO.ordinal())
 			{

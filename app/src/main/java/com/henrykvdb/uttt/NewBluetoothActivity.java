@@ -50,7 +50,8 @@ public class NewBluetoothActivity extends Activity
 		Button scanButton = (Button) findViewById(R.id.button_scan);
 
 		// Initialize the button to perform device discovery
-		scanButton.setOnClickListener(v -> {
+		scanButton.setOnClickListener(v ->
+		{
 			doDiscovery();
 			scanButton.setEnabled(false);
 			spinner.setVisibility(View.VISIBLE);
@@ -60,7 +61,8 @@ public class NewBluetoothActivity extends Activity
 						@Override
 						public void run()
 						{
-							runOnUiThread(() -> {
+							runOnUiThread(() ->
+							{
 								scanButton.setEnabled(true);
 								spinner.setVisibility(View.INVISIBLE);
 							});
@@ -102,7 +104,8 @@ public class NewBluetoothActivity extends Activity
 			View item = devicesArrayAdapter.getView(i, null, null);
 			if (!Objects.equals(((TextView) item).getText().toString(), getResources().getText(R.string.none_found).toString()))
 			{
-				item.setOnClickListener(v -> {
+				item.setOnClickListener(v ->
+				{
 					// Cancel discovery because it's costly and we're about to connect
 					btAdapter.cancelDiscovery();
 
@@ -152,7 +155,6 @@ public class NewBluetoothActivity extends Activity
 
 		// Indicate scanning in the title
 		setProgressBarIndeterminateVisibility(true);
-		setTitle(R.string.scanning);
 
 		// If we're already discovering, stop it
 		if (btAdapter.isDiscovering())
@@ -185,7 +187,6 @@ public class NewBluetoothActivity extends Activity
 			else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
 			{
 				setProgressBarIndeterminateVisibility(false);
-				setTitle(R.string.select_device);
 				if (devicesArrayAdapter.getCount() == 0)
 					devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
 			}

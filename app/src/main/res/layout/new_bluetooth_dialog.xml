@@ -18,7 +18,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:id="@+id/action_bar_title"
-                    android:text="Join Bluetooth game"
+                    android:text="@string/join_bluetooth_game"
                     android:textColor="@color/dialogTitle"
                     android:textSize="24sp"
                     android:layout_centerVertical="true"/>
@@ -41,7 +41,7 @@
         </RelativeLayout>
 
         <TextView
-                android:text="Select boards"
+                android:text="@string/select_boards"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat"
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
             <RadioButton
-                    android:text="New"
+                    android:text="@string/new_board"
                     android:id="@+id/board_new"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat"
                     android:checked="true"/>
             <RadioButton
-                    android:text="Current"
+                    android:text="@string/current_board"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -102,7 +102,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat"/>
         </RadioGroup>
         <TextView
-                android:text="Joinable devices"
+                android:text="@string/joinable_devices"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat"

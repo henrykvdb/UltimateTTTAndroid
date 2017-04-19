@@ -23,7 +23,7 @@ public class DrawSettings
 
 	//Availability color settings
 	private int availableColor = Color.rgb(255, 255, 100);
-	private int unavailableColor = Color.argb(50,136,136,136);
+	private int unavailableColor = Color.argb(50, 136, 136, 136);
 	private int symbolTransparency = (60 & 0xff) << 24;
 
 	//Grid-line settings

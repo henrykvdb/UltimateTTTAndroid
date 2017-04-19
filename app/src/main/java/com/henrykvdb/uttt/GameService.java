@@ -82,7 +82,7 @@ public class GameService extends Service implements Closeable
 		}
 		else
 		{
-			Toast.makeText(this,"Could not undo further",Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Could not undo further", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -126,13 +126,13 @@ public class GameService extends Service implements Closeable
 				timer = new Timer(5000);
 
 				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(),timer));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(),timer));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
 			}
 		}
 

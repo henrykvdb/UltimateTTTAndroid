@@ -121,7 +121,7 @@ public class BtService extends Service
 
 		closeConnecting();
 		closeConnected();
-		//closeAccept(); //TODO
+		closeAccept();
 
 		// Start the thread to listen on a BluetoothServerSocket
 		if (acceptThread == null)
@@ -493,7 +493,7 @@ public class BtService extends Service
 				try
 				{
 					// Read from the InputStream
-					mmInStream.read(buffer);
+					mmInStream.read(buffer); //TODO improve
 
 					JSONObject json = new JSONObject(new String(buffer));
 

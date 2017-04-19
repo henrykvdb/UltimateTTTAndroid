@@ -1,30 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:title="Local">
+    <item android:title="@string/local">
         <menu>
             <item
                     android:id="@+id/nav_local_human"
                     android:icon="@drawable/ic_menu_human"
-                    android:title="Human"/>
+                    android:title="@string/human"/>
             <item
                     android:id="@+id/nav_local_ai"
                     android:icon="@drawable/ic_menu_ai"
-                    android:menuCategory="system"
-                    android:title="AI"/>
+                    android:title="@string/ai"/>
         </menu>
     </item>
-    <item android:title="Bluetooth">
+    <item android:title="@string/bluetooth">
         <menu>
             <item
                     android:id="@+id/nav_bt_join"
                     android:icon="@drawable/ic_menu_bluetooth"
-                    android:title="Join"/>
+                    android:title="@string/join"/>
             <item
                     android:id="@+id/nav_bt_host_switch"
                     android:icon="@drawable/ic_menu_bluetooth_host"
-                    android:menuCategory="system"
-                    android:title="Host"
+                    android:title="@string/host"
                     app:actionViewClass="android.widget.Switch"/>
+        </menu>
+    </item>
+    <item android:title="@string/other">
+        <menu>
+            <item
+                    android:id="@+id/nav_other_feedback"
+                    android:icon="@drawable/ic_menu_feedback1"
+                    android:title="@string/feedback"/>
+            <item
+                    android:id="@+id/nav_other_about"
+                    android:icon="@drawable/ic_menu_about1"
+                    android:title="@string/about"/>
         </menu>
     </item>
 </menu>
