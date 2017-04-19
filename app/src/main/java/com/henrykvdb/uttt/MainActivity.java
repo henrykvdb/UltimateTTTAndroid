@@ -284,6 +284,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (id == R.id.nav_other_about)
 		{
+
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
@@ -539,15 +540,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 				if (!force)
 				{
-					askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
+					if (askDialog == null || !askDialog.isShowing())
 					{
-						if (allow && btService != null && gameService != null)
+						askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
 						{
-							gameService.undo();
-							btService.updateLocalBoard(gameService.getState().board());
-							btService.requestUndo(true);
-						}
-					});
+							if (allow && btService != null && gameService != null)
+							{
+								gameService.undo();
+								btService.updateLocalBoard(gameService.getState().board());
+								btService.requestUndo(true);
+							}
+						});
+					}
 				}
 				else
 				{
@@ -597,6 +601,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			{
 				connectedDeviceName = (String) msg.obj;
 			}
+			else if (msg.what == BtService.Message.TOAST.ordinal() && activity != null)
+			{
+				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
+			}
 			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
 			{
 				if (gameService != null)
@@ -611,6 +619,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		void callback(T t);
 	}
+
+	AlertDialog askDialog;
 
 	private void askUser(String message, CallBack<Boolean> callBack)
 	{
@@ -629,7 +639,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		};
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(message)
+		askDialog = builder.setMessage(message)
 				.setPositiveButton("Yes", dialogClickListener)
 				.setNegativeButton("No", dialogClickListener)
 				.show();

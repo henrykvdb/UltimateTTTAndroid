@@ -146,7 +146,10 @@ private class GameThread extends Thread implements Closeable
 	public void close() throws IOException
 	{
 		running = false;
-		timer.interrupt();
+
+		if (timer!=null)
+			timer.interrupt();
+
 		interrupt();
 	}
 

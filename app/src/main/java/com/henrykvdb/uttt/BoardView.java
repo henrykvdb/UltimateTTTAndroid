@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -236,7 +237,7 @@ public class BoardView extends View implements Serializable
 		}
 		else
 		{
-			canvas.drawOval(0, 0, realSize, realSize, paint);
+			canvas.drawOval(new RectF(0,0,realSize,realSize),paint);
 		}
 
 		canvas.translate(-border, -border);

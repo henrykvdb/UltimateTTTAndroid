@@ -11,7 +11,6 @@ import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -40,7 +39,6 @@ public class NewBluetoothActivity extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Setup the window
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.new_bluetooth_dialog);
 
 		// Set result CANCELED in case the user backs out
@@ -153,9 +151,6 @@ public class NewBluetoothActivity extends Activity
 		devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
 		Log.d("NewBluetoothActivity", "doDiscovery()");
 
-		// Indicate scanning in the title
-		setProgressBarIndeterminateVisibility(true);
-
 		// If we're already discovering, stop it
 		if (btAdapter.isDiscovering())
 			btAdapter.cancelDiscovery();
@@ -186,7 +181,6 @@ public class NewBluetoothActivity extends Activity
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
 			{
-				setProgressBarIndeterminateVisibility(false);
 				if (devicesArrayAdapter.getCount() == 0)
 					devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
 			}
