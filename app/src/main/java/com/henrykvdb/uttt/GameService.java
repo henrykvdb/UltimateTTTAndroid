@@ -29,6 +29,8 @@ public class GameService extends Service implements Closeable
 	private GameThread thread;
 	private GameState gs;
 
+	Toast toast;
+
 	public enum Source
 	{
 		Local,
@@ -82,7 +84,11 @@ public class GameService extends Service implements Closeable
 		}
 		else
 		{
-			Toast.makeText(this, "Could not undo further", Toast.LENGTH_SHORT).show();
+			if (toast == null)
+				toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+
+			toast.setText("Could not undo further");
+			toast.show();
 		}
 	}
 
@@ -108,42 +114,43 @@ public class GameService extends Service implements Closeable
 		newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
-	private class GameThread extends Thread implements Closeable
+private class GameThread extends Thread implements Closeable
+{
+	private boolean running;
+	private Timer timer;
+
+	@Override
+	public void run()
 	{
-		private boolean running;
-		private Timer timer;
+		running = true;
 
-		@Override
-		public void run()
+		Source p1 = gs.players().get(0);
+		Source p2 = gs.players().get(1);
+
+		while (!gs.board().isDone() && running)
 		{
-			running = true;
+			timer = new Timer(5000);
 
-			Source p1 = gs.players().get(0);
-			Source p2 = gs.players().get(1);
+			if (gs.board().nextPlayer() == PLAYER && running)
+				playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
 
-			while (!gs.board().isDone() && running)
-			{
-				timer = new Timer(5000);
+			if (gs.board().isDone() || !running)
+				continue;
 
-				if (gs.board().nextPlayer() == PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
-
-				if (gs.board().isDone() || !running)
-					continue;
-
-				if (gs.board().nextPlayer() == ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
-			}
-		}
-
-		@Override
-		public void close() throws IOException
-		{
-			running = false;
-			timer.interrupt();
-			interrupt();
+			if (gs.board().nextPlayer() == ENEMY && running)
+				playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
 		}
 	}
+
+	@Override
+	public void close() throws IOException
+	{
+		running = false;
+		timer.interrupt();
+		interrupt();
+	}
+
+}
 
 	private void playAndUpdateBoard(Coord move)
 	{
