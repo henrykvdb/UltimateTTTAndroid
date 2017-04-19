@@ -10,7 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -279,6 +281,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else if (id == R.id.nav_bt_join)
 		{
 			pickBluetooth();
+		}
+		else if (id == R.id.nav_other_about)
+		{
+
+		}
+		else if (id == R.id.nav_other_feedback)
+		{
+			String deviceInfo = "\n /** please do not remove this block, technical info: "
+					+ "os version: " + System.getProperty("os.version")
+					+ "(" + android.os.Build.VERSION.INCREMENTAL + "), API: " + android.os.Build.VERSION.SDK_INT;
+			try
+			{
+				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				deviceInfo += ", app version: " + pInfo.versionName;
+			}
+			catch (PackageManager.NameNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+			deviceInfo += "**/";
+
+			Intent send = new Intent(Intent.ACTION_SENDTO);
+			Uri uri = Uri.parse("mailto:" + Uri.encode("dummy@gmail.com") + //TODO replace
+					"?subject=" + Uri.encode("Feedback") +
+					"&body=" + Uri.encode(deviceInfo));
+
+			send.setData(uri);
+			startActivity(Intent.createChooser(send, "Send feedback"));
 		}
 
 		if (id != R.id.nav_bt_host_switch)
