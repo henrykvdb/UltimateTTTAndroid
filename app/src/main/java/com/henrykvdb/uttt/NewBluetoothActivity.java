@@ -39,7 +39,7 @@ public class NewBluetoothActivity extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Setup the window
-		setContentView(R.layout.new_bluetooth_dialog);
+		setContentView(R.layout.dialog_bluetooth);
 
 		// Set result CANCELED in case the user backs out
 		setResult(Activity.RESULT_CANCELED);

@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			final boolean[] swapped = new boolean[1];
 
 			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.new_ai_dialog, (ViewGroup) findViewById(R.id.new_ai_layout));
+			View layout = inflater.inflate(R.layout.dialog_ai, (ViewGroup) findViewById(R.id.new_ai_layout));
 
 			RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
 			beginner.setOnCheckedChangeListener((group, checkedId) ->
@@ -272,8 +272,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			};
 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("Start a new ai game?");
 			builder.setView(layout)
+					.setTitle("Start a new ai game?")
 					.setPositiveButton("Start", dialogClickListener)
 					.setNegativeButton("Close", dialogClickListener)
 					.show();
@@ -284,7 +284,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (id == R.id.nav_other_about)
 		{
+			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.dialog_about, (ViewGroup) findViewById(R.id.dialog_about_layout));
 
+			try
+			{
+				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				((TextView) layout.findViewById(R.id.versionName_view))
+						.setText(getResources().getText(R.string.app_name_long) + "\nVersion " + pInfo.versionName);
+			}
+			catch (PackageManager.NameNotFoundException e)
+			{
+				((TextView) layout.findViewById(R.id.versionName_view))
+						.setText(getResources().getText(R.string.app_name_long));
+			}
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("About")
+					.setView(layout)
+					.setPositiveButton("Close", (dialog, which) -> dialog.dismiss())
+					.show();
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
