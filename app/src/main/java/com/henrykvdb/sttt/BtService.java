@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
-import static com.henrykvdb.uttt.GameService.Source.Local;
+import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class BtService extends Service
 {

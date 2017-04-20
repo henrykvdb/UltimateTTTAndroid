@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -43,6 +44,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 
 import java.lang.reflect.Field;
 import java.util.Random;
@@ -80,6 +84,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		initGui();
+
+		if (getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT)
+		{
+			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
+			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
+		}
 
 		//Automatically start/close btService when you enable/disable bt
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));

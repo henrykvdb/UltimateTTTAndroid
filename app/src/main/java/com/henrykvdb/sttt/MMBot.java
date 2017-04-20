@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.util.Log;
 import com.flaghacker.uttt.common.Board;

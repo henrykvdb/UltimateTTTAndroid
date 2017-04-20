@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.os.Handler;
 import com.flaghacker.uttt.bots.RandomBot;
@@ -12,9 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import static com.henrykvdb.uttt.GameService.Source.AI;
-import static com.henrykvdb.uttt.GameService.Source.Bluetooth;
-import static com.henrykvdb.uttt.GameService.Source.Local;
+import static com.henrykvdb.sttt.GameService.Source.AI;
+import static com.henrykvdb.sttt.GameService.Source.Bluetooth;
+import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class GameState implements Serializable
 {

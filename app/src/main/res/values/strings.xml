@@ -1,8 +1,11 @@
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources>
     <!--  App name -->
-    <string name="app_name">UTTT</string>
-    <string name="app_name_long">Ultimate Tic Tac Toe</string>
+    <string name="app_name">STTT</string>
+    <string name="app_name_long">Super Tic Tac Toe</string>
     <string name="drawer_subtitle">No inspirational quote here</string>
+
+    <!-- FireBase -->
+    <string name="banner_ad_unit_id">ca-app-pub-6464324284979557/5400944625</string>
 
     <!--  Single word -->
     <string name="difficulty">Difficulty</string>

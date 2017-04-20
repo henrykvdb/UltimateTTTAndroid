@@ -1,4 +1,4 @@
-package com.henrykvdb.uttt;
+package com.henrykvdb.sttt;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;

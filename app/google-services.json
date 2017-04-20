@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "539337327923",
+    "firebase_url": "https://super-tic-tac-toe-1ee83.firebaseio.com",
+    "project_id": "super-tic-tac-toe-1ee83",
+    "storage_bucket": "super-tic-tac-toe-1ee83.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:539337327923:android:b7f2e88027248dd1",
+        "android_client_info": {
+          "package_name": "com.henrykvdb.sttt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "539337327923-93fgeepmiti7vd4s7bcu1k8urg1jlnuh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA7i2UhY2cyxxKVuSIF_R85xKYZfoL6O4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
