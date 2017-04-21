@@ -114,46 +114,46 @@ public class GameService extends Service implements Closeable
 		newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
-private class GameThread extends Thread implements Closeable
-{
-	private boolean running;
-	private Timer timer;
-
-	@Override
-	public void run()
+	private class GameThread extends Thread implements Closeable
 	{
-		running = true;
+		private boolean running;
+		private Timer timer;
 
-		Source p1 = gs.players().get(0);
-		Source p2 = gs.players().get(1);
-
-		while (!gs.board().isDone() && running)
+		@Override
+		public void run()
 		{
-			timer = new Timer(5000);
+			running = true;
 
-			if (gs.board().nextPlayer() == PLAYER && running)
-				playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
+			Source p1 = gs.players().get(0);
+			Source p2 = gs.players().get(1);
 
-			if (gs.board().isDone() || !running)
-				continue;
+			while (!gs.board().isDone() && running)
+			{
+				timer = new Timer(5000);
 
-			if (gs.board().nextPlayer() == ENEMY && running)
-				playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
+				if (gs.board().nextPlayer() == PLAYER && running)
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
+
+				if (gs.board().isDone() || !running)
+					continue;
+
+				if (gs.board().nextPlayer() == ENEMY && running)
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
+			}
 		}
+
+		@Override
+		public void close() throws IOException
+		{
+			running = false;
+
+			if (timer != null)
+				timer.interrupt();
+
+			interrupt();
+		}
+
 	}
-
-	@Override
-	public void close() throws IOException
-	{
-		running = false;
-
-		if (timer!=null)
-			timer.interrupt();
-
-		interrupt();
-	}
-
-}
 
 	private void playAndUpdateBoard(Coord move)
 	{

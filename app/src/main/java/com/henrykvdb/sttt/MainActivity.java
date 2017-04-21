@@ -58,9 +58,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	//Debug
 	private static final String TAG = "MainActivity";
 
-	//New game picker activity launch codes
-	private static final int REQUEST_NEW_LOCAL = 100;
-	private static final int REQUEST_NEW_BLUETOOTH = 101;
+	//New bt game request code
+	private static final int REQUEST_NEW_BLUETOOTH = 100;
 
 	//Permission request codes
 	private static final int REQUEST_ENABLE_BT = 200;
@@ -71,12 +70,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private BtService btService;
 	private GameService gameService;
 
-	//Other
+	//Init
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Switch btHostSwitch;
+
+	//Other
 	private GameState requestState;
-	private Random random = new Random();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -84,9 +84,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		//Init fields and gui
 		initGui();
 
+		//If in portrait add ads
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
 		{
 			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
@@ -135,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void initGui()
 	{
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
@@ -268,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
 			beginner.setOnCheckedChangeListener((group, checkedId) ->
-					swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || random.nextBoolean()));
+					swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
 
 			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 			{
@@ -385,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else
 		{
 			// If BT is not on, request that it be enabled first.
-			if (! btAdapter.isEnabled())
+			if (!btAdapter.isEnabled())
 			{
 				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
@@ -432,13 +434,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				if (resultCode == RESULT_CANCELED)
 					btHostSwitch.setChecked(false);
 				break;
-			case REQUEST_NEW_LOCAL:
-				if (resultCode == RESULT_OK)
-				{
-					GameState gs = (GameState) data.getSerializableExtra("GameState");
-					gameService.newGame(gs);
-				}
-				break;
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
 				{
@@ -446,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 							^ gameService.getState().board().nextPlayer() == Player.PLAYER;
 
 					GameState.Builder builder = GameState.builder().bt(btHandler).swapped(swapped);
-					if (! data.getExtras().getBoolean("newBoard"))
+					if (!data.getExtras().getBoolean("newBoard"))
 						builder.board(gameService.getState().board());
 					requestState = builder.build();
 
@@ -592,9 +587,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			{
 				boolean force = (boolean) msg.obj;
 
-				if (! force)
+				if (!force)
 				{
-					if (askDialog == null || ! askDialog.isShowing())
+					if (askDialog == null || !askDialog.isShowing())
 					{
 						askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
 						{
@@ -621,10 +616,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
 				Bundle data = msg.getData();
-				boolean swapped = ! data.getBoolean("swapped");
+				boolean swapped = !data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				if (! data.getBoolean("force"))
+				if (!data.getBoolean("force"))
 				{
 					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
 					{

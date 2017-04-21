@@ -237,7 +237,7 @@ public class BoardView extends View implements Serializable
 		}
 		else
 		{
-			canvas.drawOval(new RectF(0,0,realSize,realSize),paint);
+			canvas.drawOval(new RectF(0, 0, realSize, realSize), paint);
 		}
 
 		canvas.translate(-border, -border);
