@@ -98,6 +98,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Start Services
 		enableBtService();
+
+		//Ask user to rate the app
+		if (savedInstanceState == null)
+			RateDialog.rate(this, getSupportFragmentManager());
 	}
 
 	@Override
@@ -357,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	// Prevent dialog dismiss when orientation changes
-	private static void doKeepDialog(Dialog dialog)
+	public static void doKeepDialog(Dialog dialog)
 	{
 		try
 		{
