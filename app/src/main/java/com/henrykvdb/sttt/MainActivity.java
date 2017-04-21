@@ -293,29 +293,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			pickBluetooth();
 		}
-		else if (id == R.id.nav_other_about)
-		{
-			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.dialog_about, (ViewGroup) findViewById(R.id.dialog_about_layout));
-
-			try
-			{
-				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-				((TextView) layout.findViewById(R.id.versionName_view))
-						.setText(getResources().getText(R.string.app_name_long) + "\nVersion " + pInfo.versionName);
-			}
-			catch (PackageManager.NameNotFoundException e)
-			{
-				((TextView) layout.findViewById(R.id.versionName_view))
-						.setText(getResources().getText(R.string.app_name_long));
-			}
-
-			doKeepDialog(new AlertDialog.Builder(this)
-					.setTitle("About")
-					.setView(layout)
-					.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
-					.show());
-		}
 		else if (id == R.id.nav_other_feedback)
 		{
 			String deviceInfo = "\n /** please do not remove this block, technical info: "
@@ -339,6 +316,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			send.setData(uri);
 			startActivity(Intent.createChooser(send, "Send feedback"));
+		}
+		else if (id == R.id.nav_other_share)
+		{
+			Intent i = new Intent(Intent.ACTION_SEND);
+			i.setType("text/plain");
+			i.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name_long));
+			i.putExtra(Intent.EXTRA_TEXT, "Hey, let's play " + getResources().getString(R.string.app_name_long)
+					+ " together! https://play.google.com/store/apps/details?id=Place.Holder");
+			startActivity(Intent.createChooser(i, "choose one"));
+		}
+		else if (id == R.id.nav_other_about)
+		{
+			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.dialog_about, (ViewGroup) findViewById(R.id.dialog_about_layout));
+
+			try
+			{
+				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				((TextView) layout.findViewById(R.id.versionName_view))
+						.setText(getResources().getText(R.string.app_name_long) + "\nVersion " + pInfo.versionName);
+			}
+			catch (PackageManager.NameNotFoundException e)
+			{
+				((TextView) layout.findViewById(R.id.versionName_view))
+						.setText(getResources().getText(R.string.app_name_long));
+			}
+
+			doKeepDialog(new AlertDialog.Builder(this)
+					.setTitle("About")
+					.setView(layout)
+					.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
+					.show());
 		}
 
 		if (id != R.id.nav_bt_host_switch)
