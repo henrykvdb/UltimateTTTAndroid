@@ -12,6 +12,7 @@ import java.util.Random;
 
 public class MMBot implements Bot
 {
+	private static final long serialVersionUID = 5157670414972977360L;
 	private Random random = Util.loggedRandom();
 
 	private static final double TILE_VALUE = 1;

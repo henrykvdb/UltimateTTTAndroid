@@ -18,6 +18,7 @@ import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class GameState implements Serializable
 {
+	private static final long serialVersionUID = -3051602110955747927L;
 	private List<GameService.Source> players = Arrays.asList(Local, Local);
 	private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
 	private Bot extraBot = new RandomBot();

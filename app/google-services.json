@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "539337327923-tnqh6reahrp9b21vouk4j8l79pjevn5s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.henrykvdb.sttt",
+            "certificate_hash": "a678e88761012b205d7b507e2c277c98509c3c3b"
+          }
+        },
+        {
           "client_id": "539337327923-93fgeepmiti7vd4s7bcu1k8urg1jlnuh.apps.googleusercontent.com",
           "client_type": 3
         }
