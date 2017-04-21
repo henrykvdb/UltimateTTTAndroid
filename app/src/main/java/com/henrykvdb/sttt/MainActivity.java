@@ -2,6 +2,7 @@ package com.henrykvdb.sttt;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -37,6 +38,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		initGui();
 
-		if (getResources().getConfiguration().orientation== Configuration.ORIENTATION_PORTRAIT)
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
 		{
 			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
@@ -124,8 +126,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		unregisterReceiver(btStateReceiver);
 
 		//Close GameService
-		if (gameService != null)
-			unbindService(gameServiceConn);
+		unbindService(gameServiceConn);
 	}
 
 	private void initGui()
@@ -207,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		if (item.getItemId() == R.id.action_undo && gameService != null)
+		if (item.getItemId() == R.id.action_undo)
 		{
 			if (gameService.getState().players().contains(GameService.Source.Bluetooth))
 			{
@@ -247,12 +248,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 			};
 
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("Start a new game?");
-			builder.setMessage("This wil create a new local two player game.")
+			doKeepDialog(new AlertDialog.Builder(this)
+					.setTitle("Start a new game?")
+					.setMessage("This wil create a new local two player game.")
 					.setPositiveButton("Start", dialogClickListener)
 					.setNegativeButton("Close", dialogClickListener)
-					.show();
+					.show());
 		}
 		if (id == R.id.nav_local_ai)
 		{
@@ -281,12 +282,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 			};
 
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setView(layout)
+			doKeepDialog(new AlertDialog.Builder(this)
+					.setView(layout)
 					.setTitle("Start a new ai game?")
 					.setPositiveButton("Start", dialogClickListener)
 					.setNegativeButton("Close", dialogClickListener)
-					.show();
+					.show());
 		}
 		else if (id == R.id.nav_bt_join)
 		{
@@ -309,11 +310,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						.setText(getResources().getText(R.string.app_name_long));
 			}
 
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("About")
+			doKeepDialog(new AlertDialog.Builder(this)
+					.setTitle("About")
 					.setView(layout)
-					.setPositiveButton("Close", (dialog, which) -> dialog.dismiss())
-					.show();
+					.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
+					.show());
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
@@ -346,6 +347,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
+	// Prevent dialog dismiss when orientation changes
+	private static void doKeepDialog(Dialog dialog)
+	{
+		try
+		{
+			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+			lp.copyFrom(dialog.getWindow().getAttributes());
+			lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+			lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+			dialog.getWindow().setAttributes(lp);
+		}
+		catch (Throwable t)
+		{
+			//NOP
+		}
+	}
+
 	private void pickBluetooth()
 	{
 		// If the adapter is null, then Bluetooth is not supported
@@ -354,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else
 		{
 			// If BT is not on, request that it be enabled first.
-			if (!btAdapter.isEnabled())
+			if (! btAdapter.isEnabled())
 			{
 				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
@@ -404,15 +422,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			case REQUEST_NEW_LOCAL:
 				if (resultCode == RESULT_OK)
 				{
-					if (gameService != null)
-					{
-						GameState gs = (GameState) data.getSerializableExtra("GameState");
-						gameService.newGame(gs);
-					}
-					else
-					{
-						Log.e(TAG, "GameService == null @ case REQUEST_NEW_LOCAL:");
-					}
+					GameState gs = (GameState) data.getSerializableExtra("GameState");
+					gameService.newGame(gs);
 				}
 				break;
 			case REQUEST_NEW_BLUETOOTH:
@@ -422,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 							^ gameService.getState().board().nextPlayer() == Player.PLAYER;
 
 					GameState.Builder builder = GameState.builder().bt(btHandler).swapped(swapped);
-					if (!data.getExtras().getBoolean("newBoard"))
+					if (! data.getExtras().getBoolean("newBoard"))
 						builder.board(gameService.getState().board());
 					requestState = builder.build();
 
@@ -481,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			Log.d(TAG, "bt: onServiceConnected");
+			Log.d(TAG, "btService Connected");
 			btService = ((BtService.LocalBinder) service).getService();
 
 			btService.setup(gameService, btHandler);
@@ -490,7 +501,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
-			Log.d(TAG, "bt: onServiceDisconnected");
+			Log.d(TAG, "btService Disconnected");
 			btService = null;
 		}
 	};
@@ -526,6 +537,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			Log.d(TAG, "GameService Disconnected");
 			gameService = null;
+			finish();
 		}
 	};
 
@@ -567,13 +579,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			{
 				boolean force = (boolean) msg.obj;
 
-				if (!force)
+				if (! force)
 				{
-					if (askDialog == null || !askDialog.isShowing())
+					if (askDialog == null || ! askDialog.isShowing())
 					{
 						askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
 						{
-							if (allow && btService != null && gameService != null)
+							if (allow && btService != null)
 							{
 								gameService.undo();
 								btService.updateLocalBoard(gameService.getState().board());
@@ -596,10 +608,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 			{
 				Bundle data = msg.getData();
-				boolean swapped = !data.getBoolean("swapped");
+				boolean swapped = ! data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				if (!data.getBoolean("force"))
+				if (! data.getBoolean("force"))
 				{
 					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
 					{
@@ -636,8 +648,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
 			{
-				if (gameService != null)
-					gameService.turnLocal();
+				gameService.turnLocal();
 
 				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
 			}
@@ -667,10 +678,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 		};
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		askDialog = builder.setMessage(message)
+		askDialog = new AlertDialog.Builder(this).setMessage(message)
 				.setPositiveButton("Yes", dialogClickListener)
 				.setNegativeButton("No", dialogClickListener)
 				.show();
+
+		doKeepDialog(askDialog);
 	}
 }
