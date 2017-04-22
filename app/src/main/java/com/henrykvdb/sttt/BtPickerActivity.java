@@ -7,11 +7,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -19,10 +18,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-public class NewBluetoothActivity extends Activity
+public class BtPickerActivity extends Activity
 {
 	/**
 	 * Return Intent extra
@@ -30,7 +30,9 @@ public class NewBluetoothActivity extends Activity
 	public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
 	private BluetoothAdapter btAdapter;
-	private ArrayAdapter<String> devicesArrayAdapter;
+
+	private List<BluetoothDevice> devices = new ArrayList<>();
+
 	private LinearLayout devicesLayout;
 
 	@Override
@@ -44,6 +46,11 @@ public class NewBluetoothActivity extends Activity
 		// Set result CANCELED in case the user backs out
 		setResult(Activity.RESULT_CANCELED);
 
+		// Set fields
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		devicesLayout = (LinearLayout) findViewById(R.id.devices);
+
+		//Set local vars
 		ProgressBar spinner = (ProgressBar) findViewById(R.id.loading_spinner);
 		Button scanButton = (Button) findViewById(R.id.button_scan);
 
@@ -69,40 +76,28 @@ public class NewBluetoothActivity extends Activity
 			);
 		});
 
-		devicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
-		devicesLayout = (LinearLayout) findViewById(R.id.devices);
-		devicesArrayAdapter.registerDataSetObserver(new DataSetObserver()
-		{
-			@Override
-			public void onChanged()
-			{
-				updateLayout();
-				super.onChanged();
-			}
-		});
-		devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
-
 		// Register filters
-		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-		this.registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		this.registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-		this.registerReceiver(mReceiver, filter);
-
-		// Get the local Bluetooth adapter
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(BluetoothDevice.ACTION_FOUND);
+		filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+		registerReceiver(mReceiver, filter);
 	}
 
 	private void updateLayout()
 	{
+		//Clear layout
 		devicesLayout.removeAllViews();
-		for (int i = 0; i < devicesArrayAdapter.getCount(); i++)
+
+		//Add all the devices
+		if (devices.size() > 0)
 		{
-			View item = devicesArrayAdapter.getView(i, null, null);
-			if (!Objects.equals(((TextView) item).getText().toString(), getResources().getText(R.string.none_found).toString()))
+			for (BluetoothDevice device : devices)
 			{
-				item.setOnClickListener(v ->
+				TextView view = new TextView(this);
+				view.setText(device.getName() + "\n" + device.getAddress());
+
+				view.setOnClickListener(v ->
 				{
 					// Cancel discovery because it's costly and we're about to connect
 					btAdapter.cancelDiscovery();
@@ -127,8 +122,16 @@ public class NewBluetoothActivity extends Activity
 					setResult(Activity.RESULT_OK, intent);
 					finish();
 				});
+
+				devicesLayout.addView(view);
 			}
-			devicesLayout.addView(item);
+		}
+		else
+		{
+			//There are no devices in the list
+			TextView view = new TextView(this);
+			view.setText(getResources().getText(R.string.none_found).toString());
+			devicesLayout.addView(view);
 		}
 	}
 
@@ -147,9 +150,11 @@ public class NewBluetoothActivity extends Activity
 
 	private void doDiscovery()
 	{
-		devicesArrayAdapter.clear();
-		devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
 		Log.d("NewBluetoothActivity", "doDiscovery()");
+
+		//Clear the devices list
+		devices.clear();
+		updateLayout();
 
 		// If we're already discovering, stop it
 		if (btAdapter.isDiscovering())
@@ -169,11 +174,14 @@ public class NewBluetoothActivity extends Activity
 			// When discovery finds a device
 			if (BluetoothDevice.ACTION_FOUND.equals(action))
 			{
-				devicesArrayAdapter.remove(getResources().getText(R.string.none_found).toString());
-
-				// Get the BluetoothDevice object from the Intent and add it to the adapter
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				devicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+				boolean available = false;
+
+				for (ParcelUuid uuid : device.getUuids())
+					available = available || (uuid.getUuid().equals(BtService.UUID));
+
+				devices.add(device);
+				updateLayout();
 			}
 			else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))
 			{
@@ -181,8 +189,7 @@ public class NewBluetoothActivity extends Activity
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
 			{
-				if (devicesArrayAdapter.getCount() == 0)
-					devicesArrayAdapter.add(getResources().getText(R.string.none_found).toString());
+				//Nothing
 			}
 		}
 	};

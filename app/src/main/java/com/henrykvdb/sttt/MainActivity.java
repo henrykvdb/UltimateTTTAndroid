@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				else
 				{
 					//Make the bluetooth-picker activity
-					Intent serverIntent = new Intent(getApplicationContext(), NewBluetoothActivity.class);
+					Intent serverIntent = new Intent(getApplicationContext(), BtPickerActivity.class);
 					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
 				}
 			}
@@ -445,7 +445,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						builder.board(gameService.getState().board());
 					requestState = builder.build();
 
-					btService.connect(data.getExtras().getString(NewBluetoothActivity.EXTRA_DEVICE_ADDRESS));
+					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
 				}
 				break;
 		}

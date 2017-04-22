@@ -445,8 +445,8 @@ public class BtService extends Service
 	private class ConnectedThread extends Thread
 	{
 		private final BluetoothSocket mmSocket;
-		private final InputStream mmInStream;
-		private final OutputStream mmOutStream;
+		private final InputStream inStream;
+		private final OutputStream outStream;
 
 		private Board localBoard;
 
@@ -468,8 +468,8 @@ public class BtService extends Service
 				Log.e(TAG, "temp sockets not created", e);
 			}
 
-			mmInStream = tmpIn;
-			mmOutStream = tmpOut;
+			inStream = tmpIn;
+			outStream = tmpOut;
 			handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connected to " + socket.getRemoteDevice().getName()).sendToTarget();
 			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, socket.getRemoteDevice().getName()).sendToTarget();
 			setState(BtService.State.CONNECTED);
@@ -486,7 +486,7 @@ public class BtService extends Service
 				try
 				{
 					// Read from the InputStream
-					mmInStream.read(buffer); //TODO improve
+					inStream.read(buffer); //TODO improve
 
 					JSONObject json = new JSONObject(new String(buffer));
 
@@ -585,7 +585,7 @@ public class BtService extends Service
 
 				byte[] data = json.toString().getBytes();
 
-				mmOutStream.write(data);
+				outStream.write(data);
 			}
 			catch (IOException e)
 			{
@@ -612,7 +612,7 @@ public class BtService extends Service
 
 				byte[] data = json.toString().getBytes();
 
-				mmOutStream.write(data);
+				outStream.write(data);
 			}
 			catch (IOException e)
 			{
@@ -637,7 +637,7 @@ public class BtService extends Service
 
 				byte[] data = json.toString().getBytes();
 
-				mmOutStream.write(data);
+				outStream.write(data);
 			}
 			catch (IOException e)
 			{
