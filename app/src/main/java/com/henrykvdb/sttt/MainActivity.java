@@ -445,7 +445,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						builder.board(gameService.getState().board());
 					requestState = builder.build();
 
-					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
+					if (!requestState.board().isDone())
+						btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
+					else
+						Log.d(TAG, "You can't send a finished board");
 				}
 				break;
 		}
