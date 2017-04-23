@@ -34,14 +34,24 @@ public class BtService extends Service
 	// Member fields
 	private BluetoothAdapter btAdapter;
 	private Handler handler = null;
-	//private WaitBot btBot = null;
 	private State state = State.NONE;
+	private boolean blockIncoming = false;
 
 	//Threads
 	private AcceptThread acceptThread;
 	private ConnectThread connectThread;
 	private ConnectedThread connectedThread;
 	private GameService gameService;
+
+	public void setBlockIncoming(boolean blockIncomming)
+	{
+		this.blockIncoming = blockIncomming;
+
+		if (blockIncomming)
+			stop();
+		else
+			start();
+	}
 
 	public enum State
 	{
@@ -412,7 +422,9 @@ public class BtService extends Service
 				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect device").sendToTarget();
 
 				// Start the service over to restart listening mode
-				BtService.this.start();
+				if (!blockIncoming)
+					BtService.this.start();
+
 				return;
 			}
 
@@ -555,7 +567,9 @@ public class BtService extends Service
 					handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 
 					// Start the service over to restart listening mode
-					BtService.this.start();
+					if (!blockIncoming)
+						BtService.this.start();
+
 					break;
 				}
 				catch (JSONException e)

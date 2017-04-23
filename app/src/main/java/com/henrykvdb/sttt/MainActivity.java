@@ -73,7 +73,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	//Init
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
+
+	//Switch related
 	private Switch btHostSwitch;
+	private boolean blockIncoming = false;
+	private boolean startedWithBt;
+	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
 	//Other
 	private GameState requestState;
@@ -84,7 +89,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		//Init fields and gui
+		//Set fields
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (savedInstanceState != null)
+			startedWithBt = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
+		else
+			startedWithBt = btAdapter != null && btAdapter.isEnabled();
+
 		initGui();
 
 		//If in portrait add ads
@@ -94,15 +105,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
 		}
 
-		//Automatically start/close btService when you enable/disable bt
+		//Automatically start/close btService when you enable/disable bt & attempt to start the service
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-
-		//Start Services
 		enableBtService();
 
 		//Ask user to rate the app
 		if (savedInstanceState == null)
 			RateDialog.rate(this, getSupportFragmentManager());
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
@@ -136,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void initGui()
 	{
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
@@ -173,7 +188,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			if (btAdapter != null)
 			{
-				if (btHostSwitch.isChecked())
+				blockIncoming = !isChecked;
+
+				if (btService != null)
+					btService.setBlockIncoming(blockIncoming);
+
+				if (isChecked)
 				{
 					if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 					{
@@ -184,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 				else
 				{
-					if (btAdapter.isEnabled())
+					if (btAdapter.isEnabled() && !startedWithBt)
 						btAdapter.disable();
 				}
 			}
@@ -635,7 +655,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 								btService.sendState(requestState, true);
 								gameService.newGame(requestState);
 							}
-							else
+							else if (!blockIncoming)
 							{
 								btService.start();
 							}
