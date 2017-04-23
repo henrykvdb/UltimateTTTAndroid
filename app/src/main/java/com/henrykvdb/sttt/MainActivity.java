@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			deviceInfo += "**/";
 
 			Intent send = new Intent(Intent.ACTION_SENDTO);
-			Uri uri = Uri.parse("mailto:" + Uri.encode("dummy@gmail.com") + //TODO replace
+			Uri uri = Uri.parse("mailto:" + Uri.encode("henrykdev@gmail.com") +
 					"?subject=" + Uri.encode("Feedback") +
 					"&body=" + Uri.encode(deviceInfo));
 
