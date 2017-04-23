@@ -106,7 +106,7 @@ public class BtService extends Service
 		if (state != State.CONNECTED)
 			start();
 		else
-			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, connectedThread.mmSocket.getRemoteDevice().getName()).sendToTarget();
+			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, connectedThread.socket.getRemoteDevice().getName()).sendToTarget();
 
 	}
 
@@ -278,7 +278,7 @@ public class BtService extends Service
 	private class AcceptThread extends Thread
 	{
 		// The local server socket
-		private final BluetoothServerSocket mmServerSocket;
+		private final BluetoothServerSocket serverSocket;
 
 		public AcceptThread()
 		{
@@ -293,7 +293,7 @@ public class BtService extends Service
 			{
 				Log.e(TAG, "listen() failed", e);
 			}
-			mmServerSocket = tmp;
+			serverSocket = tmp;
 			setState(BtService.State.LISTEN);
 		}
 
@@ -311,7 +311,7 @@ public class BtService extends Service
 				{
 					// This is a blocking call and will only return on a
 					// successful connection or an exception
-					socket = mmServerSocket.accept();
+					socket = serverSocket.accept();
 				}
 				catch (IOException e)
 				{
@@ -356,7 +356,7 @@ public class BtService extends Service
 			Log.d(TAG, "cancel " + this);
 			try
 			{
-				mmServerSocket.close();
+				serverSocket.close();
 			}
 			catch (IOException e)
 			{
@@ -372,7 +372,7 @@ public class BtService extends Service
 	 */
 	private class ConnectThread extends Thread
 	{
-		private final BluetoothSocket mmSocket;
+		private final BluetoothSocket socket;
 
 		public ConnectThread(BluetoothDevice device)
 		{
@@ -387,7 +387,7 @@ public class BtService extends Service
 			{
 				Log.e(TAG, "create() failed", e);
 			}
-			mmSocket = tmp;
+			socket = tmp;
 			setState(BtService.State.CONNECTING);
 		}
 
@@ -403,14 +403,14 @@ public class BtService extends Service
 			try
 			{
 				// This is a blocking call and will only return on a successful connection or an exception
-				mmSocket.connect();
+				socket.connect();
 			}
 			catch (IOException e)
 			{
 				// Close the socket
 				try
 				{
-					mmSocket.close();
+					socket.close();
 				}
 				catch (IOException e2)
 				{
@@ -435,14 +435,14 @@ public class BtService extends Service
 			}
 
 			// Start the connected thread
-			connected(mmSocket, false);
+			connected(socket, false);
 		}
 
 		public void cancel()
 		{
 			try
 			{
-				mmSocket.close();
+				socket.close();
 			}
 			catch (IOException e)
 			{
@@ -456,7 +456,7 @@ public class BtService extends Service
 	 */
 	private class ConnectedThread extends Thread
 	{
-		private final BluetoothSocket mmSocket;
+		private final BluetoothSocket socket;
 		private final InputStream inStream;
 		private final OutputStream outStream;
 
@@ -465,7 +465,7 @@ public class BtService extends Service
 		public ConnectedThread(BluetoothSocket socket)
 		{
 			Log.d(TAG, "create ConnectedThread");
-			mmSocket = socket;
+			this.socket = socket;
 			InputStream tmpIn = null;
 			OutputStream tmpOut = null;
 
@@ -663,7 +663,7 @@ public class BtService extends Service
 		{
 			try
 			{
-				mmSocket.close();
+				socket.close();
 			}
 			catch (IOException e)
 			{

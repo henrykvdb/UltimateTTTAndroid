@@ -506,9 +506,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 					if (btService != null)
 					{
+						btService.stop();
 						unbindService(btServerConn);
 						btService = null;
 					}
+
+					if (btAskDialog != null && btAskDialog.isShowing())
+						btAskDialog.dismiss();
 
 					setBtStatusMessage(null);
 				}
@@ -612,7 +616,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 				if (!force)
 				{
-					if (askDialog == null || !askDialog.isShowing())
+					if (btAskDialog == null || !btAskDialog.isShowing())
 					{
 						askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
 						{
@@ -691,7 +695,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		void callback(T t);
 	}
 
-	AlertDialog askDialog;
+	AlertDialog btAskDialog;
 
 	private void askUser(String message, CallBack<Boolean> callBack)
 	{
@@ -709,11 +713,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 		};
 
-		askDialog = new AlertDialog.Builder(this).setMessage(message)
+		btAskDialog = new AlertDialog.Builder(this).setMessage(message)
 				.setPositiveButton("Yes", dialogClickListener)
 				.setNegativeButton("No", dialogClickListener)
+				.setOnDismissListener(dialogInterface -> callBack.callback(false))
 				.show();
 
-		doKeepDialog(askDialog);
+		doKeepDialog(btAskDialog);
 	}
 }
