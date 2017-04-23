@@ -1,6 +1,5 @@
 package com.henrykvdb.sttt;
 
-import android.util.Log;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 import com.flaghacker.uttt.common.Coord;
@@ -8,115 +7,136 @@ import com.flaghacker.uttt.common.Player;
 import com.flaghacker.uttt.common.Timer;
 import com.flaghacker.uttt.common.Util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+
+import static com.flaghacker.uttt.common.Player.ENEMY;
+import static com.flaghacker.uttt.common.Player.PLAYER;
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Double.POSITIVE_INFINITY;
 
 public class MMBot implements Bot
 {
 	private static final long serialVersionUID = 5157670414972977360L;
-	private Random random = Util.loggedRandom();
 
 	private static final double TILE_VALUE = 1;
 	private static final double MACRO_VALUE = 100;
 
-	private static final double CENTER_FACTOR = 3;
-	private static final double CORNER_FACTOR = 2;
+	private static final double CENTER_FACTOR = 4;
+	private static final double CORNER_FACTOR = 3;
 	private static final double EDGE_FACTOR = 1;
 
-	private final int levels = 3;
-	private final int endLevels = 6;
+	private static final int MAX_LEVELS = 6;
 
-	private Player player;
-	private int difficulty = 100;
+	private Random random = Util.loggedRandom();
 	private Timer timer;
+	private int levels;
 
 	public MMBot(int difficulty)
 	{
-		this.difficulty = difficulty;
+		levels = Math.round(difficulty / (100f / MAX_LEVELS));
 	}
 
 	@Override
 	public Coord move(Board board, Timer timer)
 	{
-		timer.start();
 		this.timer = timer;
-		player = board.nextPlayer();
 
-		int bestScore = Integer.MIN_VALUE;
-		Coord bestMove = board.availableMoves().get(new Random().nextInt(board.availableMoves().size()));
+		if (levels == 0)
+			return board.availableMoves().get(random.nextInt(board.availableMoves().size()));
 
-		if (random.nextInt(100) > difficulty)
-		{
-			Log.d("MMBot", "Played random");
-			return bestMove;
-		}
-
-		if (board.freeTiles().size() == 81)
+		if (board.freeTiles().size() == 81) //First move
 			return Coord.coord(4, 4);
 
-		for (Coord move : board.availableMoves())
+		if (board.nextPlayer() != PLAYER)
+			board = board.flip();
+
+		Coord move = negaMax(board, levels, NEGATIVE_INFINITY, POSITIVE_INFINITY, 1).move;
+		return timer.isInterrupted() ? null : move;
+	}
+
+	private ScoreMove negaMax(Board board, int depth, double a, double b, int player)
+	{
+		if (depth == 0 || board.isDone() || timer.isInterrupted())
+			return new ScoreMove(board.getLastMove(), rateBoard(board) * player);
+
+		double bestScore = NEGATIVE_INFINITY;
+		Coord bestMove = null;
+
+		for (Board child : children(board))
 		{
 			if (timer.isInterrupted())
 				break;
 
-			Board testBoard = board.copy();
-			testBoard.play(move);
+			double score = -negaMax(child, depth - 1, -b, -a, -player).score;
 
-			int minMax = miniMax(testBoard, board.freeTiles().size() < 30 ? endLevels : levels, false);
-
-			if (minMax > bestScore)
+			if (bestMove == null || score > bestScore)
 			{
-				bestScore = minMax;
-				bestMove = move;
+				bestScore = score;
+				bestMove = child.getLastMove();
 			}
+
+			a = Math.max(a, score);
+			if (a >= b)
+				break;
 		}
 
-		return timer.isInterrupted() ? null : bestMove;
+		return new ScoreMove(bestMove, bestScore);
 	}
 
-	private int miniMax(Board board, int depth, boolean maximizingPlayer)
+	private class ScoreMove
 	{
-		if (depth == 0 || board.isDone() || timer.isInterrupted())
-			return rateBoard(board);
+		private Coord move;
+		private double score;
 
-		int bestScore = maximizingPlayer ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+		public ScoreMove(Coord move, double score)
+		{
+			this.move = move;
+			this.score = score;
+		}
+	}
+
+	private List<Board> children(Board board)
+	{
+		List<Board> children = new ArrayList<>();
+
 		for (Coord move : board.availableMoves())
 		{
 			Board deepBoard = board.copy();
 			deepBoard.play(move);
 
-			bestScore = (maximizingPlayer)
-					? Math.max(bestScore, miniMax(deepBoard, depth - 1, false))
-					: Math.min(bestScore, miniMax(deepBoard, depth - 1, true));
+			children.add(deepBoard);
 		}
-		return bestScore;
+
+		return children;
 	}
 
-	private int rateBoard(Board board)
+	private double rateBoard(Board board)
 	{
-		int score = 0;
-
-		//Gives score for tiles
-		for (Coord coord : Coord.list())
-			score += TILE_VALUE * tileFactor(coord.os()) * tileFactor(coord.om()) * playerSign(board.tile(coord));
-
-		//Gives score for macros
-		for (int om = 0; om < 9; om++)
-		{
-			Player owner = board.macro(om);
-
-			if (owner != Player.NEUTRAL)
-				score += tileFactor(om) * MACRO_VALUE * playerSign(owner);
-		}
-
 		//Winning games is good, losing is bad
 		if (board.isDone())
 		{
-			if (board.wonBy() == player)
-				return Integer.MAX_VALUE;
-			else if (board.wonBy() == player.other())
-				return Integer.MIN_VALUE + 1;
+			if (board.wonBy() == PLAYER)
+				return POSITIVE_INFINITY;
+			else if (board.wonBy() == ENEMY)
+				return NEGATIVE_INFINITY + 1;
 			else
-				return Integer.MIN_VALUE;
+				return NEGATIVE_INFINITY;
+		}
+
+		double score = 0;
+
+		//Gives score for tiles
+		for (Coord coord : Coord.list())
+			score += TILE_VALUE * tileFactor(coord.os()) * tileFactor(coord.om()) * sign(board.tile(coord));
+
+		//Winning macros may be good or and losing them could be bad
+		for (int om = 0; om < 9; om++)
+		{
+			Player owner = board.macro(om);
+			if (owner != Player.NEUTRAL)
+				score += tileFactor(om) * MACRO_VALUE * sign(owner);
 		}
 
 		return score;
@@ -134,11 +154,11 @@ public class MMBot implements Bot
 		return CORNER_FACTOR;
 	}
 
-	private int playerSign(Player p)
+	private int sign(Player p)
 	{
-		if (p == player)
+		if (p == PLAYER)
 			return 1;
-		else if (p == player.other())
+		else if (p == ENEMY)
 			return -1;
 		else
 			return 0;

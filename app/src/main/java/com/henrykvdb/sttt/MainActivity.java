@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			i.setType("text/plain");
 			i.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name_long));
 			i.putExtra(Intent.EXTRA_TEXT, "Hey, let's play " + getResources().getString(R.string.app_name_long)
-					+ " together! https://play.google.com/store/apps/details?id=Place.Holder");
+					+ " together! https://play.google.com/store/apps/details?id=Place.Holder"); //TODO replace
 			startActivity(Intent.createChooser(i, "choose one"));
 		}
 		else if (id == R.id.nav_other_about)
