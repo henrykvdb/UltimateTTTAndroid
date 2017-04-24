@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	//Switch related
 	private Switch btHostSwitch;
-	private boolean blockIncoming = false;
 	private boolean startedWithBt;
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
@@ -188,10 +187,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			if (btAdapter != null)
 			{
-				blockIncoming = !isChecked;
-
 				if (btService != null)
-					btService.setBlockIncoming(blockIncoming);
+					btService.setBlockIncoming(!isChecked);
 
 				if (isChecked)
 				{
@@ -531,6 +528,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btService = ((BtService.LocalBinder) service).getService();
 
 			btService.setup(gameService, btHandler);
+			btService.setBlockIncoming(btService.blockIncoming());
 		}
 
 		@Override
@@ -544,13 +542,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private void enableBtService()
 	{
 		if (btAdapter != null && btAdapter.isEnabled() && btService == null)
-		{
 			bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
-		}
 		else
-		{
 			setBtStatusMessage(null);
-		}
 	}
 
 	private ServiceConnection gameServiceConn = new ServiceConnection()
@@ -646,25 +640,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				boolean swapped = !data.getBoolean("swapped");
 				Board board = (Board) data.getSerializable("board");
 
-				if (!data.getBoolean("force"))
+				if (!data.getBoolean("force") && btService!=null)
 				{
-					askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
+					if (!btService.blockIncoming())
 					{
-						if (btService != null)
+						askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
 						{
-							if (allow)
+							if (allow && btService!=null)
 							{
+								Log.d(TAG,"ALLOW");
 								requestState = GameState.builder().bt(btHandler).swapped(swapped).board(board).build();
 								btService.updateLocalBoard(requestState.board());
 								btService.sendState(requestState, true);
 								gameService.newGame(requestState);
 							}
-							else if (!blockIncoming)
-							{
-								btService.start();
-							}
-						}
-					});
+						});
+					}
+					else
+					{
+						btService.stop();
+					}
 				}
 				else
 				{

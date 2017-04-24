@@ -43,14 +43,24 @@ public class BtService extends Service
 	private ConnectedThread connectedThread;
 	private GameService gameService;
 
-	public void setBlockIncoming(boolean blockIncomming)
+	public void setBlockIncoming(boolean blockIncoming)
 	{
-		this.blockIncoming = blockIncomming;
+		this.blockIncoming = blockIncoming;
 
-		if (blockIncomming)
-			stop();
+		if (blockIncoming)
+		{
+			closeConnecting();
+			closeAccept();
+		}
 		else
+		{
 			start();
+		}
+	}
+
+	public boolean blockIncoming()
+	{
+		return blockIncoming;
 	}
 
 	public enum State
@@ -419,7 +429,7 @@ public class BtService extends Service
 
 				// Send a failure message back to the UI
 				setState(BtService.State.NONE);
-				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect device").sendToTarget();
+				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
 
 				// Start the service over to restart listening mode
 				if (!blockIncoming)
