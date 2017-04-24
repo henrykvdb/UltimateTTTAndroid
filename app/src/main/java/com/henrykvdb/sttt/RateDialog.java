@@ -61,7 +61,7 @@ public class RateDialog extends DialogFragment
 				case DialogInterface.BUTTON_NEGATIVE:
 					SharedPreferences.Editor editor = getActivity().getSharedPreferences("APP_RATER", 0).edit();
 					editor.putBoolean("dontshowagain", true);
-					editor.commit();
+					editor.apply();
 					break;
 			}
 		};

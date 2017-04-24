@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "com.henrykvdb.sttt"
-        minSdkVersion 19
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 5
         versionName "0.0.7"

@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			mEdgeSize.setAccessible(true);
 			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
 		}
-		catch (IllegalAccessException | NoSuchFieldException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}

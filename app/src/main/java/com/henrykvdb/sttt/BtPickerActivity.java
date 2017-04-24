@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -175,10 +174,6 @@ public class BtPickerActivity extends Activity
 			if (BluetoothDevice.ACTION_FOUND.equals(action))
 			{
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				boolean available = false;
-
-				for (ParcelUuid uuid : device.getUuids())
-					available = available || (uuid.getUuid().equals(BtService.UUID));
 
 				devices.add(device);
 				updateLayout();
