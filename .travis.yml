@@ -15,18 +15,27 @@ before_script:
 - emulator -avd test -no-audio -no-window &
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
-
 before_deploy:
-  - cp app/build/outputs/apk/app-debug.apk app/build/outputs/apk/UTTT.apk
-
+- zip -d app/build/outputs/apk/app-debug.apk META-INF/\*
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/app-debug.apk
+  key -keystore keystore.jks -storepass $storepass -keypass $keypass
+- "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/app-debug.apk
+  app/build/outputs/apk/STTT.apk"
 deploy:
   provider: releases
   api_key:
     secure: F70sB3kfdrOCK5Lnu2omagHHdMy1NfBLs0/XF/JYyAxWv/3BVLxZN1+0Tz1Sx9eRPjGAMEhX99eTUSAdGCyis4AP5JCKFraPKZp6Od6evIq9FhBb5oQ5j27x1KePe0U/TMgS/gUFcAXPYnHzzNNGbGzBZuhIycfAoljvNYaKsVvYuYW8srNAa397gB/CoPL1uidsDNNhQv226aquTbRjrtWDI1Oez6YTflWjRG5skiZW62mS4JCt6Ahg3BPclkPGIlWkQsIl3D17RKoUpXylYqEK6NGEQVl17wQc+49In0fS/jsMUYrs1QpdwRLJyy3K4Wz1ZbH1XI8iUC/tNxNtK+55IgTnvq0idwJ5lwoTgtayV4qndR0wInk47aweyV32T5LaZnJP/m3twCFJ/xonDd9Sz99petn9Ni3xGMYo06EGuOrHXlbFwsLn0/VBcN595eeAB3uGIcQZ97JOZswfCqV0gl33NEViOYPJmXY0DrQzlx6fMrqLQcRYtpZTnO4bzChdyK6/babyT2MWGKO47EwLFFHsARepnqdjyV2SAH061o8eZoPVXLBK0hRPb3IL6TJ2GHTaj4q3vxetU3efLZymMI394rcAzjLsm0NbhAJ5HdE25rYcT97oY2h3jaDxu0VQq23RlBV24NgoHSPaEdBCwWElKyZ5hFQ0v+j2OR8=
-  file: app/build/outputs/apk/UTTT.apk
-  file_glob: "true"
+  file: app/build/outputs/apk/STTT.apk
+  file_glob: 'true'
   skip_cleanup: true
   on:
-    repo: henrykvdb/UltimateTTTAndroid
+    repo: henrykvdb/SuperTTTAndroid
     branch: master
     tags: true
+env:
+  global:
+  - secure: WJvHRfpbt9eivAT8yYiPcTz5sPZ/Ys7SbMXWCZzCnlL6WJv40mIRZ+RN/mQZ9iqKf4QqG8h4x5zs5ix3XdI0WEs4VQZDKduUdvnRjKquGWJaMJBbOT/eWeq1AuLzgX4j7UHZkY2Df55ZAw9Mrst8M5m/zUw21b5qkfYXQa8Z1QxjMZ937xGheFZJAjN2JiMQobi2OvmP+gckEk1HCuIRVelaM7xT+Fg1nXU0iWAB8uZpRRbfcbsHhcrXbyJEzGDFiPxcLCt7a14ycunrLsdZ2CK6YPJXRTqacDCt8Uo7xZ4yxZYggdpw5eksaYkOBwo9w9LdYuT3uO/EIOEyKwpEs98I+XJj4osORgGM/BRD2HhZiiZ+BX0LTiIC3hUXhhyPXl/MVoLKig+xS9kd02NlwBcjX1+V5G0hcFSFPQIuQ8hQknXPsoJZqmB+gEnQEwWQnBOGkx8hKIqCUazaLMUAa9iam8AF3iNbc5GyOT7dbYZcJVNWMdBfLZMWW8W2/89seHa/fQ8QMDQDKZmWCMkQw3zY0RTpPDTBcMfe6gb/CWlqyedW4dhbClDic4tRK8DcjKsgZ3OiMk0voSLiAmIWyZIFfL//W/uNG39ITMHE2k1x30lnSeGk8uTJh5HQ8FIzAklUaQV6wtYMPY+9IgDUjPaud8leFGHQGXPyzlyO5NM=
+  - secure: BO3hw7AkSOph4gqCylDistm29vxWyWoLF973VdyTZjTF+RIpQiMXgP91/26pio/1vZNRwLNpWzvK5w/3lbnDEnqGX/Z7unbLMA9ErYN6s6l69uaEpBwkRaTqtUE5ohZecKRHK3cWx8g20cxvuPPb0ON1NYeYJUzHYw4MihKKfoYjbcY9FChqwyKmmLo8SHBwdB46CYPDEjvijaY7MFMqxCtFTvXnfOBEgrUj7tnits9mZhocS55SuFLC4GBfw7dzV/CwtnY4KVqV9rW4jd8ceQS4LV9n6UPMh8Tt5L34JFCvJ5WtliISRMxFunpZ0cU9gG77oZIy56vqzJA+VydcqDvE5fFxrfzF51BAgsUj3Yk6io11bqbdaMiaTgHUqGDtceqV5CO44PC6RBKlogPi0+CS6v3yF96Ul17bCR0HfD0fy05F9CyMD1A9DuZIh5APpPZkZvXHDhzeWwKDpsdjoW9kzRmfdhN9333yV+5X08sOSB5qG36QbpWL1z7fb0e64dpr9gi7Y4pxUN1RtYPN7eNFjqt9CrS7mtuK3KC16WNTgXThx9kFIlu08S0B+gjwomv2bJhtvev0MVUvOPPm0d7JLwgeTtDg1KnvN5AsOVAunNd/C5hyMVkv/mSh4szBmxGa54DxPaJ2hDrG24WapAdr0AOLNz8gtHtZyYqGeSU=
+before_install:
+- openssl aes-256-cbc -K $encrypted_bce35d79349a_key -iv $encrypted_bce35d79349a_iv
+  -in keystore.jks.enc -out keystore.jks -d
