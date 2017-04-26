@@ -1,7 +1,6 @@
 package com.henrykvdb.sttt;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -16,9 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -44,7 +41,6 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Player;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -80,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
 	//Other
-	private GameState requestState;
+	private BtHandler btHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -89,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 
 		//Set fields
+		btHandler = new BtHandler(this);
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (savedInstanceState != null)
 			startedWithBt = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
@@ -213,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		});
 	}
 
-	private void setBtStatusMessage(String message)
+	public void setBtStatusMessage(String message)
 	{
 		final ActionBar actionBar = getSupportActionBar();
 		if (null == actionBar)
@@ -263,6 +260,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					case DialogInterface.BUTTON_POSITIVE:
 						gameService.newLocal();
+						if (btService!=null)
+							btService.start();
 						break;
 
 					case DialogInterface.BUTTON_NEGATIVE:
@@ -297,6 +296,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						gameService.newGame(GameState.builder()
 								.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
 								.swapped(swapped[0]).build());
+						if (btService!=null)
+							btService.start();
 						break;
 
 					case DialogInterface.BUTTON_NEGATIVE:
@@ -420,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 				else
 				{
-					//Make the bluetooth-picker activity
+					//Make the bluetooth-picker main
 					Intent serverIntent = new Intent(getApplicationContext(), BtPickerActivity.class);
 					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
 				}
@@ -460,7 +461,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					GameState.Builder builder = GameState.builder().bt(btHandler).swapped(swapped);
 					if (!data.getExtras().getBoolean("newBoard"))
 						builder.board(gameService.getState().board());
-					requestState = builder.build();
+
+					GameState requestState = builder.build();
+					btHandler.setRequestState(requestState);
 
 					if (!requestState.board().isDone())
 						btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
@@ -508,8 +511,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						btService = null;
 					}
 
-					if (btAskDialog != null && btAskDialog.isShowing())
-						btAskDialog.dismiss();
+					//if (btAskDialog != null && btAskDialog.isShowing())
+					//	btAskDialog.dismiss(); //TODO
 
 					setBtStatusMessage(null);
 				}
@@ -527,6 +530,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Log.d(TAG, "btService Connected");
 			btService = ((BtService.LocalBinder) service).getService();
 
+			btHandler.setBtService(btService);
 			btService.setup(gameService, btHandler);
 			btService.setBlockIncoming(btService.blockIncoming());
 		}
@@ -558,7 +562,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			gameService.setBoardView(boardView);
 
 			if (btService != null)
+			{
+				btHandler.setGameService(gameService);
 				btService.setup(gameService, btHandler);
+			}
 		}
 
 		@Override
@@ -569,151 +576,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			finish();
 		}
 	};
-
-	/**
-	 * The Handler that gets information back from the btService
-	 */
-	private final Handler btHandler = new Handler()
-	{
-		Activity activity = MainActivity.this;
-		String connectedDeviceName;
-
-		@Override
-		public void handleMessage(Message msg)
-		{
-			if (msg.what == BtService.Message.STATE_CHANGE.ordinal())
-			{
-				BtService.State state = (BtService.State) msg.getData().getSerializable(BtService.STATE);
-
-				if (state == BtService.State.CONNECTED)
-					setBtStatusMessage("connected to " + connectedDeviceName);
-				else if (state == BtService.State.CONNECTING)
-					setBtStatusMessage(null);
-				else if (state == BtService.State.NONE)
-					setBtStatusMessage(null);
-				else if (state == BtService.State.LISTEN)
-					setBtStatusMessage(null);
-			}
-			else if (msg.what == BtService.Message.SEND_BOARD_UPDATE.ordinal())
-			{
-				Board board = (Board) msg.getData().getSerializable("myBoard");
-
-				if (btService != null)
-					btService.sendBoard(board);
-
-				if (board != null)
-					Log.d(TAG, "boardUpdate: " + board.getLastMove());
-			}
-			else if (msg.what == BtService.Message.RECEIVE_UNDO.ordinal())
-			{
-				boolean force = (boolean) msg.obj;
-
-				if (!force)
-				{
-					if (btAskDialog == null || !btAskDialog.isShowing())
-					{
-						askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
-						{
-							if (allow && btService != null)
-							{
-								gameService.undo();
-								btService.updateLocalBoard(gameService.getState().board());
-								btService.requestUndo(true);
-							}
-						});
-					}
-				}
-				else
-				{
-					gameService.undo();
-					btService.updateLocalBoard(gameService.getState().board());
-				}
-			}
-			else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
-			{
-				if (btService != null)
-					btService.sendState(requestState, false);
-			}
-			else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
-			{
-				Bundle data = msg.getData();
-				boolean swapped = !data.getBoolean("swapped");
-				Board board = (Board) data.getSerializable("board");
-
-				if (!data.getBoolean("force") && btService!=null)
-				{
-					if (!btService.blockIncoming())
-					{
-						askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
-						{
-							if (allow && btService!=null)
-							{
-								Log.d(TAG,"ALLOW");
-								requestState = GameState.builder().bt(btHandler).swapped(swapped).board(board).build();
-								btService.updateLocalBoard(requestState.board());
-								btService.sendState(requestState, true);
-								gameService.newGame(requestState);
-							}
-						});
-					}
-					else
-					{
-						btService.stop();
-					}
-				}
-				else
-				{
-					requestState = GameState.builder().bt(btHandler).swapped(swapped).board(board).build();
-					btService.updateLocalBoard(requestState.board());
-					gameService.newGame(requestState);
-				}
-			}
-			else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
-			{
-				connectedDeviceName = (String) msg.obj;
-			}
-			else if (msg.what == BtService.Message.TOAST.ordinal() && activity != null)
-			{
-				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
-			}
-			else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && activity != null)
-			{
-				gameService.turnLocal();
-
-				Toast.makeText(activity, (String) msg.obj, Toast.LENGTH_SHORT).show();
-			}
-		}
-	};
-
-	private interface CallBack<T>
-	{
-		void callback(T t);
-	}
-
-	AlertDialog btAskDialog;
-
-	private void askUser(String message, CallBack<Boolean> callBack)
-	{
-		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
-		{
-			switch (which)
-			{
-				case DialogInterface.BUTTON_POSITIVE:
-					callBack.callback(true);
-					break;
-
-				case DialogInterface.BUTTON_NEGATIVE:
-					callBack.callback(false);
-					break;
-			}
-		};
-
-		btAskDialog = new AlertDialog.Builder(this).setMessage(message)
-				.setPositiveButton("Yes", dialogClickListener)
-				.setNegativeButton("No", dialogClickListener)
-				.setOnDismissListener(dialogInterface -> callBack.callback(false))
-				.show();
-
-		doKeepDialog(btAskDialog);
-	}
 }

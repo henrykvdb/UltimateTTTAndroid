@@ -38,10 +38,12 @@ public class BtService extends Service
 	private boolean blockIncoming = false;
 
 	//Threads
-	private AcceptThread acceptThread;
-	private ConnectThread connectThread;
+	private ListenThread listenThread;
+	private ConnectingThread connectingThread;
 	private ConnectedThread connectedThread;
+
 	private GameService gameService;
+	private boolean connecting = false;
 
 	public void setBlockIncoming(boolean blockIncoming)
 	{
@@ -50,7 +52,7 @@ public class BtService extends Service
 		if (blockIncoming)
 		{
 			closeConnecting();
-			closeAccept();
+			closeListen();
 		}
 		else
 		{
@@ -140,13 +142,13 @@ public class BtService extends Service
 
 		closeConnecting();
 		closeConnected();
-		closeAccept();
+		closeListen();
 
 		// Start the thread to listen on a BluetoothServerSocket
-		if (acceptThread == null)
+		if (listenThread == null)
 		{
-			acceptThread = new AcceptThread();
-			acceptThread.start();
+			listenThread = new ListenThread();
+			listenThread.start();
 		}
 	}
 
@@ -157,14 +159,30 @@ public class BtService extends Service
 
 		// Cancel any thread attempting to make a connection
 		if (state == State.CONNECTING)
-			closeConnected();
+			closeConnecting();
 
 		// Cancel any thread currently running a connection
 		closeConnected();
 
 		// Start the thread to connect with the given device
-		connectThread = new ConnectThread(device);
-		connectThread.start();
+		connectingThread = new ConnectingThread(device);
+		connectingThread.start();
+	}
+
+	private synchronized void connected(BluetoothSocket socket, boolean isHost)
+	{
+		Log.d(TAG, "connected");
+
+		closeConnecting();
+		closeConnected();
+		closeListen();
+
+		// Start the thread to manage the connection and perform transmissions
+		connectedThread = new ConnectedThread(socket);
+		connectedThread.start();
+
+		if (!isHost)
+			handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
 	}
 
 	public synchronized void stop()
@@ -173,26 +191,26 @@ public class BtService extends Service
 
 		closeConnecting();
 		closeConnected();
-		closeAccept();
+		closeListen();
 
 		setState(State.NONE);
 	}
 
-	private void closeAccept()
+	private void closeListen()
 	{
-		if (acceptThread != null)
+		if (listenThread != null)
 		{
-			acceptThread.cancel();
-			acceptThread = null;
+			listenThread.cancel();
+			listenThread = null;
 		}
 	}
 
 	private void closeConnecting()
 	{
-		if (connectThread != null)
+		if (connectingThread != null)
 		{
-			connectThread.cancel();
-			connectThread = null;
+			connectingThread.cancel();
+			connectingThread = null;
 		}
 	}
 
@@ -248,49 +266,16 @@ public class BtService extends Service
 			connectedThread.localBoard = verifyBoard;
 	}
 
-	private synchronized void connected(BluetoothSocket socket, boolean isHost)
-	{
-		Log.d(TAG, "connected");
-
-		// Cancel the thread that completed the connection
-		if (connectThread != null)
-		{
-			connectThread.cancel();
-			connectThread = null;
-		}
-
-		// Cancel any thread currently running a connection
-		if (connectedThread != null)
-		{
-			connectedThread.cancel();
-			connectedThread = null;
-		}
-
-		// Cancel the accept thread because we only want to connect to one device
-		if (acceptThread != null)
-		{
-			acceptThread.cancel();
-			acceptThread = null;
-		}
-
-		// Start the thread to manage the connection and perform transmissions
-		connectedThread = new ConnectedThread(socket);
-		connectedThread.start();
-
-		if (!isHost)
-			handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
-	}
-
 	/**
 	 * This thread runs while listening for incoming connections. It behaves like a server-side client. It runs until a
 	 * connection is accepted (or until cancelled).
 	 */
-	private class AcceptThread extends Thread
+	private class ListenThread extends Thread
 	{
 		// The local server socket
 		private final BluetoothServerSocket serverSocket;
 
-		public AcceptThread()
+		public ListenThread()
 		{
 			BluetoothServerSocket tmp = null;
 
@@ -309,8 +294,8 @@ public class BtService extends Service
 
 		public void run()
 		{
-			Log.d(TAG, "BEGIN mAcceptThread" + this);
-			setName("AcceptThread");
+			Log.d(TAG, "BEGIN ListenThread" + this);
+			setName("ListenThread");
 
 			BluetoothSocket socket;
 
@@ -357,7 +342,7 @@ public class BtService extends Service
 					}
 				}
 			}
-			Log.i(TAG, "END mAcceptThread");
+			Log.i(TAG, "END ListenThread");
 
 		}
 
@@ -380,12 +365,13 @@ public class BtService extends Service
 	 * This thread runs while attempting to make an outgoing connection with a device. It runs straight through; the
 	 * connection either succeeds or fails.
 	 */
-	private class ConnectThread extends Thread
+	private class ConnectingThread extends Thread
 	{
 		private final BluetoothSocket socket;
 
-		public ConnectThread(BluetoothDevice device)
+		private ConnectingThread(BluetoothDevice device)
 		{
+			connecting = true;
 			BluetoothSocket tmp = null;
 
 			// Get a BluetoothSocket for a connection with the given BluetoothDevice
@@ -403,8 +389,8 @@ public class BtService extends Service
 
 		public void run()
 		{
-			Log.i(TAG, "BEGIN connectThread");
-			setName("ConnectThread");
+			Log.i(TAG, "BEGIN connectingThread");
+			setName("ConnectingThread");
 
 			// Always cancel discovery because it will slow down a connection
 			btAdapter.cancelDiscovery();
@@ -432,8 +418,10 @@ public class BtService extends Service
 				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
 
 				// Start the service over to restart listening mode
-				if (!blockIncoming)
+				if (!blockIncoming && !connecting)
 					BtService.this.start();
+				else
+					Log.d(TAG, "423 BTSERVICE"); //TODO REMOVE
 
 				return;
 			}
@@ -441,7 +429,7 @@ public class BtService extends Service
 			// Reset the ConnectThread because we're done
 			synchronized (BtService.this)
 			{
-				connectThread = null;
+				connectingThread = null;
 			}
 
 			// Start the connected thread
@@ -577,9 +565,9 @@ public class BtService extends Service
 					handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 
 					// Start the service over to restart listening mode
-					if (!blockIncoming)
+					if (!blockIncoming && !connecting)
 						BtService.this.start();
-
+					connecting = false;
 					break;
 				}
 				catch (JSONException e)
