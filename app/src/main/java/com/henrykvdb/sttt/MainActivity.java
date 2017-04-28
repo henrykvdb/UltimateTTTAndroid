@@ -153,10 +153,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		try
 		{
-			Field mDragger = drawer.getClass().getDeclaredField("leftDragger");
+			Field mDragger = drawer.getClass().getDeclaredField("mLeftDragger");
 			mDragger.setAccessible(true);
 			ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(drawer);
-			Field mEdgeSize = draggerObj.getClass().getDeclaredField("edgeSize");
+			Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
 			mEdgeSize.setAccessible(true);
 			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
 		}
@@ -506,7 +506,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					setBtStatusMessage(null);
 				}
 				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
+				{
 					setBtStatusMessage(null);
+					btHostSwitch.setChecked(false);
+				}
 			}
 		}
 	};
