@@ -75,9 +75,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private boolean startedWithBt;
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
-	//Other
-	private BtHandler btHandler;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -85,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 
 		//Set fields
-		btHandler = new BtHandler(this);
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (savedInstanceState != null)
 			startedWithBt = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
@@ -157,10 +153,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		try
 		{
-			Field mDragger = drawer.getClass().getDeclaredField("mLeftDragger");
+			Field mDragger = drawer.getClass().getDeclaredField("leftDragger");
 			mDragger.setAccessible(true);
 			ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(drawer);
-			Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
+			Field mEdgeSize = draggerObj.getClass().getDeclaredField("edgeSize");
 			mEdgeSize.setAccessible(true);
 			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
 		}
@@ -184,8 +180,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			if (btAdapter != null)
 			{
-				if (btService != null)
-					btService.setBlockIncoming(!isChecked);
+				gameService.setBlockIncomingBt(!isChecked);
 
 				if (isChecked)
 				{
@@ -230,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			if (gameService.getState().players().contains(GameService.Source.Bluetooth))
+			if (gameService.getState().isBluetooth()) //TODO move to GameService
 			{
 				if (btService != null)
 					btService.requestUndo(false);
@@ -260,8 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					case DialogInterface.BUTTON_POSITIVE:
 						gameService.newLocal();
-						if (btService!=null)
-							btService.start();
 						break;
 
 					case DialogInterface.BUTTON_NEGATIVE:
@@ -296,8 +289,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						gameService.newGame(GameState.builder()
 								.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
 								.swapped(swapped[0]).build());
-						if (btService!=null)
-							btService.start();
 						break;
 
 					case DialogInterface.BUTTON_NEGATIVE:
@@ -455,20 +446,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
 				{
-					boolean swapped = data.getExtras().getBoolean("start")
-							^ gameService.getState().board().nextPlayer() == Player.PLAYER;
 
-					GameState.Builder builder = GameState.builder().bt(btHandler).swapped(swapped);
-					if (!data.getExtras().getBoolean("newBoard"))
-						builder.board(gameService.getState().board());
-
+					//Create the requested gameState from the activity result
+					boolean swapped = data.getExtras().getBoolean("start") ^ gameService.getState().board().nextPlayer() == Player.PLAYER;
+					GameState.Builder builder = GameState.builder().swapped(swapped);
+					if (!data.getExtras().getBoolean("newBoard")) builder.board(gameService.getState().board());
 					GameState requestState = builder.build();
-					btHandler.setRequestState(requestState);
 
-					if (!requestState.board().isDone())
-						btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
-					else
-						Log.d(TAG, "You can't send a finished board");
+					if (gameService != null)
+						gameService.startBtGame(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), requestState);
 				}
 				break;
 		}
@@ -504,11 +490,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					gameService.turnLocal();
 
-					if (btService != null)
+					if (btService != null) //TODO move/make cleaner
 					{
 						btService.stop();
-						unbindService(btServerConn);
+
+						gameService.setBtServiceAndMain(null,MainActivity.this);
 						btService = null;
+
+						unbindService(btServerConn);
 					}
 
 					//if (btAskDialog != null && btAskDialog.isShowing())
@@ -530,9 +519,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Log.d(TAG, "btService Connected");
 			btService = ((BtService.LocalBinder) service).getService();
 
-			btHandler.setBtService(btService);
-			btService.setup(gameService, btHandler);
-			btService.setBlockIncoming(btService.blockIncoming());
+			if (gameService!=null)
+			{
+				gameService.setBtServiceAndMain(btService,MainActivity.this);
+				gameService.setBlockIncomingBt(btService.blockIncoming());
+			}
 		}
 
 		@Override
@@ -540,6 +531,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			Log.d(TAG, "btService Disconnected");
 			btService = null;
+
+			if (gameService!=null)
+				gameService.setBtServiceAndMain(null,MainActivity.this);
 		}
 	};
 
@@ -562,10 +556,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			gameService.setBoardView(boardView);
 
 			if (btService != null)
-			{
-				btHandler.setGameService(gameService);
-				btService.setup(gameService, btHandler);
-			}
+				gameService.setBtServiceAndMain(btService,MainActivity.this);
 		}
 
 		@Override

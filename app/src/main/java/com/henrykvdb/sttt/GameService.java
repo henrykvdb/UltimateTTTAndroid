@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
@@ -22,14 +23,17 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 public class GameService extends Service implements Closeable
 {
 	// Binder given to clients
-	private final IBinder mBinder = new GameService.LocalBinder();
-
+	private final IBinder mBinder = new GameService.LocalBinder(); //TODO arrange
 	private BoardView boardView;
-
 	private GameThread thread;
 	private GameState gs;
-
 	Toast toast;
+	private BtHandler btHandler;
+
+	public void setBlockIncomingBt(boolean blockIncomingBt)
+	{
+		btHandler.setBlockIncoming(blockIncomingBt);
+	}
 
 	public enum Source
 	{
@@ -55,6 +59,9 @@ public class GameService extends Service implements Closeable
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
+		btHandler = new BtHandler();
+		btHandler.setGameService(this);
+
 		return START_STICKY;
 	}
 
@@ -67,6 +74,17 @@ public class GameService extends Service implements Closeable
 			newLocal();
 
 		boardView.drawState(gs);
+	}
+
+	public void setBtServiceAndMain(BtService btService, MainActivity mainActivity)//TODO Remove need for mainActivity
+	{
+		btHandler.setBtService(btService);
+		btHandler.setMain(mainActivity);
+	}
+
+	public GameState getState()
+	{
+		return gs;
 	}
 
 	public void undo()
@@ -98,10 +116,21 @@ public class GameService extends Service implements Closeable
 
 		this.gs = gs;
 
+		if (!gs.isBluetooth())
+			btHandler.resetBluetooth();
+
 		boardView.drawState(gs);
 
 		thread = new GameThread();
 		thread.start();
+	}
+
+	public void startBtGame(String address, GameState requestState)
+	{
+		if (!requestState.board().isDone())
+			btHandler.connect(address,requestState);
+		else
+			Log.d("GameService", "You can't send a finished board to the bt opponent");
 	}
 
 	public void newLocal()
@@ -186,11 +215,6 @@ public class GameService extends Service implements Closeable
 			playerMove.set(new Pair<>(move, source));
 			playerLock.notify();
 		}
-	}
-
-	public GameState getState()
-	{
-		return gs;
 	}
 
 	private final Object playerLock = new Object[0];

@@ -21,14 +21,18 @@ class BtHandler extends Handler
 	private AlertDialog btAskDialog;
 	private GameState requestState;
 
-	public BtHandler(MainActivity activity)
+	public void setMain(MainActivity main)
 	{
-		this.main = activity;
+		this.main = main;
 	}
 
 	public void setBtService(BtService btService)
 	{
 		this.btService = btService;
+
+		if (btService != null)
+			btService.setup(gameService, this);
+
 		Log.d(TAG, "set btService");
 	}
 
@@ -38,10 +42,23 @@ class BtHandler extends Handler
 		Log.d(TAG, "set gameService");
 	}
 
-	public void setRequestState(GameState requestState)
+	public void connect(String address, GameState requestState)
 	{
 		this.requestState = requestState;
-		Log.d(TAG, "set reqService");
+		btService.connect(address);
+		Log.d(TAG, "connect");
+	}
+
+	public void setBlockIncoming(boolean blockIncoming)
+	{
+		if (btService != null)
+			btService.setBlockIncoming(blockIncoming);
+	}
+
+	public void resetBluetooth()
+	{
+		if (btService != null)
+			btService.start();
 	}
 
 	@Override

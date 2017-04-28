@@ -126,4 +126,9 @@ public class GameState implements Serializable
 	{
 		return btHandler;
 	}
+
+	public boolean isBluetooth()
+	{
+		return players.contains(GameService.Source.Bluetooth);
+	}
 }
