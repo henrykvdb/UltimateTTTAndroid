@@ -20,7 +20,6 @@
     <string name="human">Human</string>
     <string name="about">About</string>
     <string name="undo">Undo</string>
-    <string name="host">Host</string>
     <string name="join">Join</string>
     <string name="you">You</string>
     <string name="ai">AI</string>
@@ -31,6 +30,7 @@
     <string name="join_bluetooth_game">Join Bluetooth game</string>
     <string name="joinable_devices">Joinable devices</string>
     <string name="starting_player">Beginning player</string>
+    <string name="allow_incoming">Allow incoming</string>
     <string name="none_found">No devices found</string>
     <string name="button_scan">Scan for devices</string>
     <string name="select_boards">Select boards</string>

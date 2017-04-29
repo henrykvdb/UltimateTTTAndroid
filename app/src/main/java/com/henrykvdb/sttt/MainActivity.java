@@ -225,7 +225,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			if (gameService.getState().isBluetooth()) //TODO move to GameService
+			GameState gs = gameService.getState();
+			if (gs != null && gs.isBluetooth()) //TODO move to GameService
 			{
 				if (btService != null)
 					btService.requestUndo(false);
@@ -494,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					{
 						btService.stop();
 
-						gameService.setBtServiceAndMain(null,MainActivity.this);
+						gameService.setBtServiceAndMain(null, MainActivity.this);
 						btService = null;
 
 						unbindService(btServerConn);
@@ -522,10 +523,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Log.d(TAG, "btService Connected");
 			btService = ((BtService.LocalBinder) service).getService();
 
-			if (gameService!=null)
+			if (gameService != null)
 			{
-				gameService.setBtServiceAndMain(btService,MainActivity.this);
-				gameService.setBlockIncomingBt(btService.blockIncoming());
+				gameService.setBtServiceAndMain(btService, MainActivity.this);
+				gameService.setBlockIncomingBt(btService.blockIncoming() || btHostSwitch.isChecked());
 			}
 		}
 
@@ -535,8 +536,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Log.d(TAG, "btService Disconnected");
 			btService = null;
 
-			if (gameService!=null)
-				gameService.setBtServiceAndMain(null,MainActivity.this);
+			if (gameService != null)
+				gameService.setBtServiceAndMain(null, MainActivity.this);
 		}
 	};
 
@@ -559,7 +560,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			gameService.setBoardView(boardView);
 
 			if (btService != null)
-				gameService.setBtServiceAndMain(btService,MainActivity.this);
+				gameService.setBtServiceAndMain(btService, MainActivity.this);
 		}
 
 		@Override
