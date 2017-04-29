@@ -225,18 +225,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			GameState gs = gameService.getState();
-			if (gs != null && gs.isBluetooth()) //TODO move to GameService
-			{
-				if (btService != null)
-					btService.requestUndo(false);
-				else
-					gameService.turnLocal();
-			}
-			else
-			{
-				gameService.undo();
-			}
+			gameService.undo(false);
 			return true;
 		}
 		return false;

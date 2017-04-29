@@ -87,26 +87,31 @@ public class GameService extends Service implements Closeable
 		return gs;
 	}
 
-	public void undo()
+	public void undo(boolean force)
 	{
-		if (gs.boards().size() > 1)
-		{
-			GameState newState = GameState.builder().gs(gs).build();
-			newState.popBoard();
-			if (gs.players().contains(Source.AI)
-					&& Source.Local == gs.players().get(gs.board().nextPlayer() == PLAYER ? 1 : 0)
-					&& newState.boards().size() > 1)
-				newState.popBoard();
-
-			newGame(newState);
-		}
+		if (!force && gs.isBluetooth())
+			btHandler.requestUndo();
 		else
 		{
-			if (toast == null)
-				toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+			if (gs.boards().size() > 1)
+			{
+				GameState newState = GameState.builder().gs(gs).build();
+				newState.popBoard();
+				if (gs.players().contains(Source.AI)
+						&& Source.Local == gs.players().get(gs.board().nextPlayer() == PLAYER ? 1 : 0)
+						&& newState.boards().size() > 1)
+					newState.popBoard();
 
-			toast.setText("Could not undo further");
-			toast.show();
+				newGame(newState);
+			}
+			else
+			{
+				if (toast == null)
+					toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+
+				toast.setText("Could not undo further");
+				toast.show();
+			}
 		}
 	}
 

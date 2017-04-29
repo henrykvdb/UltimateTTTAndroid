@@ -55,6 +55,14 @@ class BtHandler extends Handler
 			btService.setBlockIncoming(blockIncoming);
 	}
 
+	public void requestUndo()
+	{
+		if (btService != null)
+			btService.requestUndo(false);
+		else
+			gameService.turnLocal();
+	}
+
 	public void resetBluetooth()
 	{
 		if (btService != null)
@@ -95,7 +103,7 @@ class BtHandler extends Handler
 					{
 						if (allow && btService != null)
 						{
-							gameService.undo();
+							gameService.undo(true);
 							btService.updateLocalBoard(gameService.getState().board());
 							btService.requestUndo(true);
 						}
@@ -104,7 +112,7 @@ class BtHandler extends Handler
 			}
 			else
 			{
-				gameService.undo();
+				gameService.undo(true);
 				btService.updateLocalBoard(gameService.getState().board());
 			}
 		}

@@ -653,7 +653,7 @@ public class BtService extends Service
 			}
 			catch (IOException e)
 			{
-				Log.e(TAG, "Exception during requestUndo", e);
+				Log.e(TAG, "Exception during undo", e);
 			}
 		}
 
