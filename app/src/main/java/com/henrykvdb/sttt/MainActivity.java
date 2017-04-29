@@ -1,7 +1,6 @@
 package com.henrykvdb.sttt;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -35,7 +34,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -253,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 			};
 
-			doKeepDialog(new AlertDialog.Builder(this)
+			Util.doKeepDialog(new AlertDialog.Builder(this)
 					.setTitle("Start a new game?")
 					.setMessage("This wil create a new local two player game.")
 					.setPositiveButton("Start", dialogClickListener)
@@ -287,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				}
 			};
 
-			doKeepDialog(new AlertDialog.Builder(this)
+			Util.doKeepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
 					.setTitle("Start a new ai game?")
 					.setPositiveButton("Start", dialogClickListener)
@@ -348,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						.setText(getResources().getText(R.string.app_name_long));
 			}
 
-			doKeepDialog(new AlertDialog.Builder(this)
+			Util.doKeepDialog(new AlertDialog.Builder(this)
 					.setTitle("About")
 					.setView(layout)
 					.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
@@ -359,23 +357,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
 
 		return true;
-	}
-
-	// Prevent dialog dismiss when orientation changes
-	public static void doKeepDialog(Dialog dialog)
-	{
-		try
-		{
-			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-			lp.copyFrom(dialog.getWindow().getAttributes());
-			lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
-			lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-			dialog.getWindow().setAttributes(lp);
-		}
-		catch (Throwable t)
-		{
-			//NOP
-		}
 	}
 
 	private void pickBluetooth()

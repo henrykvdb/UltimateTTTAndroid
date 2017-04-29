@@ -207,7 +207,7 @@ class BtHandler extends Handler
 				.setOnDismissListener(dialogInterface -> callBack.callback(false))
 				.show();
 
-		MainActivity.doKeepDialog(btAskDialog);
+		Util.doKeepDialog(btAskDialog);
 	}
 
 	private interface CallBack<T>
