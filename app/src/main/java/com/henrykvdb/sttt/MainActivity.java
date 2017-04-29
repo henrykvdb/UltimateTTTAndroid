@@ -471,9 +471,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						unbindService(btServerConn);
 					}
 
-					//if (btAskDialog != null && btAskDialog.isShowing())
-					//	btAskDialog.dismiss(); //TODO
-
 					setBtStatusMessage(null);
 				}
 				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)

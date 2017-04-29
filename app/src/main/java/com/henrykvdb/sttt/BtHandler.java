@@ -65,6 +65,9 @@ class BtHandler extends Handler
 
 	public void resetBluetooth()
 	{
+		if (btAskDialog != null && btAskDialog.isShowing())
+			btAskDialog.dismiss();
+
 		if (btService != null)
 			btService.start();
 	}
