@@ -70,6 +70,14 @@ public class BtService extends Service
 		return blockIncoming;
 	}
 
+	public String getConnectedDeviceName()
+	{
+		if (connectedThread != null)
+			return connectedThread.socket.getRemoteDevice().getName();
+
+		return null;
+	}
+
 	public enum State
 	{
 		NONE,
@@ -115,7 +123,7 @@ public class BtService extends Service
 
 	public void setup(GameService gameService, Handler handler)
 	{
-		Log.d(TAG,"Setup method called");
+		Log.d(TAG, "Setup method called");
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		this.gameService = gameService;
 		this.handler = handler;
@@ -130,6 +138,7 @@ public class BtService extends Service
 
 	public void setState(State newState)
 	{
+		Log.d(TAG, "new state: " + newState.name());
 		state = newState;
 
 		if (handler != null)
@@ -427,7 +436,7 @@ public class BtService extends Service
 					BtService.this.start();
 				}
 
-				connecting=false;
+				connecting = false;
 
 				return;
 			}

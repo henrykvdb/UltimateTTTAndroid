@@ -32,6 +32,9 @@ class BtHandler extends Handler
 
 		if (btService != null)
 			btService.setup(gameService, this);
+
+		if (btService != null && btService.getConnectedDeviceName() != null)
+			connectedDeviceName = btService.getConnectedDeviceName();
 	}
 
 	public void setGameService(GameService gameService)
@@ -42,7 +45,9 @@ class BtHandler extends Handler
 	public void connect(String address, GameState requestState)
 	{
 		this.requestState = requestState;
-		btService.connect(address);
+
+		if (btService != null)
+			btService.connect(address);
 	}
 
 	public void setBlockIncoming(boolean blockIncoming)
@@ -154,7 +159,7 @@ class BtHandler extends Handler
 					}
 					else
 					{
-						Log.d("BtHandler","line 165: We are on blockIncoming mate, calling start");
+						Log.d("BtHandler", "line 165: We are on blockIncoming mate, calling start");
 						btService.start();
 					}
 				}
@@ -163,7 +168,7 @@ class BtHandler extends Handler
 			{
 				requestState = GameState.builder().bt(this).swapped(swapped).board(board).build();
 				btService.updateLocalBoard(requestState.board());
-				Log.d(TAG,"NEWGAME2");
+				Log.d(TAG, "NEWGAME2");
 				gameService.newGame(requestState);
 			}
 		}

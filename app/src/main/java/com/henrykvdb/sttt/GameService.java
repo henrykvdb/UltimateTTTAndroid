@@ -134,7 +134,7 @@ public class GameService extends Service implements Closeable
 
 	public void startBtGame(String address, GameState requestState)
 	{
-		if (!requestState.board().isDone())
+		if (!requestState.board().isDone() && btHandler != null)
 			btHandler.connect(address, requestState);
 		else
 			Log.d("GameService", "You can't send a finished board to the bt opponent");

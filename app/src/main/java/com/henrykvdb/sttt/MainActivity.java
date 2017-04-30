@@ -493,7 +493,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (gameService != null)
 			{
 				gameService.setBtServiceAndMain(btService, MainActivity.this);
-				gameService.setBlockIncomingBt(btService.blockIncoming() || btHostSwitch.isChecked());
+
+				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
+				if (btService.blockIncoming() != blockIncoming)
+					gameService.setBlockIncomingBt(blockIncoming);
 			}
 		}
 
@@ -527,7 +530,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			gameService.setBoardView(boardView);
 
 			if (btService != null)
+			{
 				gameService.setBtServiceAndMain(btService, MainActivity.this);
+
+				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
+				if (btService.blockIncoming() != blockIncoming)
+					gameService.setBlockIncomingBt(blockIncoming);
+			}
 		}
 
 		@Override
