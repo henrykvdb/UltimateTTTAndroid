@@ -45,6 +45,11 @@ public class BtService extends Service
 	private GameService gameService;
 	private boolean connecting = false;
 
+	public boolean isConnecting()
+	{
+		return connecting;
+	}
+
 	public void setBlockIncoming(boolean blockIncoming)
 	{
 		this.blockIncoming = blockIncoming;
@@ -80,7 +85,7 @@ public class BtService extends Service
 		SEND_SETUP,
 		RECEIVE_UNDO,
 		RECEIVE_SETUP,
-		ERROR_TOAST,
+		TURN_LOCAL,
 		TOAST,
 		DEVICE_NAME
 	}
@@ -110,6 +115,7 @@ public class BtService extends Service
 
 	public void setup(GameService gameService, Handler handler)
 	{
+		Log.d(TAG,"Setup method called");
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		this.gameService = gameService;
 		this.handler = handler;
@@ -158,11 +164,12 @@ public class BtService extends Service
 		Log.d(TAG, "connect to: " + device);
 
 		// Cancel any thread attempting to make a connection
-		if (state == State.CONNECTING)
-			closeConnecting();
+		closeConnecting();
 
 		// Cancel any thread currently running a connection
 		closeConnected();
+
+		//start();
 
 		// Start the thread to connect with the given device
 		connectingThread = new ConnectingThread(device);
@@ -413,15 +420,14 @@ public class BtService extends Service
 					Log.e(TAG, "unable to close() socket during connection failure", e2);
 				}
 
-				// Send a failure message back to the UI
-				setState(BtService.State.NONE);
-				handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
-
-				// Start the service over to restart listening mode
-				if (!blockIncoming && !connecting)
+				if (!(blockIncoming || connecting))
+				{
+					setState(BtService.State.NONE);
+					handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
 					BtService.this.start();
-				else
-					Log.d(TAG, "423 BTSERVICE"); //TODO REMOVE
+				}
+
+				connecting=false;
 
 				return;
 			}
@@ -462,6 +468,7 @@ public class BtService extends Service
 
 		public ConnectedThread(BluetoothSocket socket)
 		{
+			connecting = false;
 			Log.d(TAG, "create ConnectedThread");
 			this.socket = socket;
 			InputStream tmpIn = null;
@@ -525,13 +532,14 @@ public class BtService extends Service
 								{
 									Log.e(TAG, "Invalid move, desync");
 									BtService.this.start();
-									handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+									handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 								}
 							}
 							catch (Throwable t)
 							{
+								Log.e(TAG, "desync");
 								BtService.this.start();
-								handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+								handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 							}
 						}
 
@@ -560,14 +568,14 @@ public class BtService extends Service
 				{
 					Log.e(TAG, "disconnected", e);
 
-					// Send a failure message back to the UI
-					setState(BtService.State.NONE);
-					handler.obtainMessage(Message.ERROR_TOAST.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
-
 					// Start the service over to restart listening mode
-					if (!blockIncoming && !connecting)
+					if (!(blockIncoming || connecting))
+					{
+						setState(BtService.State.NONE);
+						handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 						BtService.this.start();
-					connecting = false;
+					}
+
 					break;
 				}
 				catch (JSONException e)
@@ -661,6 +669,8 @@ public class BtService extends Service
 		{
 			try
 			{
+				inStream.close();
+				outStream.close();
 				socket.close();
 			}
 			catch (IOException e)

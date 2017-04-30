@@ -23,12 +23,14 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 public class GameService extends Service implements Closeable
 {
 	// Binder given to clients
-	private final IBinder mBinder = new GameService.LocalBinder(); //TODO arrange
+	private final IBinder mBinder = new GameService.LocalBinder();
+
 	private BoardView boardView;
 	private GameThread thread;
-	private GameState gs;
-	Toast toast;
 	private BtHandler btHandler;
+	private GameState gs;
+
+	Toast toast;
 
 	public void setBlockIncomingBt(boolean blockIncomingBt)
 	{

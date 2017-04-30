@@ -175,7 +175,14 @@ public class BtPickerActivity extends Activity
 			{
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-				devices.add(device);
+				boolean shouldAdd = true;
+				for (BluetoothDevice listDevice : devices)
+					if (listDevice.getAddress().equals(device.getAddress()))
+						shouldAdd=false;
+
+				if (shouldAdd)
+					devices.add(device);
+
 				updateLayout();
 			}
 			else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))

@@ -32,21 +32,17 @@ class BtHandler extends Handler
 
 		if (btService != null)
 			btService.setup(gameService, this);
-
-		Log.d(TAG, "set btService");
 	}
 
 	public void setGameService(GameService gameService)
 	{
 		this.gameService = gameService;
-		Log.d(TAG, "set gameService");
 	}
 
 	public void connect(String address, GameState requestState)
 	{
 		this.requestState = requestState;
 		btService.connect(address);
-		Log.d(TAG, "connect");
 	}
 
 	public void setBlockIncoming(boolean blockIncoming)
@@ -90,9 +86,6 @@ class BtHandler extends Handler
 
 			if (btService != null)
 				btService.sendBoard(board);
-
-			if (board != null)
-				Log.d("BTHANDLER", "boardUpdate: " + board.getLastMove());
 		}
 		else if (msg.what == BtService.Message.RECEIVE_UNDO.ordinal())
 		{
@@ -161,6 +154,7 @@ class BtHandler extends Handler
 					}
 					else
 					{
+						Log.d("BtHandler","line 165: We are on blockIncoming mate, calling start");
 						btService.start();
 					}
 				}
@@ -169,6 +163,7 @@ class BtHandler extends Handler
 			{
 				requestState = GameState.builder().bt(this).swapped(swapped).board(board).build();
 				btService.updateLocalBoard(requestState.board());
+				Log.d(TAG,"NEWGAME2");
 				gameService.newGame(requestState);
 			}
 		}
@@ -180,7 +175,7 @@ class BtHandler extends Handler
 		{
 			Toast.makeText(main, (String) msg.obj, Toast.LENGTH_SHORT).show();
 		}
-		else if (msg.what == BtService.Message.ERROR_TOAST.ordinal() && main != null)
+		else if (msg.what == BtService.Message.TURN_LOCAL.ordinal() && main != null)
 		{
 			gameService.turnLocal();
 
