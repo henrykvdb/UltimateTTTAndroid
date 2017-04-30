@@ -205,9 +205,16 @@ public class BtService extends Service
 	{
 		Log.d(TAG, "stop");
 
-		closeConnecting();
-		closeConnected();
-		closeListen();
+		try
+		{
+			closeConnecting();
+			closeConnected();
+			closeListen();
+		}
+		catch (Exception e)
+		{
+			//NOP
+		}
 
 		setState(State.NONE);
 	}
