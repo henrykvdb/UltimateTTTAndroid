@@ -34,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Switch;
@@ -174,33 +175,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		MenuItem btHost = navigationView.getMenu().findItem(R.id.nav_bt_host_switch);
 		btHostSwitch = (Switch) MenuItemCompat.getActionView(btHost);
 		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-		btHostSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
-		{
-			if (btAdapter != null)
-			{
-				gameService.setBlockIncomingBt(!isChecked);
+		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
+	}
 
-				if (isChecked)
+	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
+	{
+		if (btAdapter != null)
+		{
+			gameService.setBlockIncomingBt(!isChecked);
+
+			if (isChecked)
+			{
+				if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 				{
-					if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
-					{
-						Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-						discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-						startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
-					}
-				}
-				else
-				{
-					if (btAdapter.isEnabled() && !startedWithBt)
-						btAdapter.disable();
+					Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+					discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+					startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
 				}
 			}
 			else
 			{
-				Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-				btHostSwitch.setChecked(false);
+				if (btAdapter.isEnabled() && !startedWithBt)
+					btAdapter.disable();
 			}
-		});
+		}
+		else
+		{
+			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+			btHostSwitch.setChecked(false);
+		}
+	};
+
+	public void disableHost()
+	{
+		btHostSwitch.setOnCheckedChangeListener(null);
+		btHostSwitch.setChecked(false);
+		gameService.setBlockIncomingBt(true);
+		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
 	}
 
 	public void setBtStatusMessage(String message)

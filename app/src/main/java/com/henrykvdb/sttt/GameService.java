@@ -31,6 +31,7 @@ public class GameService extends Service implements Closeable
 	private GameState gs;
 
 	Toast toast;
+	private MainActivity main;
 
 	public void setBlockIncomingBt(boolean blockIncomingBt)
 	{
@@ -80,6 +81,7 @@ public class GameService extends Service implements Closeable
 
 	public void setBtServiceAndMain(BtService btService, MainActivity mainActivity)//TODO Remove need for mainActivity
 	{
+		this.main = mainActivity;
 		btHandler.setBtService(btService);
 		btHandler.setMain(mainActivity);
 	}
@@ -125,6 +127,8 @@ public class GameService extends Service implements Closeable
 
 		if (!gs.isBluetooth())
 			btHandler.resetBluetooth();
+		else
+			main.disableHost();
 
 		boardView.drawState(gs);
 
