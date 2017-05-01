@@ -207,6 +207,7 @@ public class BtService extends Service
 
 		try
 		{
+			connecting = true;
 			closeConnecting();
 			closeConnected();
 			closeListen();
@@ -591,7 +592,7 @@ public class BtService extends Service
 						handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 						BtService.this.start();
 					}
-
+					connecting = false;
 					break;
 				}
 				catch (JSONException e)

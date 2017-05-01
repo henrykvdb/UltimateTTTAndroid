@@ -223,7 +223,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			gameService.undo(false);
+			GameState gs = gameService.getState();
+			Log.d(TAG,"btgame? " + gs.players().contains(GameService.Source.Bluetooth));
+			Log.d(TAG,"cplayer? " + gs.players().get((gs.board().nextPlayer()==Player.PLAYER) ?0:1));
+			//gameService.undo(false);
 			return true;
 		}
 		return false;
@@ -459,8 +462,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					enableBtService();
 				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 				{
-					gameService.turnLocal();
-
 					if (btService != null) //TODO move/make cleaner
 					{
 						btService.stop();
@@ -472,6 +473,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					}
 
 					setBtStatusMessage(null);
+					gameService.turnLocal();
 				}
 				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
 				{
