@@ -154,6 +154,7 @@ public class BtService extends Service
 	public synchronized void start()
 	{
 		Log.d(TAG, "start");
+		new RuntimeException().printStackTrace();
 
 		closeConnecting();
 		closeConnected();
@@ -172,13 +173,7 @@ public class BtService extends Service
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.d(TAG, "connect to: " + device);
 
-		// Cancel any thread attempting to make a connection
-		closeConnecting();
-
-		// Cancel any thread currently running a connection
-		closeConnected();
-
-		//start();
+		start();
 
 		// Start the thread to connect with the given device
 		connectingThread = new ConnectingThread(device);
@@ -189,16 +184,17 @@ public class BtService extends Service
 	{
 		Log.d(TAG, "connected");
 
-		closeConnecting();
-		closeConnected();
-		closeListen();
+		start();
 
-		// Start the thread to manage the connection and perform transmissions
-		connectedThread = new ConnectedThread(socket);
-		connectedThread.start();
+		if (!blockIncoming)
+		{
+			// Start the thread to manage the connection and perform transmissions
+			connectedThread = new ConnectedThread(socket);
+			connectedThread.start();
 
-		if (!isHost)
-			handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
+			if (!isHost)
+				handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
+		}
 	}
 
 	public synchronized void stop()
@@ -437,12 +433,15 @@ public class BtService extends Service
 					Log.e(TAG, "unable to close() socket during connection failure", e2);
 				}
 
-				if (!(blockIncoming || connecting))
+				if (!connecting)
 				{
-					setState(BtService.State.NONE);
 					handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
 					BtService.this.start();
 				}
+
+				setState(BtService.State.NONE);
+
+				//TODO could not connect error toast
 
 				connecting = false;
 
@@ -585,14 +584,17 @@ public class BtService extends Service
 				{
 					Log.e(TAG, "disconnected", e);
 
-					// Start the service over to restart listening mode
-					if (!(blockIncoming || connecting))
+					if (!connecting)
 					{
-						setState(BtService.State.NONE);
 						handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
 						BtService.this.start();
 					}
+
+					//TODO add toast
+
+					setState(BtService.State.NONE);
 					connecting = false;
+
 					break;
 				}
 				catch (JSONException e)

@@ -182,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btAdapter != null)
 		{
-			gameService.setBlockIncomingBt(!isChecked);
+			if (gameService != null)
+				gameService.setBlockIncomingBt(!isChecked);
 
 			if (isChecked)
 			{
@@ -234,10 +235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			GameState gs = gameService.getState();
-			Log.d(TAG,"btgame? " + gs.players().contains(GameService.Source.Bluetooth));
-			Log.d(TAG,"cplayer? " + gs.players().get((gs.board().nextPlayer()==Player.PLAYER) ?0:1));
-			//gameService.undo(false);
+			gameService.undo(false);
 			return true;
 		}
 		return false;
