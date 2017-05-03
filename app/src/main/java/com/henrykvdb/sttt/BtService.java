@@ -33,50 +33,18 @@ public class BtService extends Service
 
 	// Member fields
 	private BluetoothAdapter btAdapter;
+	private GameService gameService;
 	private Handler handler = null;
+
+	//State stuff
 	private State state = State.NONE;
 	private boolean blockIncoming = false;
+	private boolean connecting = false;
 
 	//Threads
 	private ListenThread listenThread;
 	private ConnectingThread connectingThread;
 	private ConnectedThread connectedThread;
-
-	private GameService gameService;
-	private boolean connecting = false;
-
-	public boolean isConnecting()
-	{
-		return connecting;
-	}
-
-	public void setBlockIncoming(boolean blockIncoming)
-	{
-		this.blockIncoming = blockIncoming;
-
-		if (blockIncoming)
-		{
-			closeConnecting();
-			closeListen();
-		}
-		else
-		{
-			start();
-		}
-	}
-
-	public boolean blockIncoming()
-	{
-		return blockIncoming;
-	}
-
-	public String getConnectedDeviceName()
-	{
-		if (connectedThread != null)
-			return connectedThread.socket.getRemoteDevice().getName();
-
-		return null;
-	}
 
 	public enum State
 	{
@@ -121,6 +89,34 @@ public class BtService extends Service
 		return START_STICKY;
 	}
 
+	public void setBlockIncoming(boolean blockIncoming)
+	{
+		this.blockIncoming = blockIncoming;
+
+		if (blockIncoming)
+		{
+			closeConnecting();
+			closeListen();
+		}
+		else
+		{
+			start();
+		}
+	}
+
+	public boolean blockIncoming()
+	{
+		return blockIncoming;
+	}
+
+	public String getConnectedDeviceName()
+	{
+		if (connectedThread != null)
+			return connectedThread.socket.getRemoteDevice().getName();
+
+		return null;
+	}
+
 	public void setup(GameService gameService, Handler handler)
 	{
 		Log.d(TAG, "Setup method called");
@@ -154,7 +150,6 @@ public class BtService extends Service
 	public synchronized void start()
 	{
 		Log.d(TAG, "start");
-		new RuntimeException().printStackTrace();
 
 		closeConnecting();
 		closeConnected();
@@ -265,7 +260,7 @@ public class BtService extends Service
 			r = connectedThread;
 		}
 
-		r.setupEnemyGame(gs.board(), gs.players().get(1).equals(Local), force);
+		r.setupEnemyGame(gs.board(), gs.players().second.equals(Local), force);
 	}
 
 	public void requestUndo(boolean force)

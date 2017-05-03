@@ -101,8 +101,7 @@ public class GameService extends Service implements Closeable
 			{
 				GameState newState = GameState.builder().gs(gs).build();
 				newState.popBoard();
-				if (gs.players().contains(Source.AI)
-						&& Source.Local == gs.players().get(gs.board().nextPlayer() == PLAYER ? 1 : 0)
+				if (Source.AI == (gs.board().nextPlayer() == PLAYER ? gs.players().first : gs.players().second)
 						&& newState.boards().size() > 1)
 					newState.popBoard();
 
@@ -164,8 +163,8 @@ public class GameService extends Service implements Closeable
 		{
 			running = true;
 
-			Source p1 = gs.players().get(0);
-			Source p2 = gs.players().get(1);
+			Source p1 = gs.players().first;
+			Source p2 = gs.players().second;
 
 			while (!gs.board().isDone() && running)
 			{

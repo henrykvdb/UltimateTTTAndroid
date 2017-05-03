@@ -6,7 +6,6 @@ import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,17 +18,40 @@ import static com.henrykvdb.sttt.GameService.Source.Local;
 public class GameState implements Serializable
 {
 	private static final long serialVersionUID = -3051602110955747927L;
-	private List<GameService.Source> players = Arrays.asList(Local, Local);
-	private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
-	private Bot extraBot = new RandomBot();
-	private Handler btHandler;
 
-	private GameState(List<GameService.Source> players, LinkedList<Board> boards, Bot extraBot, Handler btHandler)
+	private final Players players;
+	private final LinkedList<Board> boards;
+	private final Bot extraBot;
+	private final Handler btHandler;
+
+	private GameState(Players players, LinkedList<Board> boards, Bot extraBot, Handler btHandler)
 	{
 		this.players = players;
 		this.boards = boards;
 		this.extraBot = extraBot;
 		this.btHandler = btHandler;
+	}
+
+	static class Players
+	{
+		public final GameService.Source first;
+		public final GameService.Source second;
+
+		public Players(GameService.Source first, GameService.Source second)
+		{
+			this.first = first;
+			this.second = second;
+		}
+
+		public Players swap()
+		{
+			return new Players(second, first);
+		}
+
+		public boolean contains(GameService.Source source)
+		{
+			return first == source || second == source;
+		}
 	}
 
 	public static Builder builder()
@@ -39,7 +61,7 @@ public class GameState implements Serializable
 
 	public static class Builder
 	{
-		private List<GameService.Source> players = Arrays.asList(Local, Local);
+		private Players players = new Players(Local, Local);
 		private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
 		private boolean swapped = new Random().nextBoolean();
 		private Bot extraBot = new RandomBot();
@@ -47,7 +69,7 @@ public class GameState implements Serializable
 
 		public GameState build()
 		{
-			return new GameState(swapped ? Arrays.asList(players.get(1), players.get(0)) : players, boards, extraBot, btHandler);
+			return new GameState(swapped ? players.swap() : players, boards, extraBot, btHandler);
 		}
 
 		public Builder boards(List<Board> boards)
@@ -70,14 +92,20 @@ public class GameState implements Serializable
 		public Builder ai(Bot extraBot)
 		{
 			this.extraBot = extraBot;
-			players = Arrays.asList(Local, AI);
+			players = new Players(Local, AI);
+			return this;
+		}
+
+		public Builder players(Players players)
+		{
+			this.players = players;
 			return this;
 		}
 
 		public Builder bt(Handler btHandler)
 		{
 			this.btHandler = btHandler;
-			players = Arrays.asList(Local, Bluetooth);
+			players = new Players(Local, Bluetooth);
 			return this;
 		}
 
@@ -92,7 +120,7 @@ public class GameState implements Serializable
 		}
 	}
 
-	public List<GameService.Source> players()
+	public Players players()
 	{
 		return players;
 	}
@@ -129,6 +157,6 @@ public class GameState implements Serializable
 
 	public boolean isBluetooth()
 	{
-		return players.contains(GameService.Source.Bluetooth);
+		return players.contains(Bluetooth);
 	}
 }

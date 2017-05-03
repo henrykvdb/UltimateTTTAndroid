@@ -8,6 +8,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
+import com.flaghacker.uttt.common.Player;
 
 class BtHandler extends Handler
 {
@@ -120,7 +121,7 @@ class BtHandler extends Handler
 		else if (msg.what == BtService.Message.SEND_SETUP.ordinal())
 		{
 			if (btService != null)
-				btService.sendState(requestState, false);
+				btService.sendState(requestState, requestState.board().nextPlayer() != Player.PLAYER);
 		}
 		else if (msg.what == BtService.Message.RECEIVE_SETUP.ordinal())
 		{

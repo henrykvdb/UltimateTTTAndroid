@@ -48,6 +48,9 @@ import com.google.android.gms.ads.MobileAds;
 import java.lang.reflect.Field;
 import java.util.Random;
 
+import static com.henrykvdb.sttt.GameService.Source.Bluetooth;
+import static com.henrykvdb.sttt.GameService.Source.Local;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
 	//Debug
@@ -429,15 +432,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			case REQUEST_NEW_BLUETOOTH:
 				if (resultCode == RESULT_OK)
 				{
-
 					//Create the requested gameState from the activity result
 					boolean swapped = data.getExtras().getBoolean("start") ^ gameService.getState().board().nextPlayer() == Player.PLAYER;
-					GameState.Builder builder = GameState.builder().swapped(swapped);
-					if (!data.getExtras().getBoolean("newBoard")) builder.board(gameService.getState().board());
-					GameState requestState = builder.build();
+					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local,Bluetooth)).swapped(swapped);
+					if (!data.getExtras().getBoolean("newBoard"))
+						builder.board(gameService.getState().board());
 
-					if (gameService != null)
-						gameService.startBtGame(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), requestState);
+					gameService.startBtGame(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());
 				}
 				break;
 		}
