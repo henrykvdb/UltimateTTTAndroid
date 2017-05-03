@@ -213,9 +213,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	public void setBtStatusMessage(String message)
 	{
 		final ActionBar actionBar = getSupportActionBar();
-		if (null == actionBar)
-			return;
-		actionBar.setSubtitle(message);
+
+		if (actionBar != null)
+			actionBar.setSubtitle(message);
 	}
 
 	@Override

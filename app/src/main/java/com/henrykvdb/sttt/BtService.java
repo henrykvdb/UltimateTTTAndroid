@@ -430,13 +430,12 @@ public class BtService extends Service
 
 				if (!connecting)
 				{
-					handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
+					handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
 					BtService.this.start();
 				}
 
+				handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
 				setState(BtService.State.NONE);
-
-				//TODO could not connect error toast
 
 				connecting = false;
 
@@ -541,16 +540,16 @@ public class BtService extends Service
 								}
 								else
 								{
-									Log.e(TAG, "Invalid move, desync");
 									BtService.this.start();
-									handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+									handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
+									handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 								}
 							}
 							catch (Throwable t)
 							{
-								Log.e(TAG, "desync");
 								BtService.this.start();
-								handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+								handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
+								handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
 							}
 						}
 
@@ -581,12 +580,11 @@ public class BtService extends Service
 
 					if (!connecting)
 					{
-						handler.obtainMessage(Message.TURN_LOCAL.ordinal(), -1, -1, "Bluetooth connection lost").sendToTarget();
+						handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
 						BtService.this.start();
 					}
 
-					//TODO add toast
-
+					handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connection lost").sendToTarget();
 					setState(BtService.State.NONE);
 					connecting = false;
 

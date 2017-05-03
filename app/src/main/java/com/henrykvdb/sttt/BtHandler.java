@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 
@@ -159,7 +158,6 @@ class BtHandler extends Handler
 					}
 					else
 					{
-						Log.d("BtHandler", "line 165: We are on blockIncoming mate, calling start");
 						btService.start();
 					}
 				}
@@ -168,7 +166,6 @@ class BtHandler extends Handler
 			{
 				requestState = GameState.builder().bt(this).swapped(swapped).board(board).build();
 				btService.updateLocalBoard(requestState.board());
-				Log.d(TAG, "NEWGAME2");
 				gameService.newGame(requestState);
 			}
 		}
@@ -183,8 +180,6 @@ class BtHandler extends Handler
 		else if (msg.what == BtService.Message.TURN_LOCAL.ordinal() && main != null)
 		{
 			gameService.turnLocal();
-
-			Toast.makeText(main, (String) msg.obj, Toast.LENGTH_SHORT).show();
 		}
 	}
 
