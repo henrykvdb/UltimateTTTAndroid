@@ -10,12 +10,13 @@ import com.flaghacker.uttt.common.Board;
 
 class BtHandler extends Handler
 {
-	private MainActivity main;
+	private MainActivity main; //TODO remove
 	private GameService gameService;
 	private BtService btService;
 
 	private AlertDialog btAskDialog;
 	private GameState requestState;
+	private Toast toast;
 
 	public void setMain(MainActivity main)
 	{
@@ -156,7 +157,11 @@ class BtHandler extends Handler
 		}
 		else if (msg.what == BtService.Message.TOAST.ordinal() && main != null)
 		{
-			Toast.makeText(main, (String) msg.obj, Toast.LENGTH_SHORT).show();
+			if(toast == null)
+				toast = Toast.makeText(main,"",Toast.LENGTH_SHORT);
+
+			toast.setText((String) msg.obj);
+			toast.show();
 		}
 		else if (msg.what == BtService.Message.TURN_LOCAL.ordinal() && main != null)
 		{
@@ -188,4 +193,5 @@ class BtHandler extends Handler
 
 		Dialogs.keepDialog(btAskDialog);
 	}
+
 }

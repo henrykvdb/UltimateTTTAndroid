@@ -30,7 +30,6 @@ public class BtService extends Service
 	//Unique UUID for this application
 	public static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 	private static final String TAG = "BluetoothService";
-	public static final String STATE = "STATE";
 
 	//Other fields
 	private LocalBroadcastManager uiBroadcaster;
@@ -164,6 +163,7 @@ public class BtService extends Service
 
 	public synchronized void connect(String address)
 	{
+		closeListen();
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.d(TAG, "connect to: " + device);
 
@@ -191,7 +191,14 @@ public class BtService extends Service
 		}
 		else
 		{
-			start();
+			try
+			{
+				socket.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 
