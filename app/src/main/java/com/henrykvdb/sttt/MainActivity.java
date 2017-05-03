@@ -5,14 +5,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -25,18 +22,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,7 +37,6 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 
 import java.lang.reflect.Field;
-import java.util.Random;
 
 import static com.henrykvdb.sttt.GameService.Source.Bluetooth;
 import static com.henrykvdb.sttt.GameService.Source.Local;
@@ -71,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	//Init
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
+	private Dialogs dialogs;
 
 	//Switch related
 	private Switch btHostSwitch;
@@ -84,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 
 		//Set fields
+		dialogs = new Dialogs(this);
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (savedInstanceState != null)
 			startedWithBt = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
@@ -105,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Ask user to rate the app
 		if (savedInstanceState == null)
-			RateDialog.rate(this, getSupportFragmentManager());
+			dialogs.rate();
 	}
 
 	@Override
@@ -252,60 +244,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (id == R.id.nav_local_human)
 		{
-			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+			dialogs.newLocal(start ->
 			{
-				switch (which)
-				{
-					case DialogInterface.BUTTON_POSITIVE:
-						gameService.newLocal();
-						break;
-
-					case DialogInterface.BUTTON_NEGATIVE:
-						dialog.dismiss();
-						break;
-				}
-			};
-
-			Util.doKeepDialog(new AlertDialog.Builder(this)
-					.setTitle("Start a new game?")
-					.setMessage("This wil create a new local two player game.")
-					.setPositiveButton("Start", dialogClickListener)
-					.setNegativeButton("Close", dialogClickListener)
-					.show());
+				if (start) gameService.newLocal();
+			});
 		}
 		if (id == R.id.nav_local_ai)
 		{
-			final boolean[] swapped = new boolean[1];
-
-			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.dialog_ai, (ViewGroup) findViewById(R.id.new_ai_layout));
-
-			RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
-			beginner.setOnCheckedChangeListener((group, checkedId) ->
-					swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
-
-			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
-			{
-				switch (which)
-				{
-					case DialogInterface.BUTTON_POSITIVE:
-						gameService.newGame(GameState.builder()
-								.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
-								.swapped(swapped[0]).build());
-						break;
-
-					case DialogInterface.BUTTON_NEGATIVE:
-						dialog.dismiss();
-						break;
-				}
-			};
-
-			Util.doKeepDialog(new AlertDialog.Builder(this)
-					.setView(layout)
-					.setTitle("Start a new ai game?")
-					.setPositiveButton("Start", dialogClickListener)
-					.setNegativeButton("Close", dialogClickListener)
-					.show());
+			dialogs.newAi(gs -> gameService.newGame(gs));
 		}
 		else if (id == R.id.nav_bt_join)
 		{
@@ -313,59 +259,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
-			String deviceInfo = "\n /** please do not remove this block, technical info: "
-					+ "os version: " + System.getProperty("os.version")
-					+ "(" + android.os.Build.VERSION.INCREMENTAL + "), API: " + android.os.Build.VERSION.SDK_INT;
-			try
-			{
-				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-				deviceInfo += ", app version: " + pInfo.versionName;
-			}
-			catch (PackageManager.NameNotFoundException e)
-			{
-				e.printStackTrace();
-			}
-			deviceInfo += "**/";
-
-			Intent send = new Intent(Intent.ACTION_SENDTO);
-			Uri uri = Uri.parse("mailto:" + Uri.encode("henrykdev@gmail.com") +
-					"?subject=" + Uri.encode("Feedback") +
-					"&body=" + Uri.encode(deviceInfo));
-
-			send.setData(uri);
-			startActivity(Intent.createChooser(send, "Send feedback"));
+			Util.sendFeedback(this);
 		}
 		else if (id == R.id.nav_other_share)
 		{
-			Intent i = new Intent(Intent.ACTION_SEND);
-			i.setType("text/plain");
-			i.putExtra(Intent.EXTRA_SUBJECT, getResources().getString(R.string.app_name_long));
-			i.putExtra(Intent.EXTRA_TEXT, "Hey, let's play " + getResources().getString(R.string.app_name_long)
-					+ " together! https://play.google.com/store/apps/details?id=Place.Holder"); //TODO replace
-			startActivity(Intent.createChooser(i, "choose one"));
+			Util.share(this);
 		}
 		else if (id == R.id.nav_other_about)
 		{
-			LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.dialog_about, (ViewGroup) findViewById(R.id.dialog_about_layout));
-
-			try
-			{
-				PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-				((TextView) layout.findViewById(R.id.versionName_view))
-						.setText(getResources().getText(R.string.app_name_long) + "\nVersion " + pInfo.versionName);
-			}
-			catch (PackageManager.NameNotFoundException e)
-			{
-				((TextView) layout.findViewById(R.id.versionName_view))
-						.setText(getResources().getText(R.string.app_name_long));
-			}
-
-			Util.doKeepDialog(new AlertDialog.Builder(this)
-					.setTitle("About")
-					.setView(layout)
-					.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
-					.show());
+			dialogs.about();
 		}
 
 		if (id != R.id.nav_bt_host_switch)
@@ -434,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					//Create the requested gameState from the activity result
 					boolean swapped = data.getExtras().getBoolean("start") ^ gameService.getState().board().nextPlayer() == Player.PLAYER;
-					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local,Bluetooth)).swapped(swapped);
+					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
 					if (!data.getExtras().getBoolean("newBoard"))
 						builder.board(gameService.getState().board());
 

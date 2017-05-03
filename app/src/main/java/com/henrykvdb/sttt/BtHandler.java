@@ -188,7 +188,7 @@ class BtHandler extends Handler
 		}
 	}
 
-	private void askUser(String message, CallBack<Boolean> callBack)
+	private void askUser(String message, com.henrykvdb.sttt.Callback<Boolean> callBack)
 	{
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 		{
@@ -210,11 +210,6 @@ class BtHandler extends Handler
 				.setOnDismissListener(dialogInterface -> callBack.callback(false))
 				.show();
 
-		Util.doKeepDialog(btAskDialog);
-	}
-
-	private interface CallBack<T>
-	{
-		void callback(T t);
+		Dialogs.keepDialog(btAskDialog);
 	}
 }
