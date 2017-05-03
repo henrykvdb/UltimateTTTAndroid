@@ -16,10 +16,12 @@
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textStyle="normal|bold"/>
     <SeekBar
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
             android:layout_height="wrap_content"
             android:id="@+id/difficulty"
             android:layout_width="match_parent"
-            android:progress="50"/>
+            android:max="6"
+            android:progress="3"/>
     <TextView
             android:text="@string/starting_player"
             android:layout_width="match_parent"

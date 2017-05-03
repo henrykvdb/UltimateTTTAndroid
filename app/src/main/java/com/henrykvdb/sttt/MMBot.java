@@ -27,15 +27,13 @@ public class MMBot implements Bot
 	private static final double CORNER_FACTOR = 3;
 	private static final double EDGE_FACTOR = 1;
 
-	private static final int MAX_LEVELS = 6;
-
 	private Random random = Util.loggedRandom();
 	private Timer timer;
 	private int levels;
 
-	public MMBot(int difficulty)
+	public MMBot(int levels)
 	{
-		levels = Math.round(difficulty / (100f / MAX_LEVELS));
+		this.levels = levels;
 	}
 
 	@Override
