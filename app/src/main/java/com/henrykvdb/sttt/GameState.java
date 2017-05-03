@@ -159,4 +159,14 @@ public class GameState implements Serializable
 	{
 		return players.contains(Bluetooth);
 	}
+
+	public boolean isAi()
+	{
+		return players.contains(AI);
+	}
+
+	public boolean isLocal()
+	{
+		return players.first == Local && players.second == Local;
+	}
 }

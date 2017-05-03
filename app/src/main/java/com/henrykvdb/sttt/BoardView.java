@@ -2,6 +2,7 @@ package com.henrykvdb.sttt;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -108,17 +109,57 @@ public class BoardView extends View implements Serializable
 		{
 			board = gameState.board();
 
-			boolean p1Next = board.nextPlayer() == PLAYER;
+			//Some helper vars
+			boolean xNext = board.nextPlayer() == PLAYER;
 			GameState.Players players = gameState.players();
+			boolean local = gameState.isLocal();
+
+			//Only if not local game
+			boolean yourTurn = board.nextPlayer() == PLAYER
+					? players.first == GameService.Source.Local
+					: players.second == GameService.Source.Local;
+
+			nextPlayerView.setTextColor(xNext ? Color.BLUE : Color.RED);
 
 			if (!board.isDone())
-				nextPlayerView.setText(getResources().getText(R.string.current_player)
-						+ ": " + (p1Next ? "X" : "O") + " ("
-						+ (p1Next ? players.first : players.second) + ")");
+			{
+				if (local)
+					nextPlayerView.setText("It is " + (xNext ? "X" : "O") + "'s turn!");
+				else
+					nextPlayerView.setText(yourTurn ? "It is your turn!" : "Waiting on the enemy!");
+			}
 			else
-				nextPlayerView.setText(getResources().getText(R.string.won_by)
-						+ " " + (board.wonBy() == PLAYER ? "X" : "O") + " ("
-						+ (board.wonBy() == PLAYER ? players.first : players.second) + ")");
+			{
+				if (board.wonBy() == NEUTRAL)
+				{
+					try
+					{
+						nextPlayerView.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
+					}
+					catch (Exception e)
+					{
+						nextPlayerView.setTextColor(Color.BLACK);
+					}
+
+					nextPlayerView.setText("It is a tie!");
+				}
+				else
+				{
+					if (local)
+					{
+						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
+						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + "won the game!");
+					}
+					else
+					{
+						boolean youWon = board.wonBy()==PLAYER
+								? players.first == GameService.Source.Local
+								: players.second == GameService.Source.Local;
+						nextPlayerView.setTextColor(board.wonBy()==PLAYER ? Color.BLUE : Color.RED);
+						nextPlayerView.setText(youWon?"You won!":"You lost!");
+					}
+				}
+			}
 		}
 
 		//Make available moves yellow

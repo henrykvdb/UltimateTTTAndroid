@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ public class GameService extends Service implements Closeable
 
 	Toast toast;
 	private MainActivity main;
+	private LocalBroadcastManager uiBroadcaster;
 
 	public void setBlockIncomingBt(boolean blockIncomingBt)
 	{
@@ -54,6 +56,13 @@ public class GameService extends Service implements Closeable
 	}
 
 	@Override
+	public void onCreate()
+	{
+		uiBroadcaster = LocalBroadcastManager.getInstance(this);
+		super.onCreate();
+	}
+
+	@Override
 	public IBinder onBind(Intent intent)
 	{
 		return mBinder;
@@ -68,6 +77,14 @@ public class GameService extends Service implements Closeable
 		return START_STICKY;
 	}
 
+	public void sendToUi(String type, String title)
+	{
+		Intent intent = new Intent(Constants.UI_RESULT);
+		intent.putExtra("type", type);
+		intent.putExtra("message", title);
+		uiBroadcaster.sendBroadcast(intent);
+	}
+
 	public void setBoardView(BoardView boardView)
 	{
 		boardView.setGameService(this);
@@ -76,7 +93,19 @@ public class GameService extends Service implements Closeable
 		if (thread == null || !thread.running)
 			newLocal();
 
+		updateTitle();
 		boardView.drawState(gs);
+	}
+
+	private void updateTitle()
+	{
+		if (gs.isBluetooth())
+			sendToUi(Constants.TYPE_TITLE,"Bluetooth Game");
+		else if (gs.isAi())
+			sendToUi(Constants.TYPE_TITLE,"AI Game");
+		else if (gs.isLocal()) //Normal local game
+			sendToUi(Constants.TYPE_TITLE,"Human Game");
+		else throw new IllegalStateException();
 	}
 
 	public void setBtServiceAndMain(BtService btService, MainActivity mainActivity)//TODO Remove need for mainActivity
@@ -123,13 +152,16 @@ public class GameService extends Service implements Closeable
 		close();
 
 		this.gs = gs;
+		boardView.drawState(gs);
+		updateTitle();
 
 		if (!gs.isBluetooth())
+		{
+			sendToUi(Constants.TYPE_SUBTITLE,null);
 			btHandler.resetBluetooth();
+		}
 		else
 			main.disableHost();
-
-		boardView.drawState(gs);
 
 		thread = new GameThread();
 		thread.start();

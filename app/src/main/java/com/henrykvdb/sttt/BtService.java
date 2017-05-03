@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
@@ -26,12 +27,13 @@ import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class BtService extends Service
 {
-	// Unique UUID for this application
+	//Unique UUID for this application
 	public static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 	private static final String TAG = "BluetoothService";
 	public static final String STATE = "STATE";
 
-	// Member fields
+	//Other fields
+	private LocalBroadcastManager uiBroadcaster;
 	private BluetoothAdapter btAdapter;
 	private GameService gameService;
 	private Handler handler = null;
@@ -56,14 +58,12 @@ public class BtService extends Service
 
 	public enum Message
 	{
-		STATE_CHANGE,
 		SEND_BOARD_UPDATE,
 		SEND_SETUP,
 		RECEIVE_UNDO,
 		RECEIVE_SETUP,
 		TURN_LOCAL,
-		TOAST,
-		DEVICE_NAME
+		TOAST
 	}
 
 	// Binder given to clients
@@ -78,6 +78,13 @@ public class BtService extends Service
 	}
 
 	@Override
+	public void onCreate()
+	{
+		uiBroadcaster = LocalBroadcastManager.getInstance(this);
+		super.onCreate();
+	}
+
+	@Override
 	public IBinder onBind(Intent intent)
 	{
 		return mBinder;
@@ -87,6 +94,14 @@ public class BtService extends Service
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
 		return START_STICKY;
+	}
+
+	public void sendEnemyToGui(String subtitle)
+	{
+		Intent intent = new Intent(Constants.UI_RESULT);
+		intent.putExtra("type", Constants.TYPE_SUBTITLE);
+		intent.putExtra("message", "against " + subtitle);
+		uiBroadcaster.sendBroadcast(intent);
 	}
 
 	public void setBlockIncoming(boolean blockIncoming)
@@ -123,28 +138,12 @@ public class BtService extends Service
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		this.gameService = gameService;
 		this.handler = handler;
-		setState(state);
 
 		if (state != State.CONNECTED)
 			start();
 		else
-			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, connectedThread.socket.getRemoteDevice().getName()).sendToTarget();
+			sendEnemyToGui(connectedThread.socket.getRemoteDevice().getName());
 
-	}
-
-	public void setState(State newState)
-	{
-		Log.d(TAG, "new state: " + newState.name());
-		state = newState;
-
-		if (handler != null)
-		{
-			android.os.Message msg = handler.obtainMessage(Message.STATE_CHANGE.ordinal());
-			Bundle bundle = new Bundle();
-			bundle.putSerializable(STATE, state);
-			msg.setData(bundle);
-			handler.sendMessage(msg);
-		}
 	}
 
 	public synchronized void start()
@@ -190,6 +189,10 @@ public class BtService extends Service
 			if (!isHost)
 				handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
 		}
+		else
+		{
+			start();
+		}
 	}
 
 	public synchronized void stop()
@@ -208,7 +211,7 @@ public class BtService extends Service
 			//NOP
 		}
 
-		setState(State.NONE);
+		state = State.NONE;
 	}
 
 	private void closeListen()
@@ -304,7 +307,7 @@ public class BtService extends Service
 				Log.e(TAG, "listen() failed", e);
 			}
 			serverSocket = tmp;
-			setState(BtService.State.LISTEN);
+			state = BtService.State.LISTEN;
 		}
 
 		public void run()
@@ -399,7 +402,7 @@ public class BtService extends Service
 				Log.e(TAG, "create() failed", e);
 			}
 			socket = tmp;
-			setState(BtService.State.CONNECTING);
+			state = BtService.State.CONNECTING;
 		}
 
 		public void run()
@@ -435,7 +438,7 @@ public class BtService extends Service
 				}
 
 				handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
-				setState(BtService.State.NONE);
+				state = BtService.State.NONE;
 
 				connecting = false;
 
@@ -498,8 +501,8 @@ public class BtService extends Service
 			inStream = tmpIn;
 			outStream = tmpOut;
 			handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connected to " + socket.getRemoteDevice().getName()).sendToTarget();
-			handler.obtainMessage(Message.DEVICE_NAME.ordinal(), -1, -1, socket.getRemoteDevice().getName()).sendToTarget();
-			setState(BtService.State.CONNECTED);
+			sendEnemyToGui(socket.getRemoteDevice().getName());
+			state = BtService.State.CONNECTED;
 		}
 
 		public void run()
@@ -585,7 +588,7 @@ public class BtService extends Service
 					}
 
 					handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connection lost").sendToTarget();
-					setState(BtService.State.NONE);
+					state = BtService.State.NONE;
 					connecting = false;
 
 					break;

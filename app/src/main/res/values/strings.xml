@@ -37,7 +37,4 @@
     <string name="app_icon">app icon</string>
     <string name="current_player">Current Player</string>
     <string name="won_by">Won by</string>
-
-    <!-- Other -->
-    <string name="title_connected_to">connected to %1$s</string>
 </resources>

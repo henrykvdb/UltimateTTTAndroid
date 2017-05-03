@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private GameService gameService;
 
 	//Init
+	private BroadcastReceiver uiReceiver;
 	private BluetoothAdapter btAdapter;
 	private BoardView boardView;
 	private Dialogs dialogs;
@@ -73,6 +75,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		//Setup ui event receiver
+		uiReceiver = new BroadcastReceiver()
+		{
+			@Override
+			public void onReceive(Context context, Intent intent)
+			{
+				String type = intent.getStringExtra("type");
+				String message = intent.getStringExtra("message");
+
+				if (type.equals(Constants.TYPE_TITLE))
+					setTitle(message);
+				else if (type.equals(Constants.TYPE_SUBTITLE))
+					setSubtitle(message);
+			}
+		};
 
 		//Set fields
 		dialogs = new Dialogs(this);
@@ -112,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onStart();
 
+		//Register the uiReceiver
+		LocalBroadcastManager.getInstance(this).registerReceiver((uiReceiver), new IntentFilter(Constants.UI_RESULT));
+
 		//Start GameService
 		Intent intent = new Intent(this, GameService.class);
 		bindService(intent, gameServiceConn, Context.BIND_AUTO_CREATE);
@@ -120,6 +141,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		//Start BtService
 		enableBtService();
 		startService(new Intent(this, BtService.class));
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+
+		//Unregister the uiReceiver
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(uiReceiver);
 	}
 
 	@Override
@@ -210,12 +240,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
 	}
 
-	public void setBtStatusMessage(String message)
+	public void setSubtitle(String message)
 	{
 		final ActionBar actionBar = getSupportActionBar();
 
 		if (actionBar != null)
 			actionBar.setSubtitle(message);
+	}
+
+	public void setTitle(String message)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+
+		if (actionBar != null)
+			actionBar.setTitle(message);
 	}
 
 	@Override
@@ -384,12 +422,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						unbindService(btServerConn);
 					}
 
-					setBtStatusMessage(null);
+					setSubtitle(null);
 					gameService.turnLocal();
 				}
 				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
 				{
-					setBtStatusMessage(null);
+					setSubtitle(null);
 					btHostSwitch.setChecked(false);
 				}
 			}
@@ -430,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (btAdapter != null && btAdapter.isEnabled() && btService == null)
 			bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
 		else
-			setBtStatusMessage(null);
+			setSubtitle(null);
 	}
 
 	private ServiceConnection gameServiceConn = new ServiceConnection()

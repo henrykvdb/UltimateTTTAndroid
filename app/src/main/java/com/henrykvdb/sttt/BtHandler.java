@@ -10,13 +10,10 @@ import com.flaghacker.uttt.common.Board;
 
 class BtHandler extends Handler
 {
-	private static final String TAG = "BtHandler";
-
 	private MainActivity main;
 	private GameService gameService;
 	private BtService btService;
 
-	private String connectedDeviceName;
 	private AlertDialog btAskDialog;
 	private GameState requestState;
 
@@ -31,9 +28,6 @@ class BtHandler extends Handler
 
 		if (btService != null)
 			btService.setup(gameService, this);
-
-		if (btService != null && btService.getConnectedDeviceName() != null)
-			connectedDeviceName = btService.getConnectedDeviceName();
 	}
 
 	public void setGameService(GameService gameService)
@@ -75,16 +69,7 @@ class BtHandler extends Handler
 	@Override
 	public void handleMessage(Message msg)
 	{
-		if (msg.what == BtService.Message.STATE_CHANGE.ordinal())
-		{
-			BtService.State state = (BtService.State) msg.getData().getSerializable(BtService.STATE);
-
-			if (state == BtService.State.CONNECTED)
-				main.setBtStatusMessage("connected to " + connectedDeviceName);
-			else
-				main.setBtStatusMessage(null);
-		}
-		else if (msg.what == BtService.Message.SEND_BOARD_UPDATE.ordinal())
+		if (msg.what == BtService.Message.SEND_BOARD_UPDATE.ordinal())
 		{
 			Board board = (Board) msg.getData().getSerializable("myBoard");
 
@@ -97,9 +82,9 @@ class BtHandler extends Handler
 
 			if (!force)
 			{
-				if (btAskDialog == null || !btAskDialog.isShowing())
+				if ((btAskDialog == null || !btAskDialog.isShowing()) && btService!=null)
 				{
-					askUser(connectedDeviceName + " requests to undo the last move, do you accept?", allow ->
+					askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
 					{
 						if (allow && btService != null)
 						{
@@ -135,7 +120,7 @@ class BtHandler extends Handler
 					if (!btService.blockIncoming())
 					{
 						final boolean[] allowed = {false};
-						askUser(connectedDeviceName + " challenges you for a duel, do you accept?", allow ->
+						askUser(btService.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
 						{
 							if (btService != null)
 							{
@@ -168,10 +153,6 @@ class BtHandler extends Handler
 				btService.updateLocalBoard(requestState.board());
 				gameService.newGame(requestState);
 			}
-		}
-		else if (msg.what == BtService.Message.DEVICE_NAME.ordinal())
-		{
-			connectedDeviceName = (String) msg.obj;
 		}
 		else if (msg.what == BtService.Message.TOAST.ordinal() && main != null)
 		{
