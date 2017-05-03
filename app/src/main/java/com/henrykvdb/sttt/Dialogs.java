@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -86,8 +87,14 @@ public class Dialogs
 			{
 				switch (which)
 				{
-					case DialogInterface.BUTTON_POSITIVE: //TODO replace rate link
-						activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + "com.example.name")));
+					case DialogInterface.BUTTON_POSITIVE:
+						Intent goToMarket = new Intent(Intent.ACTION_VIEW,
+								Uri.parse("market://details?id=" + activity.getPackageName()));
+						goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+						goToMarket.addFlags((Build.VERSION.SDK_INT >= 21)
+								? Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+								: Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+						activity.startActivity(goToMarket);
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:
 						break;

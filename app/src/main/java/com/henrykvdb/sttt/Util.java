@@ -39,7 +39,7 @@ public class Util
 		i.setType("text/plain");
 		i.putExtra(Intent.EXTRA_SUBJECT, context.getResources().getString(R.string.app_name_long));
 		i.putExtra(Intent.EXTRA_TEXT, "Hey, let's play " + context.getResources().getString(R.string.app_name_long)
-				+ " together! https://play.google.com/store/apps/details?id=Place.Holder"); //TODO replace
+				+ " together! https://play.google.com/store/apps/details?id=" + context.getPackageName());
 		context.startActivity(Intent.createChooser(i, "choose one"));
 	}
 }
