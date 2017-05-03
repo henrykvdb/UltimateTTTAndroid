@@ -186,7 +186,7 @@ public class BtService extends Service
 
 		start();
 
-		if (!blockIncoming)
+		if (!blockIncoming || !isHost)
 		{
 			// Start the thread to manage the connection and perform transmissions
 			connectedThread = new ConnectedThread(socket);
