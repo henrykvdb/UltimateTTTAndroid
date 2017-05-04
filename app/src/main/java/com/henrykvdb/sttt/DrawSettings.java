@@ -8,13 +8,13 @@ public class DrawSettings
 	private int xColor = Color.BLUE;
 	private int xColorDarker = Color.rgb(0, 0, 230);
 	private int xColorDarkest = Color.rgb(0, 0, 200);
-	private int xColorLast = Color.rgb(75, 155, 255);
+	private int xColorLight = Color.rgb(75, 155, 255);
 
 	//ENEMY settings (O)
 	private int oColor = Color.RED;
 	private int oColorDarker = Color.rgb(230, 0, 0);
 	private int oColorDarkest = Color.rgb(200, 0, 0);
-	private int oColorLast = Color.rgb(255, 155, 75);
+	private int oColorLight = Color.rgb(255, 155, 75);
 
 	//Symbol stroke width
 	private float tileSymbolStroke = 16f / 984;
@@ -66,14 +66,14 @@ public class DrawSettings
 		this.xColorDarkest = xColorDarkest;
 	}
 
-	public int xColorLast()
+	public int xColorLight()
 	{
-		return xColorLast;
+		return xColorLight;
 	}
 
-	public void setxColorLast(int xColorLast)
+	public void setxColorLight(int xColorLight)
 	{
-		this.xColorLast = xColorLast;
+		this.xColorLight = xColorLight;
 	}
 
 	public int oColor()
@@ -106,14 +106,14 @@ public class DrawSettings
 		this.oColorDarkest = oColorDarkest;
 	}
 
-	public int oColorLast()
+	public int oColorLight()
 	{
-		return oColorLast;
+		return oColorLight;
 	}
 
-	public void setoColorLast(int oColorLast)
+	public void setoColorLight(int oColorLight)
 	{
-		this.oColorLast = oColorLast;
+		this.oColorLight = oColorLight;
 	}
 
 	public float tileSymbolStroke()

@@ -123,9 +123,7 @@ public class BoardView extends View implements Serializable
 
 			if (!board.isDone())
 			{
-				if (local)
-					nextPlayerView.setText("It is " + (xNext ? "X" : "O") + "'s turn!");
-				else
+				if (!local)
 					nextPlayerView.setText(yourTurn ? "It is your turn!" : "Waiting on the enemy!");
 			}
 			else
@@ -148,23 +146,24 @@ public class BoardView extends View implements Serializable
 					if (local)
 					{
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
-						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + "won the game!");
+						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + " won the game!");
 					}
 					else
 					{
-						boolean youWon = board.wonBy()==PLAYER
+						boolean youWon = board.wonBy() == PLAYER
 								? players.first == GameService.Source.Local
 								: players.second == GameService.Source.Local;
-						nextPlayerView.setTextColor(board.wonBy()==PLAYER ? Color.BLUE : Color.RED);
-						nextPlayerView.setText(youWon?"You won!":"You lost!");
+						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
+						nextPlayerView.setText(youWon ? "You won!" : "You lost!");
 					}
 				}
 			}
 		}
 
-		//Make available moves yellow
+		//Make available moves the correct color
 		paint.setStyle(Paint.Style.FILL);
-		paint.setColor(ds.availableColor());
+		paint.setColor(board.nextPlayer() == PLAYER ? ds.xColor() : ds.oColor());
+		paint.setAlpha(50);
 		for (Coord coord : board.availableMoves())
 		{
 			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
@@ -227,11 +226,11 @@ public class BoardView extends View implements Serializable
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.xColorLast()
+				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.xColorLight()
 								: (finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker())),
 						tileSymbolStroke, xBorder);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.oColorLast()
+				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.oColorLight()
 								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
 						tileSymbolStroke, oBorder);
 
