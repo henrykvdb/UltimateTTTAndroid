@@ -1,6 +1,5 @@
 package com.henrykvdb.sttt;
 
-import android.os.Handler;
 import com.flaghacker.uttt.bots.RandomBot;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
@@ -22,14 +21,12 @@ public class GameState implements Serializable
 	private final Players players;
 	private final LinkedList<Board> boards;
 	private final Bot extraBot;
-	private final Handler btHandler;
 
-	private GameState(Players players, LinkedList<Board> boards, Bot extraBot, Handler btHandler)
+	private GameState(Players players, LinkedList<Board> boards, Bot extraBot)
 	{
 		this.players = players;
 		this.boards = boards;
 		this.extraBot = extraBot;
-		this.btHandler = btHandler;
 	}
 
 	static class Players
@@ -65,11 +62,10 @@ public class GameState implements Serializable
 		private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
 		private boolean swapped = new Random().nextBoolean();
 		private Bot extraBot = new RandomBot();
-		private Handler btHandler;
 
 		public GameState build()
 		{
-			return new GameState(swapped ? players.swap() : players, boards, extraBot, btHandler);
+			return new GameState(swapped ? players.swap() : players, boards, extraBot);
 		}
 
 		public Builder boards(List<Board> boards)
@@ -102,9 +98,8 @@ public class GameState implements Serializable
 			return this;
 		}
 
-		public Builder bt(Handler btHandler)
+		public Builder bt()
 		{
-			this.btHandler = btHandler;
 			players = new Players(Local, Bluetooth);
 			return this;
 		}
@@ -115,7 +110,6 @@ public class GameState implements Serializable
 			this.boards = gs.boards();
 			this.swapped = false;
 			this.extraBot = gs.extraBot();
-			this.btHandler = gs.btHandler();
 			return this;
 		}
 	}
@@ -148,11 +142,6 @@ public class GameState implements Serializable
 	public Bot extraBot()
 	{
 		return extraBot;
-	}
-
-	public Handler btHandler()
-	{
-		return btHandler;
 	}
 
 	public boolean isBluetooth()

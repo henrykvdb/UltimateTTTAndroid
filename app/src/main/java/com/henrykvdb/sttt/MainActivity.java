@@ -59,16 +59,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private BtService btService;
 	private GameService gameService;
 
-	//Init
-	private BroadcastReceiver uiReceiver;
-	private BluetoothAdapter btAdapter;
-	private BoardView boardView;
-	private Dialogs dialogs;
-
-	//Switch related
-	private Switch btHostSwitch;
+	//Started with bluetooth stuff
 	private boolean startedWithBt;
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
+
+	//UI
+	private BoardView boardView;
+	private Switch btHostSwitch;
+
+	//Other
+	private BluetoothAdapter btAdapter;
+	private Dialogs dialogs;
+
+	//Receiver
+	private BroadcastReceiver uiReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			switch (intent.getStringExtra(Constants.EVENT_TYPE))
+			{
+				case Constants.TYPE_TITLE:
+					setTitle(intent.getStringExtra(Constants.DATA_STRING));
+					break;
+				case Constants.TYPE_SUBTITLE:
+					setSubtitle(intent.getStringExtra(Constants.DATA_STRING));
+					break;
+				case Constants.TYPE_TOAST:
+					Toast.makeText(context, intent.getStringExtra(Constants.DATA_STRING), Toast.LENGTH_SHORT).show();
+					break;
+				case Constants.TYPE_ALLOW_INCOMING_BT:
+					boolean allow = intent.getBooleanExtra(Constants.DATA_BOOLEAN_MAIN, true);
+					boolean silent = intent.getBooleanExtra(Constants.DATA_BOOLEAN_EXTRA, false);
+
+					if (!silent)
+						btHostSwitch.setChecked(allow);
+					else
+					{
+						btHostSwitch.setOnCheckedChangeListener(null);
+						btHostSwitch.setChecked(false);
+						btService.setBlockIncoming(!allow);
+						btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
+					}
+					break;
+				default:
+					new RuntimeException();
+			}
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -76,106 +114,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		//Setup ui event receiver
-		uiReceiver = new BroadcastReceiver()
-		{
-			@Override
-			public void onReceive(Context context, Intent intent)
-			{
-				String type = intent.getStringExtra("type");
-				String message = intent.getStringExtra("message");
-
-				if (type.equals(Constants.TYPE_TITLE))
-					setTitle(message);
-				else if (type.equals(Constants.TYPE_SUBTITLE))
-					setSubtitle(message);
-			}
-		};
-
 		//Set fields
 		dialogs = new Dialogs(this);
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		if (savedInstanceState != null)
-			startedWithBt = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
-		else
-			startedWithBt = btAdapter != null && btAdapter.isEnabled();
-
-		initGui();
-
-		//If in portrait add ads
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-		{
-			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
-			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
-		}
-
-		//Automatically start/close btService when you enable/disable bt & attempt to start the service
-		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-		enableBtService();
-
-		//Ask user to rate the app
-		if (savedInstanceState == null)
-			dialogs.rate();
-	}
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState)
-	{
-		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
-	protected void onStart()
-	{
-		super.onStart();
-
-		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-
-		//Register the uiReceiver
-		LocalBroadcastManager.getInstance(this).registerReceiver((uiReceiver), new IntentFilter(Constants.UI_RESULT));
-
-		//Start GameService
-		Intent intent = new Intent(this, GameService.class);
-		bindService(intent, gameServiceConn, Context.BIND_AUTO_CREATE);
-		startService(intent);
-
-		//Start BtService
-		enableBtService();
-		startService(new Intent(this, BtService.class));
-	}
-
-	@Override
-	protected void onStop()
-	{
-		super.onStop();
-
-		//Unregister the uiReceiver
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(uiReceiver);
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-
-		//Stop BtService
-		if (btService != null)
-			unbindService(btServerConn);
-		unregisterReceiver(btStateReceiver);
-
-		//Close GameService
-		unbindService(gameServiceConn);
-	}
-
-	private void initGui()
-	{
+		startedWithBt = (savedInstanceState != null)
+				? savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false)
+				: btAdapter != null && btAdapter.isEnabled();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
+		//Setup the drawer
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
-
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 		try
 		{
@@ -190,25 +140,150 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			e.printStackTrace();
 		}
-
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 		drawer.addDrawerListener(toggle);
 		toggle.syncState();
 
+		//Setup the btHostSwitch
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
-
 		btHostSwitch = (Switch) MenuItemCompat.getActionView(navigationView.getMenu().findItem(R.id.nav_bt_host_switch));
 		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
+		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+
+		//Add ads in portrait
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+		{
+			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
+			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
+		}
+
+		//Ask user to rate the app
+		if (savedInstanceState == null)
+			dialogs.rate();
 	}
+
+	public void setSubtitle(String message)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+
+		if (actionBar != null)
+			actionBar.setSubtitle(message);
+	}
+
+	public void setTitle(String message)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+
+		if (actionBar != null)
+			actionBar.setTitle(message);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+
+		//Register the uiReceiver
+		LocalBroadcastManager.getInstance(this).registerReceiver((uiReceiver), new IntentFilter(Constants.EVENT_UI));
+
+		//Start GameService
+		bindService(new Intent(this, GameService.class), gameServiceConn, Context.BIND_AUTO_CREATE);
+		startService(new Intent(this, GameService.class));
+
+		//Start BtService
+		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
+		startService(new Intent(this, BtService.class));
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(uiReceiver);
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		unbindService(btServerConn);
+		unbindService(gameServiceConn);
+	}
+
+	private ServiceConnection btServerConn = new ServiceConnection()
+	{
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			Log.d(TAG, "btService Connected");
+			btService = ((BtService.LocalBinder) service).getService();
+
+			if (gameService != null) //TODO cleanup
+			{
+				gameService.setBtService(btService);
+				btService.setup(gameService, dialogs);
+
+				gameService.setBoardView(boardView);
+
+				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
+				if (btService.blockIncoming() != blockIncoming)
+					btService.setBlockIncoming(blockIncoming);
+			}
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.d(TAG, "btService Disconnected");
+			finish(); //TODO better handling
+		}
+	};
+
+	private ServiceConnection gameServiceConn = new ServiceConnection()
+	{
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			Log.d(TAG, "GameService Connected");
+
+			gameService = ((GameService.LocalBinder) service).getService();
+
+			if (btService != null) //TODO cleanup
+			{
+				gameService.setBtService(btService);
+				btService.setup(gameService, dialogs);
+
+				gameService.setBoardView(boardView);
+
+				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
+				if (btService.blockIncoming() != blockIncoming)
+					btService.setBlockIncoming(blockIncoming);
+			}
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.d(TAG, "GameService Disconnected");
+			finish(); //TODO better handling
+		}
+	};
 
 	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
 	{
 		if (btAdapter != null)
 		{
-			if (gameService != null)
-				gameService.setBlockIncomingBt(!isChecked);
+			if (btService != null)
+				btService.setBlockIncoming(!isChecked);
 
 			if (isChecked)
 			{
@@ -231,30 +306,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btHostSwitch.setChecked(false);
 		}
 	};
-
-	public void disableHost()
-	{
-		btHostSwitch.setOnCheckedChangeListener(null);
-		btHostSwitch.setChecked(false);
-		gameService.setBlockIncomingBt(true);
-		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
-	}
-
-	public void setSubtitle(String message)
-	{
-		final ActionBar actionBar = getSupportActionBar();
-
-		if (actionBar != null)
-			actionBar.setSubtitle(message);
-	}
-
-	public void setTitle(String message)
-	{
-		final ActionBar actionBar = getSupportActionBar();
-
-		if (actionBar != null)
-			actionBar.setTitle(message);
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -378,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					if (!data.getExtras().getBoolean("newBoard"))
 						builder.board(gameService.getState().board());
 
-					gameService.startBtGame(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());
+					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());
 				}
 				break;
 		}
@@ -400,103 +451,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
-
-	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
-	{
-		@Override
-		public void onReceive(Context context, Intent intent)
-		{
-			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED))
-			{
-				if (btAdapter.getState() == BluetoothAdapter.STATE_ON)
-					enableBtService();
-				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
-				{
-					if (btService != null) //TODO move/make cleaner
-					{
-						btService.stop();
-
-						gameService.setBtServiceAndMain(null, MainActivity.this);
-						btService = null;
-
-						unbindService(btServerConn);
-					}
-
-					setSubtitle(null);
-					gameService.turnLocal();
-				}
-				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
-				{
-					setSubtitle(null);
-					btHostSwitch.setChecked(false);
-				}
-			}
-		}
-	};
-
-	private ServiceConnection btServerConn = new ServiceConnection()
-	{
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service)
-		{
-			Log.d(TAG, "btService Connected");
-			btService = ((BtService.LocalBinder) service).getService();
-
-			if (gameService != null)
-			{
-				gameService.setBtServiceAndMain(btService, MainActivity.this);
-
-				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
-				if (btService.blockIncoming() != blockIncoming)
-					gameService.setBlockIncomingBt(blockIncoming);
-			}
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name)
-		{
-			Log.d(TAG, "btService Disconnected");
-			btService = null;
-
-			if (gameService != null)
-				gameService.setBtServiceAndMain(null, MainActivity.this);
-		}
-	};
-
-	private void enableBtService()
-	{
-		if (btAdapter != null && btAdapter.isEnabled() && btService == null)
-			bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
-		else
-			setSubtitle(null);
-	}
-
-	private ServiceConnection gameServiceConn = new ServiceConnection()
-	{
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service)
-		{
-			Log.d(TAG, "GameService Connected");
-
-			gameService = ((GameService.LocalBinder) service).getService();
-			gameService.setBoardView(boardView);
-
-			if (btService != null)
-			{
-				gameService.setBtServiceAndMain(btService, MainActivity.this);
-
-				boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
-				if (btService.blockIncoming() != blockIncoming)
-					gameService.setBlockIncomingBt(blockIncoming);
-			}
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name)
-		{
-			Log.d(TAG, "GameService Disconnected");
-			gameService = null;
-			finish();
-		}
-	};
 }

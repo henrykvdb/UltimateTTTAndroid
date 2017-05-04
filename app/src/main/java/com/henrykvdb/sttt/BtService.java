@@ -2,71 +2,25 @@ package com.henrykvdb.sttt;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.JSONBoard;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.UUID;
-
-import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class BtService extends Service
 {
-	//Unique UUID for this application
-	public static final UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
-	private static final String TAG = "BluetoothService";
-
-	//Other fields
-	private LocalBroadcastManager uiBroadcaster;
+	//Fields //TODO sort
+	private LocalBroadcastManager btBroadcaster;
+	private final IBinder mBinder = new LocalBinder();
 	private BluetoothAdapter btAdapter;
 	private GameService gameService;
-	private Handler handler = null;
-
-	//State stuff
-	private State state = State.NONE;
-	private boolean blockIncoming = false;
-	private boolean connecting = false;
-
-	//Threads
-	private ListenThread listenThread;
-	private ConnectingThread connectingThread;
-	private ConnectedThread connectedThread;
-
-	public enum State
-	{
-		NONE,
-		LISTEN,
-		CONNECTING,
-		CONNECTED
-	}
-
-	public enum Message
-	{
-		SEND_BOARD_UPDATE,
-		SEND_SETUP,
-		RECEIVE_UNDO,
-		RECEIVE_SETUP,
-		TURN_LOCAL,
-		TOAST
-	}
-
-	// Binder given to clients
-	private final IBinder mBinder = new LocalBinder();
+	Bluetooth bt;
+	private Dialogs dialogs;
 
 	public class LocalBinder extends Binder
 	{
@@ -74,13 +28,6 @@ public class BtService extends Service
 		{
 			return BtService.this;
 		}
-	}
-
-	@Override
-	public void onCreate()
-	{
-		uiBroadcaster = LocalBroadcastManager.getInstance(this);
-		super.onCreate();
 	}
 
 	@Override
@@ -95,609 +42,208 @@ public class BtService extends Service
 		return START_STICKY;
 	}
 
-	public void sendEnemyToGui(String subtitle)
+	@Override
+	public void onCreate()
 	{
-		Intent intent = new Intent(Constants.UI_RESULT);
-		intent.putExtra("type", Constants.TYPE_SUBTITLE);
-		intent.putExtra("message", "against " + subtitle);
-		uiBroadcaster.sendBroadcast(intent);
+		super.onCreate();
+
+		btBroadcaster = LocalBroadcastManager.getInstance(this);
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+		unregisterReceiver(btStateReceiver);
+	}
+
+	public void setup(GameService gameService, Dialogs dialogs)
+	{
+		this.gameService = gameService;
+		this.dialogs = dialogs;
+
+		if (bt == null && btAdapter != null && btAdapter.isEnabled())
+			create();
+	}
+
+	public void setAllowIncoming(boolean allow)
+	{
+		Intent intent = new Intent(Constants.EVENT_UI);
+		intent.putExtra(Constants.EVENT_TYPE, Constants.TYPE_ALLOW_INCOMING_BT);
+		intent.putExtra(Constants.DATA_BOOLEAN_MAIN, allow);
+		btBroadcaster.sendBroadcast(intent);
+	}
+
+	public void connect(String address, GameState requestState)
+	{
+		if (!requestState.board().isDone())
+			bt.connect(address, requestState);
+		else
+			Log.d("GameService", "You can't send a finished board to the bt opponent");
 	}
 
 	public void setBlockIncoming(boolean blockIncoming)
 	{
-		this.blockIncoming = blockIncoming;
-
-		if (blockIncoming)
-		{
-			closeConnecting();
-			closeListen();
-		}
-		else
-		{
-			start();
-		}
+		if (bt != null)
+			bt.setBlockIncoming(blockIncoming);
 	}
 
 	public boolean blockIncoming()
 	{
-		return blockIncoming;
+		return bt == null || bt.blockIncoming();
 	}
 
-	public String getConnectedDeviceName()
+	private Bluetooth.BtCallback btCallback = new Bluetooth.BtCallback()
 	{
-		if (connectedThread != null)
-			return connectedThread.socket.getRemoteDevice().getName();
-
-		return null;
-	}
-
-	public void setup(GameService gameService, Handler handler)
-	{
-		Log.d(TAG, "Setup method called");
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		this.gameService = gameService;
-		this.handler = handler;
-
-		if (state != State.CONNECTED)
-			start();
-		else
-			sendEnemyToGui(connectedThread.socket.getRemoteDevice().getName());
-
-	}
-
-	public synchronized void start()
-	{
-		Log.d(TAG, "start");
-
-		closeConnecting();
-		closeConnected();
-		closeListen();
-
-		// Start the thread to listen on a BluetoothServerSocket
-		if (listenThread == null)
+		@Override
+		public void receive(GameState gs, boolean force)
 		{
-			listenThread = new ListenThread();
-			listenThread.start();
+			receiveSetup(GameState.builder().gs(gs).swapped(true).build(), force);
 		}
-	}
 
-	public synchronized void connect(String address)
-	{
-		closeConnecting();
-		closeConnected();
-		BluetoothDevice device = btAdapter.getRemoteDevice(address);
-		Log.d(TAG, "connect to: " + device);
-
-		// Start the thread to connect with the given device
-		connectingThread = new ConnectingThread(device);
-		connectingThread.start();
-	}
-
-	private synchronized void connected(BluetoothSocket socket, boolean isHost)
-	{
-		closeConnecting();
-		closeConnected();
-		Log.d(TAG, "connected");
-
-		if (!blockIncoming || !isHost)
+		@Override
+		public void undo(boolean force)
 		{
-			// Start the thread to manage the connection and perform transmissions
-			connectedThread = new ConnectedThread(socket);
-			connectedThread.start();
+			receiveUndo(force);
+		}
+	};
 
-			if (!isHost)
-				handler.obtainMessage(Message.SEND_SETUP.ordinal(), -1, -1).sendToTarget();
-		}
-		else
-		{
-			try
-			{
-				socket.close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
+	private void create()
+	{
+		stop();
+		if (gameService != null)
+			bt = new Bluetooth(this, gameService, btCallback);
 	}
 
-	public synchronized void stop()
+	private void stop()
 	{
-		Log.d(TAG, "stop");
-
 		try
 		{
-			connecting = true;
-			closeConnecting();
-			closeConnected();
-			closeListen();
+			if (bt != null)
+				bt.stop();
+			bt = null;
 		}
 		catch (Exception e)
 		{
 			//NOP
 		}
-
-		state = State.NONE;
 	}
 
-	private synchronized void closeListen()
+	public void restart()
 	{
-		if (listenThread != null)
-		{
-			listenThread.cancel();
-			listenThread = null;
-		}
-	}
-
-	private synchronized void closeConnecting()
-	{
-		if (connectingThread != null)
-		{
-			connectingThread.cancel();
-			connectingThread = null;
-		}
-	}
-
-	private synchronized void closeConnected()
-	{
-		if (connectedThread != null)
-		{
-			connectedThread.cancel();
-			connectedThread = null;
-		}
+		if (bt != null)
+			bt.start();
 	}
 
 	public void sendBoard(Board board)
 	{
-		ConnectedThread r;
-		synchronized (this)
-		{
-			if (state != State.CONNECTED) return;
-			r = connectedThread;
-		}
-
-		if (board != null)
-			r.boardUpdate(board);
+		if (bt != null)
+			bt.sendBoard(board);
 	}
 
-	public void sendState(GameState gs, boolean force)
+	private void receiveSetup(GameState requestState, boolean force)
 	{
-		ConnectedThread r;
-		synchronized (this)
+		bt.setRequestState(null);
+
+		if (!force)
 		{
-			if (state != State.CONNECTED) return;
-			r = connectedThread;
-		}
-
-		r.setupEnemyGame(gs.board(), gs.players().second.equals(Local), force);
-	}
-
-	public void requestUndo(boolean force)
-	{
-		ConnectedThread r;
-		synchronized (this)
-		{
-			if (state != State.CONNECTED) return;
-			r = connectedThread;
-		}
-
-		r.requestUndo(force);
-	}
-
-	public void updateLocalBoard(Board verifyBoard)
-	{
-		if (connectedThread != null)
-			connectedThread.localBoard = verifyBoard;
-	}
-
-	/**
-	 * This thread runs while listening for incoming connections. It behaves like a server-side client. It runs until a
-	 * connection is accepted (or until cancelled).
-	 */
-	private class ListenThread extends Thread
-	{
-		// The local server socket
-		private final BluetoothServerSocket serverSocket;
-
-		public ListenThread()
-		{
-			BluetoothServerSocket tmp = null;
-
-			// Create a new listening server socket
-			try
+			if (bt != null)
 			{
-				tmp = btAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure", UUID);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "listen() failed", e);
-			}
-			serverSocket = tmp;
-			state = BtService.State.LISTEN;
-		}
-
-		public void run()
-		{
-			Log.d(TAG, "BEGIN ListenThread" + this);
-			setName("ListenThread");
-
-			BluetoothSocket socket;
-
-			// Listen to the server socket if we're not connected
-			while (state != BtService.State.CONNECTED)
-			{
-				try
+				if (!bt.blockIncoming())
 				{
-					// This is a blocking call and will only return on a
-					// successful connection or an exception
-					socket = serverSocket.accept();
-				}
-				catch (IOException e)
-				{
-					Log.e(TAG, "accept() failed", e);
-					break;
-				}
-
-				// If a connection was accepted
-				if (socket != null)
-				{
-					synchronized (BtService.this)
+					final boolean[] allowed = {false};
+					dialogs.askUser(bt.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
 					{
-						switch (state)
+						if (bt != null)
 						{
-							case LISTEN:
-							case CONNECTING:
-								// Situation normal. Start the connected thread.
-								connected(socket, true);
-								break;
-							case NONE:
-							case CONNECTED:
-								// Either not ready or already connected. Terminate new socket.
-								try
-								{
-									socket.close();
-								}
-								catch (IOException e)
-								{
-									Log.e(TAG, "Could not close unwanted socket", e);
-								}
-								break;
-						}
-					}
-				}
-			}
-			Log.i(TAG, "END ListenThread");
-
-		}
-
-		public void cancel()
-		{
-			Log.d(TAG, "cancel " + this);
-			try
-			{
-				serverSocket.close();
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "close() of server failed", e);
-			}
-		}
-	}
-
-
-	/**
-	 * This thread runs while attempting to make an outgoing connection with a device. It runs straight through; the
-	 * connection either succeeds or fails.
-	 */
-	private class ConnectingThread extends Thread
-	{
-		private final BluetoothSocket socket;
-
-		private ConnectingThread(BluetoothDevice device)
-		{
-			connecting = true;
-			BluetoothSocket tmp = null;
-
-			// Get a BluetoothSocket for a connection with the given BluetoothDevice
-			try
-			{
-				tmp = device.createRfcommSocketToServiceRecord(UUID);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "create() failed", e);
-			}
-			socket = tmp;
-			state = BtService.State.CONNECTING;
-		}
-
-		public void run()
-		{
-			Log.i(TAG, "BEGIN connectingThread");
-			setName("ConnectingThread");
-
-			// Always cancel discovery because it will slow down a connection
-			btAdapter.cancelDiscovery();
-
-			// Make a connection to the BluetoothSocket
-			try
-			{
-				// This is a blocking call and will only return on a successful connection or an exception
-				socket.connect();
-			}
-			catch (IOException e)
-			{
-				// Close the socket
-				try
-				{
-					socket.close();
-				}
-				catch (IOException e2)
-				{
-					Log.e(TAG, "unable to close() socket during connection failure", e2);
-				}
-
-				if (!connecting)
-				{
-					handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
-					BtService.this.start();
-				}
-
-				handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Unable to connect to device").sendToTarget();
-				state = BtService.State.NONE;
-
-				connecting = false;
-
-				return;
-			}
-
-			// Reset the ConnectThread because we're done
-			synchronized (BtService.this)
-			{
-				connectingThread = null;
-			}
-
-			// Start the connected thread
-			connected(socket, false);
-		}
-
-		public void cancel()
-		{
-			try
-			{
-				socket.close();
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "close() of connect socket failed", e);
-			}
-		}
-	}
-
-	/**
-	 * This thread runs during a connection with a remote device. It handles all incoming and outgoing transmissions.
-	 */
-	private class ConnectedThread extends Thread
-	{
-		private final BluetoothSocket socket;
-		private final InputStream inStream;
-		private final OutputStream outStream;
-
-		private Board localBoard;
-
-		public ConnectedThread(BluetoothSocket socket)
-		{
-			connecting = false;
-			Log.d(TAG, "create ConnectedThread");
-			this.socket = socket;
-			InputStream tmpIn = null;
-			OutputStream tmpOut = null;
-
-			// Get the BluetoothSocket input and output streams
-			try
-			{
-				tmpIn = socket.getInputStream();
-				tmpOut = socket.getOutputStream();
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "temp sockets not created", e);
-			}
-
-			inStream = tmpIn;
-			outStream = tmpOut;
-			handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connected to " + socket.getRemoteDevice().getName()).sendToTarget();
-			sendEnemyToGui(socket.getRemoteDevice().getName());
-			state = BtService.State.CONNECTED;
-		}
-
-		public void run()
-		{
-			Log.i(TAG, "BEGIN connectedThread");
-			byte[] buffer = new byte[1024];
-
-			// Keep listening to the InputStream while connected
-			while (state == BtService.State.CONNECTED)
-			{
-				try
-				{
-					// Read from the InputStream
-					inStream.read(buffer); //TODO improve
-
-					JSONObject json = new JSONObject(new String(buffer));
-
-					int message = json.getInt("message");
-
-					if (message == Message.SEND_BOARD_UPDATE.ordinal())
-					{
-						Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
-
-						if (!newBoard.equals(localBoard))
-						{
-							try
+							if (allow)
 							{
-								Coord newMove = newBoard.getLastMove();
-								Board verifyBoard = localBoard.copy();
-								verifyBoard.play(newBoard.getLastMove());
-								if (verifyBoard.equals(newBoard))
-								{
-									Log.d(TAG, "We received a valid board");
-									if (gameService != null)
-										gameService.play(GameService.Source.Bluetooth, newMove);
-									else
-										Log.e(TAG, "Error playing move, btBot is null");
-								}
-								else
-								{
-									BtService.this.start();
-									handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
-									handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
-								}
+								allowed[0] = true;
+								setAllowIncoming(false);
+								bt.updateLocalBoard(requestState.board());
+								bt.sendSetup(requestState, true);
+								gameService.newGame(requestState);
 							}
-							catch (Throwable t)
+							//If you press yes it will still callback false when dismissed
+							else if (!allowed[0])
 							{
-								BtService.this.start();
-								handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
-								handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Games got desynchronized").sendToTarget();
+								if (bt.state().equals(Bluetooth.State.CONNECTED))
+									bt.closeConnected();
 							}
 						}
+					});
+				}
+				else
+				{
+					bt.start();
+				}
+			}
+		}
+		else
+		{
+			bt.updateLocalBoard(requestState.board());
+			gameService.newGame(requestState);
+		}
+	}
 
-					}
-					else if (message == Message.RECEIVE_SETUP.ordinal())
+	public void sendUndo()
+	{
+		if (bt != null)
+			bt.sendUndo(false);
+	}
+
+	private void receiveUndo(boolean force)
+	{
+		if (bt != null)
+		{
+			if (!force)
+			{
+				dialogs.askUser(bt.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
+				{
+					if (allow && bt != null)
 					{
-						android.os.Message msg = handler.obtainMessage(message);
-						Bundle bundle = new Bundle();
-
-						Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
-						localBoard = board;
-
-						bundle.putBoolean("swapped", json.getBoolean("swapped"));
-						bundle.putBoolean("force", json.getBoolean("force"));
-						bundle.putSerializable("board", board);
-
-						msg.setData(bundle);
-						handler.sendMessage(msg);
+						gameService.undo(true);
+						bt.updateLocalBoard(gameService.getState().board());
+						bt.sendUndo(true);
 					}
-					else if (message == Message.RECEIVE_UNDO.ordinal())
-					{
-						handler.obtainMessage(Message.RECEIVE_UNDO.ordinal(), json.getBoolean("force")).sendToTarget();
-					}
-				}
-				catch (IOException e)
-				{
-					Log.e(TAG, "disconnected", e);
-
-					if (!connecting)
-					{
-						handler.obtainMessage(Message.TURN_LOCAL.ordinal()).sendToTarget();
-						BtService.this.start();
-					}
-
-					handler.obtainMessage(Message.TOAST.ordinal(), -1, -1, "Connection lost").sendToTarget();
-					state = BtService.State.NONE;
-					connecting = false;
-
-					break;
-				}
-				catch (JSONException e)
-				{
-					Log.e(TAG, "JSON read parsing failed");
-					e.printStackTrace();
-				}
+				});
 			}
-		}
-
-		private void boardUpdate(Board board)
-		{
-			try
+			else
 			{
-				localBoard = board;
-
-				JSONObject json = new JSONObject();
-				try
-				{
-					json.put("message", Message.SEND_BOARD_UPDATE.ordinal());
-					json.put("board", JSONBoard.toJSON(board).toString());
-				}
-				catch (JSONException e)
-				{
-					e.printStackTrace();
-				}
-
-				byte[] data = json.toString().getBytes();
-
-				outStream.write(data);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "Exception during boardUpdate", e);
-			}
-		}
-
-		private void setupEnemyGame(Board board, boolean swapped, boolean force)
-		{
-			try
-			{
-				JSONObject json = new JSONObject();
-				try
-				{
-					json.put("message", Message.RECEIVE_SETUP.ordinal());
-					json.put("force", force);
-					json.put("swapped", swapped);
-					json.put("board", JSONBoard.toJSON(board).toString());
-				}
-				catch (JSONException e)
-				{
-					e.printStackTrace();
-				}
-
-				byte[] data = json.toString().getBytes();
-
-				outStream.write(data);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "Exception during boardUpdate", e);
-			}
-		}
-
-		private void requestUndo(boolean force)
-		{
-			try
-			{
-				JSONObject json = new JSONObject();
-				try
-				{
-					json.put("message", Message.RECEIVE_UNDO.ordinal());
-					json.put("force", force);
-				}
-				catch (JSONException e)
-				{
-					e.printStackTrace();
-				}
-
-				byte[] data = json.toString().getBytes();
-
-				outStream.write(data);
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "Exception during undo", e);
-			}
-		}
-
-		private void cancel()
-		{
-			try
-			{
-				inStream.close();
-				outStream.close();
-				socket.close();
-			}
-			catch (IOException e)
-			{
-				Log.e(TAG, "close() of connect socket failed", e);
+				gameService.undo(true);
+				bt.updateLocalBoard(gameService.getState().board());
 			}
 		}
 	}
+
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED))
+			{
+				if (btAdapter.getState() == BluetoothAdapter.STATE_ON)
+				{
+					create();
+				}
+				if (btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
+				{
+					if (bt != null)
+						stop();
+
+					btBroadcaster.sendBroadcast(new Intent(Constants.EVENT_UI).putExtra(Constants.EVENT_TYPE, Constants.TYPE_SUBTITLE));
+					gameService.turnLocal();
+				}
+				if (btAdapter.getState() == BluetoothAdapter.STATE_OFF)
+				{
+					btBroadcaster.sendBroadcast(new Intent(Constants.EVENT_UI).putExtra(Constants.EVENT_TYPE, Constants.TYPE_SUBTITLE));
+					setAllowIncoming(false);
+				}
+			}
+		}
+	};
 }

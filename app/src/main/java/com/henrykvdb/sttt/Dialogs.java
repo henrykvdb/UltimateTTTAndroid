@@ -9,6 +9,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -175,6 +176,39 @@ public class Dialogs
 				.setPositiveButton("Start", dialogClickListener)
 				.setNegativeButton("Close", dialogClickListener)
 				.show());
+	}
+
+	private AlertDialog btAskDialog;
+
+	public void askUser(String message, com.henrykvdb.sttt.Callback<Boolean> callBack)
+	{
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					callBack.callback(true);
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					callBack.callback(false);
+					break;
+			}
+		};
+
+		new Handler(activity.getMainLooper()).post(() ->
+		{
+			if (btAskDialog != null && btAskDialog.isShowing())
+				btAskDialog.dismiss();
+
+			btAskDialog = new AlertDialog.Builder(activity).setMessage(message)
+					.setPositiveButton("Yes", dialogClickListener)
+					.setNegativeButton("No", dialogClickListener)
+					.setOnDismissListener(dialogInterface -> callBack.callback(false))
+					.show();
+
+			keepDialog(btAskDialog);
+		});
 	}
 
 	// Prevent dialog dismiss when orientation changes

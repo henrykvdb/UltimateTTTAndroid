@@ -3,11 +3,8 @@ package com.henrykvdb.sttt;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
@@ -23,21 +20,19 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class GameService extends Service implements Closeable
 {
-	// Binder given to clients
 	private final IBinder mBinder = new GameService.LocalBinder();
 
 	private BoardView boardView;
 	private GameThread thread;
-	private BtHandler btHandler;
 	private GameState gs;
+	private BtService btService;
 
 	Toast toast;
-	private MainActivity main;
-	private LocalBroadcastManager uiBroadcaster;
+	private LocalBroadcastManager gameBroadcaster;
 
-	public void setBlockIncomingBt(boolean blockIncomingBt)
+	public void setBtService(BtService btService)
 	{
-		btHandler.setBlockIncoming(blockIncomingBt);
+		this.btService = btService;
 	}
 
 	public enum Source
@@ -58,8 +53,8 @@ public class GameService extends Service implements Closeable
 	@Override
 	public void onCreate()
 	{
-		uiBroadcaster = LocalBroadcastManager.getInstance(this);
 		super.onCreate();
+		gameBroadcaster = LocalBroadcastManager.getInstance(this);
 	}
 
 	@Override
@@ -71,18 +66,15 @@ public class GameService extends Service implements Closeable
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
-		btHandler = new BtHandler();
-		btHandler.setGameService(this);
-
 		return START_STICKY;
 	}
 
 	public void sendToUi(String type, String title)
 	{
-		Intent intent = new Intent(Constants.UI_RESULT);
-		intent.putExtra("type", type);
-		intent.putExtra("message", title);
-		uiBroadcaster.sendBroadcast(intent);
+		Intent intent = new Intent(Constants.EVENT_UI);
+		intent.putExtra(Constants.EVENT_TYPE, type);
+		intent.putExtra(Constants.DATA_STRING, title);
+		gameBroadcaster.sendBroadcast(intent);
 	}
 
 	public void setBoardView(BoardView boardView)
@@ -100,19 +92,12 @@ public class GameService extends Service implements Closeable
 	private void updateTitle()
 	{
 		if (gs.isBluetooth())
-			sendToUi(Constants.TYPE_TITLE,"Bluetooth Game");
+			sendToUi(Constants.TYPE_TITLE, "Bluetooth Game");
 		else if (gs.isAi())
-			sendToUi(Constants.TYPE_TITLE,"AI Game");
+			sendToUi(Constants.TYPE_TITLE, "AI Game");
 		else if (gs.isLocal()) //Normal local game
-			sendToUi(Constants.TYPE_TITLE,"Human Game");
+			sendToUi(Constants.TYPE_TITLE, "Human Game");
 		else throw new IllegalStateException();
-	}
-
-	public void setBtServiceAndMain(BtService btService, MainActivity mainActivity)//TODO Remove need for mainActivity
-	{
-		this.main = mainActivity;
-		btHandler.setBtService(btService);
-		btHandler.setMain(mainActivity);
 	}
 
 	public GameState getState()
@@ -123,7 +108,7 @@ public class GameService extends Service implements Closeable
 	public void undo(boolean force)
 	{
 		if (!force && gs.isBluetooth())
-			btHandler.requestUndo();
+			btService.sendUndo();
 		else
 		{
 			if (gs.boards().size() > 1)
@@ -157,22 +142,21 @@ public class GameService extends Service implements Closeable
 
 		if (!gs.isBluetooth())
 		{
-			sendToUi(Constants.TYPE_SUBTITLE,null);
-			btHandler.resetBluetooth();
+			sendToUi(Constants.TYPE_SUBTITLE, null);
+			//if (btService != null)
+			//	btService.restart();
 		}
 		else
-			main.disableHost();
+		{
+			Intent intent = new Intent(Constants.EVENT_UI);
+			intent.putExtra(Constants.EVENT_TYPE, Constants.TYPE_ALLOW_INCOMING_BT);
+			intent.putExtra(Constants.DATA_BOOLEAN_MAIN, false); //Allow
+			intent.putExtra(Constants.DATA_BOOLEAN_EXTRA, true); //Silent
+			gameBroadcaster.sendBroadcast(intent);
+		}
 
 		thread = new GameThread();
 		thread.start();
-	}
-
-	public void startBtGame(String address, GameState requestState)
-	{
-		if (!requestState.board().isDone() && btHandler != null)
-			btHandler.connect(address, requestState);
-		else
-			Log.d("GameService", "You can't send a finished board to the bt opponent");
 	}
 
 	public void newLocal()
@@ -234,15 +218,7 @@ public class GameService extends Service implements Closeable
 			newBoard.play(move);
 
 			if (gs.players().contains(GameService.Source.Bluetooth))
-			{
-				Message msg = gs.btHandler().obtainMessage(BtService.Message.SEND_BOARD_UPDATE.ordinal());
-
-				Bundle bundle = new Bundle();
-				bundle.putSerializable("myBoard", newBoard);
-				msg.setData(bundle);
-
-				gs.btHandler().sendMessage(msg);
-			}
+				btService.sendBoard(newBoard);
 
 			gs.pushBoard(newBoard);
 		}
