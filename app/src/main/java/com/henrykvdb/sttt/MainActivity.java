@@ -130,6 +130,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onStart();
 
+		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+
 		//Register the uiReceiver
 		LocalBroadcastManager.getInstance(this).registerReceiver((uiReceiver), new IntentFilter(Constants.UI_RESULT));
 
@@ -197,9 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
-		MenuItem btHost = navigationView.getMenu().findItem(R.id.nav_bt_host_switch);
-		btHostSwitch = (Switch) MenuItemCompat.getActionView(btHost);
-		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+		btHostSwitch = (Switch) MenuItemCompat.getActionView(navigationView.getMenu().findItem(R.id.nav_bt_host_switch));
 		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
 	}
 

@@ -163,11 +163,10 @@ public class BtService extends Service
 
 	public synchronized void connect(String address)
 	{
-		closeListen();
+		closeConnecting();
+		closeConnected();
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.d(TAG, "connect to: " + device);
-
-		start();
 
 		// Start the thread to connect with the given device
 		connectingThread = new ConnectingThread(device);
@@ -176,9 +175,9 @@ public class BtService extends Service
 
 	private synchronized void connected(BluetoothSocket socket, boolean isHost)
 	{
+		closeConnecting();
+		closeConnected();
 		Log.d(TAG, "connected");
-
-		start();
 
 		if (!blockIncoming || !isHost)
 		{
@@ -221,7 +220,7 @@ public class BtService extends Service
 		state = State.NONE;
 	}
 
-	private void closeListen()
+	private synchronized void closeListen()
 	{
 		if (listenThread != null)
 		{
@@ -230,7 +229,7 @@ public class BtService extends Service
 		}
 	}
 
-	private void closeConnecting()
+	private synchronized void closeConnecting()
 	{
 		if (connectingThread != null)
 		{
@@ -239,7 +238,7 @@ public class BtService extends Service
 		}
 	}
 
-	private void closeConnected()
+	private synchronized void closeConnected()
 	{
 		if (connectedThread != null)
 		{
