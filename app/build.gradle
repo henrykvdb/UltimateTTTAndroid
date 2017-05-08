@@ -9,7 +9,6 @@ android {
         targetSdkVersion 25
         versionCode 11
         versionName "0.0.13"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         jackOptions {
             enabled true
         }

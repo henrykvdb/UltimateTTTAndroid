@@ -154,7 +154,7 @@ public class GameState implements Serializable
 		return players.contains(AI);
 	}
 
-	public boolean isLocal()
+	public boolean isHuman()
 	{
 		return players.first == Local && players.second == Local;
 	}

@@ -14,6 +14,7 @@ public class Constants
 
 	//Data included
 	public static final String DATA_STRING = "string";
-	public static final String DATA_BOOLEAN_MAIN = "boolean0";
-	public static final String DATA_BOOLEAN_EXTRA = "boolean1";
+	public static final String DATA_BOOLEAN_ALLOW = "allow";
+	public static final String DATA_BOOLEAN_SILENT = "silent";
+
 }

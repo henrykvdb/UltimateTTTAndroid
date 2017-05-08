@@ -96,7 +96,7 @@ public class Bluetooth
 		setup();
 	}
 
-	public void setEnemyInSubtitle(String name)
+	public void setEnemy(String name)
 	{
 		Intent intent = new Intent(Constants.EVENT_UI);
 		intent.putExtra(Constants.EVENT_TYPE, Constants.TYPE_SUBTITLE);
@@ -141,14 +141,14 @@ public class Bluetooth
 		if (state.get() != CONNECTED)
 			start();
 		else
-			setEnemyInSubtitle(connectedThread.socket.getRemoteDevice().getName());
+			setEnemy(connectedThread.socket.getRemoteDevice().getName());
 
 	}
 
 	public void start()
 	{
-		new RuntimeException().printStackTrace();
-		Log.d(TAG, "start");
+		//In order to see who called start()
+		new RuntimeException("start").printStackTrace();
 
 		closeConnecting();
 		closeConnected();
@@ -527,7 +527,7 @@ public class Bluetooth
 			inStream = tmpIn;
 			outStream = tmpOut;
 			toast("Connected to " + socket.getRemoteDevice().getName());
-			setEnemyInSubtitle(socket.getRemoteDevice().getName());
+			setEnemy(socket.getRemoteDevice().getName());
 			state.set(CONNECTED);
 		}
 

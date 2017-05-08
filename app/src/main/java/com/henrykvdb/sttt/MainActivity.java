@@ -89,8 +89,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					Toast.makeText(context, intent.getStringExtra(Constants.DATA_STRING), Toast.LENGTH_SHORT).show();
 					break;
 				case Constants.TYPE_ALLOW_INCOMING_BT:
-					boolean allow = intent.getBooleanExtra(Constants.DATA_BOOLEAN_MAIN, true);
-					boolean silent = intent.getBooleanExtra(Constants.DATA_BOOLEAN_EXTRA, false);
+					boolean allow = intent.getBooleanExtra(Constants.DATA_BOOLEAN_ALLOW, true);
+					boolean silent = intent.getBooleanExtra(Constants.DATA_BOOLEAN_SILENT, false);
 
 					if (!silent)
 						btHostSwitch.setChecked(allow);

@@ -65,15 +65,24 @@ public class BtService extends Service
 		this.gameService = gameService;
 		this.dialogs = dialogs;
 
-		if (bt == null && btAdapter != null && btAdapter.isEnabled())
-			create();
+		if (bt == null)
+		{
+			if (btAdapter != null && btAdapter.isEnabled())
+				create();
+		}
+		else
+		{
+			if (bt.state() == Bluetooth.State.CONNECTED)
+				bt.setEnemy(bt.getConnectedDeviceName());
+		}
+
 	}
 
 	public void setAllowIncoming(boolean allow)
 	{
 		Intent intent = new Intent(Constants.EVENT_UI);
 		intent.putExtra(Constants.EVENT_TYPE, Constants.TYPE_ALLOW_INCOMING_BT);
-		intent.putExtra(Constants.DATA_BOOLEAN_MAIN, allow);
+		intent.putExtra(Constants.DATA_BOOLEAN_ALLOW, allow);
 		btBroadcaster.sendBroadcast(intent);
 	}
 

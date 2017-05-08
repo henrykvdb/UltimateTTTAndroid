@@ -95,7 +95,7 @@ public class GameService extends Service implements Closeable
 			sendToUi(Constants.TYPE_TITLE, "Bluetooth Game");
 		else if (gs.isAi())
 			sendToUi(Constants.TYPE_TITLE, "AI Game");
-		else if (gs.isLocal()) //Normal local game
+		else if (gs.isHuman()) //Normal local game
 			sendToUi(Constants.TYPE_TITLE, "Human Game");
 		else throw new IllegalStateException();
 	}
@@ -143,15 +143,16 @@ public class GameService extends Service implements Closeable
 		if (!gs.isBluetooth())
 		{
 			sendToUi(Constants.TYPE_SUBTITLE, null);
-			//if (btService != null)
-			//	btService.restart();
+
+			if (btService != null)
+				btService.restart();
 		}
 		else
 		{
 			Intent intent = new Intent(Constants.EVENT_UI);
 			intent.putExtra(Constants.EVENT_TYPE, Constants.TYPE_ALLOW_INCOMING_BT);
-			intent.putExtra(Constants.DATA_BOOLEAN_MAIN, false); //Allow
-			intent.putExtra(Constants.DATA_BOOLEAN_EXTRA, true); //Silent
+			intent.putExtra(Constants.DATA_BOOLEAN_ALLOW, false); //Allow
+			intent.putExtra(Constants.DATA_BOOLEAN_SILENT, true); //Silent
 			gameBroadcaster.sendBroadcast(intent);
 		}
 

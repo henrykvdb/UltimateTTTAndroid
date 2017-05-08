@@ -112,7 +112,6 @@ public class BoardView extends View implements Serializable
 			//Some helper vars
 			boolean xNext = board.nextPlayer() == PLAYER;
 			GameState.Players players = gameState.players();
-			boolean local = gameState.isLocal();
 
 			//Only if not local game
 			boolean yourTurn = board.nextPlayer() == PLAYER
@@ -120,10 +119,12 @@ public class BoardView extends View implements Serializable
 					: players.second == GameService.Source.Local;
 
 			nextPlayerView.setTextColor(xNext ? Color.BLUE : Color.RED);
+			nextPlayerView.setText(null);
 
+			//TODO cleanup
 			if (!board.isDone())
 			{
-				if (!local)
+				if (!gameState.isHuman())
 					nextPlayerView.setText(yourTurn ? "It is your turn!" : "Waiting on the enemy!");
 			}
 			else
@@ -143,7 +144,7 @@ public class BoardView extends View implements Serializable
 				}
 				else
 				{
-					if (local)
+					if (gameState.isHuman())
 					{
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
 						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + " won the game!");
