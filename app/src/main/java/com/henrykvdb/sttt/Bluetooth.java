@@ -572,14 +572,16 @@ public class Bluetooth
 								else
 								{
 									Bluetooth.this.start();
-									gameService.turnLocal();
+									if (gameService != null)
+										gameService.turnLocal();
 									toast("Games got desynchronized");
 								}
 							}
 							catch (Throwable t)
 							{
 								Bluetooth.this.start();
-								gameService.turnLocal();
+								if (gameService != null)
+									gameService.turnLocal();
 								toast("Games got desynchronized");
 							}
 						}
@@ -607,7 +609,8 @@ public class Bluetooth
 
 					if (!connecting)
 					{
-						gameService.turnLocal();
+						if (gameService != null)
+							gameService.turnLocal();
 						Bluetooth.this.start();
 					}
 
