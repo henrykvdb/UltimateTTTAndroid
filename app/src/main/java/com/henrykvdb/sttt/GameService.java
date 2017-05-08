@@ -20,15 +20,15 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 
 public class GameService extends Service implements Closeable
 {
-	private final IBinder mBinder = new GameService.LocalBinder();
+	private final IBinder mBinder = new LocalBinder();
+	private LocalBroadcastManager gameBroadcaster;
+	private Toast toast;
+
+	private BtService btService;
 
 	private BoardView boardView;
 	private GameThread thread;
 	private GameState gs;
-	private BtService btService;
-
-	Toast toast;
-	private LocalBroadcastManager gameBroadcaster;
 
 	public void setBtService(BtService btService)
 	{

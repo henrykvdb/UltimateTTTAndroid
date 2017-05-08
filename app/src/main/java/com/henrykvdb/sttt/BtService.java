@@ -14,13 +14,15 @@ import com.flaghacker.uttt.common.Board;
 
 public class BtService extends Service
 {
-	//Fields //TODO sort
-	private LocalBroadcastManager btBroadcaster;
+
 	private final IBinder mBinder = new LocalBinder();
-	private BluetoothAdapter btAdapter;
+	private LocalBroadcastManager btBroadcaster;
+
 	private GameService gameService;
-	Bluetooth bt;
+
+	private BluetoothAdapter btAdapter;
 	private Dialogs dialogs;
+	private Bluetooth bt;
 
 	public class LocalBinder extends Binder
 	{

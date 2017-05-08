@@ -44,24 +44,9 @@ import static com.henrykvdb.sttt.GameService.Source.Local;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
-	//Debug
-	private static final String TAG = "MainActivity";
-
-	//New bt game request code
-	private static final int REQUEST_NEW_BLUETOOTH = 100;
-
-	//Permission request codes
-	private static final int REQUEST_ENABLE_BT = 200;
-	private static final int REQUEST_ENABLE_DSC = 201;
-	private static final int REQUEST_COARSE_LOCATION = 202;
-
 	//Services
 	private BtService btService;
 	private GameService gameService;
-
-	//Started with bluetooth stuff
-	private boolean startedWithBt;
-	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
 	//UI
 	private BoardView boardView;
@@ -69,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	//Other
 	private BluetoothAdapter btAdapter;
+	private boolean startedWithBt;
 	private Dialogs dialogs;
 
 	//Receiver
@@ -118,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		dialogs = new Dialogs(this);
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		startedWithBt = (savedInstanceState != null)
-				? savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false)
+				? savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY, false)
 				: btAdapter != null && btAdapter.isEnabled();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
@@ -183,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
+		outState.putBoolean(Constants.STARTED_WITH_BT_KEY, startedWithBt);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -224,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			Log.d(TAG, "btService Connected");
+			Log.d("MainActivity", "btService Connected");
 			btService = ((BtService.LocalBinder) service).getService();
 
 			if (gameService != null) //TODO cleanup
@@ -243,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
-			Log.d(TAG, "btService Disconnected");
+			Log.d("MainActivity", "btService Disconnected");
 			finish(); //TODO better handling
 		}
 	};
@@ -253,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service)
 		{
-			Log.d(TAG, "GameService Connected");
+			Log.d("MainActivity", "GameService Connected");
 
 			gameService = ((GameService.LocalBinder) service).getService();
 
@@ -273,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onServiceDisconnected(ComponentName name)
 		{
-			Log.d(TAG, "GameService Disconnected");
+			Log.d("MainActivity", "GameService Disconnected");
 			finish(); //TODO better handling
 		}
 	};
@@ -291,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				{
 					Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 					discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-					startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
+					startActivityForResult(discoverableIntent, Constants.REQUEST_ENABLE_DSC);
 				}
 			}
 			else
@@ -376,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (!btAdapter.isEnabled())
 			{
 				Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-				startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+				startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BT);
 			}
 			else
 			{
@@ -385,13 +371,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						PackageManager.PERMISSION_GRANTED)
 				{
 					ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-							REQUEST_COARSE_LOCATION);
+							Constants.REQUEST_COARSE_LOCATION);
 				}
 				else
 				{
 					//Make the bluetooth-picker main
 					Intent serverIntent = new Intent(getApplicationContext(), BtPickerActivity.class);
-					startActivityForResult(serverIntent, REQUEST_NEW_BLUETOOTH);
+					startActivityForResult(serverIntent, Constants.REQUEST_START_BTPICKER);
 				}
 			}
 		}
@@ -412,15 +398,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		switch (requestCode)
 		{
-			case REQUEST_ENABLE_BT:
+			case Constants.REQUEST_ENABLE_BT:
 				if (resultCode == RESULT_OK)
 					pickBluetooth();
 				break;
-			case REQUEST_ENABLE_DSC:
+			case Constants.REQUEST_ENABLE_DSC:
 				if (resultCode == RESULT_CANCELED)
 					btHostSwitch.setChecked(false);
 				break;
-			case REQUEST_NEW_BLUETOOTH:
+			case Constants.REQUEST_START_BTPICKER:
 				if (resultCode == RESULT_OK)
 				{
 					//Create the requested gameState from the activity result
@@ -442,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		switch (requestCode)
 		{
-			case REQUEST_COARSE_LOCATION:
+			case Constants.REQUEST_COARSE_LOCATION:
 				// If request is cancelled, the result arrays are empty.
 				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 					pickBluetooth();

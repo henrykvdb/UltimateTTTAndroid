@@ -178,7 +178,7 @@ public class BtPickerActivity extends Activity
 				boolean shouldAdd = true;
 				for (BluetoothDevice listDevice : devices)
 					if (listDevice.getAddress().equals(device.getAddress()))
-						shouldAdd=false;
+						shouldAdd = false;
 
 				if (shouldAdd)
 					devices.add(device);
