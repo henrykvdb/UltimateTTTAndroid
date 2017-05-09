@@ -7,8 +7,8 @@ android {
         applicationId "com.henrykvdb.sttt"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 11
-        versionName "0.0.13"
+        versionCode 12
+        versionName "0.0.14"
         jackOptions {
             enabled true
         }

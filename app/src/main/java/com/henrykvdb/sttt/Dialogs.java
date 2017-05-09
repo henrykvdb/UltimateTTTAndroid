@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -170,9 +172,50 @@ public class Dialogs
 			}
 		};
 
-		Dialogs.keepDialog(new AlertDialog.Builder(activity)
+		keepDialog(new AlertDialog.Builder(activity)
 				.setView(layout)
 				.setTitle("Start a new ai game?")
+				.setPositiveButton("Start", dialogClickListener)
+				.setNegativeButton("Close", dialogClickListener)
+				.show());
+	}
+
+	public void btPicker(Callback<String> callback)
+	{
+		final boolean[] swapped = new boolean[1];
+
+		LayoutInflater inflater = (LayoutInflater) activity.getSystemService(LAYOUT_INFLATER_SERVICE);
+		View layout = inflater.inflate(R.layout.dialog_ai, (ViewGroup) activity.findViewById(R.id.new_ai_layout));
+
+		RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
+		beginner.setOnCheckedChangeListener((group, checkedId) ->
+				swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
+
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					//callback.callback(); //TODO CALLBACK
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					dialog.dismiss();
+					break;
+			}
+		};
+
+
+		//Create custom title
+		TypedValue outValue = new TypedValue();
+		activity.getTheme().resolveAttribute(R.attr.alertDialogTheme, outValue, true);
+		TextView tv = new TextView(activity,null,outValue.resourceId);
+		tv.setText("This is a title");
+
+		keepDialog(new AlertDialog.Builder(activity)
+				.setView(layout)
+				.setTitle(Html.fromHtml("<font color='#000000'>Start a new ai game?</font>"))
+				//.setCustomTitle(tv)
 				.setPositiveButton("Start", dialogClickListener)
 				.setNegativeButton("Close", dialogClickListener)
 				.show());
