@@ -6,7 +6,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Pair;
-import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Timer;
@@ -22,7 +21,6 @@ public class GameService extends Service implements Closeable
 {
 	private final IBinder mBinder = new LocalBinder();
 	private LocalBroadcastManager gameBroadcaster;
-	private Toast toast;
 
 	private BtService btService;
 
@@ -123,11 +121,7 @@ public class GameService extends Service implements Closeable
 			}
 			else
 			{
-				if (toast == null)
-					toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-
-				toast.setText("Could not undo further");
-				toast.show();
+				sendToUi(Constants.TYPE_TOAST, "No previous moves");
 			}
 		}
 	}

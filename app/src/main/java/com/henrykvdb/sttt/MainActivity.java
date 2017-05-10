@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	//Receiver
 	private BroadcastReceiver uiReceiver = new BroadcastReceiver()
 	{
+		public Toast toast;
+
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
@@ -72,7 +74,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					setSubtitle(intent.getStringExtra(Constants.DATA_STRING));
 					break;
 				case Constants.TYPE_TOAST:
-					Toast.makeText(context, intent.getStringExtra(Constants.DATA_STRING), Toast.LENGTH_SHORT).show();
+					if (toast == null)
+						toast = Toast.makeText(context, "", Toast.LENGTH_SHORT);
+					toast.setText(intent.getStringExtra(Constants.DATA_STRING));
+					toast.show();
 					break;
 				case Constants.TYPE_ALLOW_INCOMING_BT:
 					boolean allow = intent.getBooleanExtra(Constants.DATA_BOOLEAN_ALLOW, true);
