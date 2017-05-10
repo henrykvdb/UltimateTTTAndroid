@@ -415,9 +415,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				if (resultCode == RESULT_OK)
 				{
 					//Create the requested gameState from the activity result
-					boolean swapped = data.getExtras().getBoolean("start") ^ gameService.getState().board().nextPlayer() == Player.PLAYER;
+					boolean newBoard = data.getExtras().getBoolean("newBoard");
+					boolean swapped = data.getExtras().getBoolean("start")
+							^ (newBoard || gameService.getState().board().nextPlayer() == Player.PLAYER);
 					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
-					if (!data.getExtras().getBoolean("newBoard"))
+					if (!newBoard)
 						builder.board(gameService.getState().board());
 
 					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());

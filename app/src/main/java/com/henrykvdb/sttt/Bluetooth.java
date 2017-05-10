@@ -25,7 +25,7 @@ import static com.henrykvdb.sttt.Bluetooth.State.CONNECTED;
 import static com.henrykvdb.sttt.Bluetooth.State.CONNECTING;
 import static com.henrykvdb.sttt.Bluetooth.State.LISTEN;
 import static com.henrykvdb.sttt.Bluetooth.State.NONE;
-import static com.henrykvdb.sttt.GameService.Source.Local;
+import static com.henrykvdb.sttt.GameService.Source.Bluetooth;
 
 public class Bluetooth
 {
@@ -280,7 +280,7 @@ public class Bluetooth
 		ConnectedThread r = connectedThread;
 		connectedLock.unlock();
 
-		r.setupEnemyGame(gs.board(), gs.players().second.equals(Local), force);
+		r.setupEnemyGame(gs.board(), gs.players().first.equals(Bluetooth), force);
 	}
 
 	public void sendUndo(boolean force)
@@ -398,7 +398,7 @@ public class Bluetooth
 				listenThread = null;
 				listenLock.unlock();
 			}
-			catch (IOException e)
+			catch (IOException | NullPointerException e)
 			{
 				Log.e(TAG, "close() of server failed", e);
 			}
@@ -487,7 +487,7 @@ public class Bluetooth
 			{
 				socket.close();
 			}
-			catch (IOException e)
+			catch (IOException | NullPointerException e)
 			{
 				Log.e(TAG, "close() of connect socket failed", e);
 			}
@@ -554,7 +554,7 @@ public class Bluetooth
 
 					int message = json.getInt("message");
 
-					if (message == Bluetooth.Message.SEND_BOARD_UPDATE.ordinal())
+					if (message == Message.SEND_BOARD_UPDATE.ordinal())
 					{
 						Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 
@@ -591,7 +591,7 @@ public class Bluetooth
 						}
 
 					}
-					else if (message == Bluetooth.Message.RECEIVE_SETUP.ordinal())
+					else if (message == Message.RECEIVE_SETUP.ordinal())
 					{
 						Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 						boolean swapped = json.getBoolean("swapped");
@@ -602,7 +602,7 @@ public class Bluetooth
 								GameState.builder().bt().swapped(swapped).board(board).build(),
 								json.getBoolean("force"));
 					}
-					else if (message == Bluetooth.Message.RECEIVE_UNDO.ordinal())
+					else if (message == Message.RECEIVE_UNDO.ordinal())
 					{
 						btCallback.undo(json.getBoolean("force"));
 					}
@@ -644,7 +644,7 @@ public class Bluetooth
 				JSONObject json = new JSONObject();
 				try
 				{
-					json.put("message", Bluetooth.Message.SEND_BOARD_UPDATE.ordinal());
+					json.put("message", Message.SEND_BOARD_UPDATE.ordinal());
 					json.put("board", JSONBoard.toJSON(board).toString());
 				}
 				catch (JSONException e)
@@ -669,7 +669,7 @@ public class Bluetooth
 				JSONObject json = new JSONObject();
 				try
 				{
-					json.put("message", Bluetooth.Message.RECEIVE_SETUP.ordinal());
+					json.put("message", Message.RECEIVE_SETUP.ordinal());
 					json.put("force", force);
 					json.put("swapped", swapped);
 					json.put("board", JSONBoard.toJSON(board).toString());
@@ -696,7 +696,7 @@ public class Bluetooth
 				JSONObject json = new JSONObject();
 				try
 				{
-					json.put("message", Bluetooth.Message.RECEIVE_UNDO.ordinal());
+					json.put("message", Message.RECEIVE_UNDO.ordinal());
 					json.put("force", force);
 				}
 				catch (JSONException e)
@@ -723,7 +723,7 @@ public class Bluetooth
 				socket.close();
 				cancelled = true;
 			}
-			catch (IOException e)
+			catch (IOException | NullPointerException e)
 			{
 				Log.e(TAG, "close() of connect socket failed", e);
 			}
