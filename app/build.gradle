@@ -7,8 +7,8 @@ android {
         applicationId "com.henrykvdb.sttt"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 14
-        versionName "0.0.16"
+        versionCode 15
+        versionName "1.0.0"
         jackOptions {
             enabled true
         }
@@ -19,6 +19,7 @@ android {
     }
     buildTypes {
         release {
+            debuggable = false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

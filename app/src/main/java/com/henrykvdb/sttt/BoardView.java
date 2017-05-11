@@ -125,7 +125,7 @@ public class BoardView extends View implements Serializable
 			if (!board.isDone())
 			{
 				if (!gameState.isHuman())
-					nextPlayerView.setText(yourTurn ? "It is your turn!" : "Waiting on the enemy!");
+					nextPlayerView.setText(yourTurn ? "It is your turn!" : "The enemy is playing!");
 			}
 			else
 			{
