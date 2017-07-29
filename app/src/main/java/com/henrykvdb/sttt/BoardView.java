@@ -44,7 +44,7 @@ public class BoardView extends View implements Serializable
 	private int tileSymbolStroke;
 	private int macroSymbolStroke;
 	private int wonSymbolStroke;
-	private GameService gameService;
+	private Game gameService;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
@@ -98,7 +98,7 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setGameService(GameService gameService)
+	public void setGameService(Game gameService)
 	{
 		this.gameService = gameService;
 	}
@@ -115,8 +115,8 @@ public class BoardView extends View implements Serializable
 
 			//Only if not local game
 			boolean yourTurn = board.nextPlayer() == PLAYER
-					? players.first == GameService.Source.Local
-					: players.second == GameService.Source.Local;
+					? players.first == Game.Source.Local
+					: players.second == Game.Source.Local;
 
 			nextPlayerView.setTextColor(xNext ? Color.BLUE : Color.RED);
 			nextPlayerView.setText(null);
@@ -152,8 +152,8 @@ public class BoardView extends View implements Serializable
 					else
 					{
 						boolean youWon = board.wonBy() == PLAYER
-								? players.first == GameService.Source.Local
-								: players.second == GameService.Source.Local;
+								? players.first == Game.Source.Local
+								: players.second == Game.Source.Local;
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
 						nextPlayerView.setText(youWon ? "You won!" : "You lost!");
 					}
@@ -327,7 +327,7 @@ public class BoardView extends View implements Serializable
 
 				if (gameService != null)
 				{
-					gameService.play(GameService.Source.Local, Coord.coord(xm, ym, xs, ys));
+					gameService.play(Game.Source.Local, Coord.coord(xm, ym, xs, ys));
 					Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 				}
 				else
