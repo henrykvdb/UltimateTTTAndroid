@@ -20,6 +20,13 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+                android:name="com.henrykvdb.sttt.BtPickerActivity"
+                android:configChanges="keyboardHidden|orientation|screenSize"
+                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
+        <service
+                android:name="com.henrykvdb.sttt.BtService"
+                android:exported="false"/>
     </application>
 
 </manifest>

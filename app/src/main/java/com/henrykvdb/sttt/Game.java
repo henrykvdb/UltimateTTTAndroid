@@ -91,7 +91,7 @@ public class Game implements Closeable
 
 	public void newGame(GameState gs)
 	{
-		Log.e("NEWGAME","NEWGAME");
+		Log.d("NEWGAME","NEWGAME");
 		close();
 
 		this.gs = gs;
@@ -119,7 +119,7 @@ public class Game implements Closeable
 	{
 		public GameThread()
 		{
-			Log.e("GAMETHREAD CREATED","yea");
+			Log.d("GAMETHREAD CREATED","yea");
 		}
 
 		private boolean running;
@@ -128,7 +128,7 @@ public class Game implements Closeable
 		@Override
 		public void run()
 		{
-			Log.e("GAMETHREAD RAN","yea");
+			Log.d("GAMETHREAD RAN","yea");
 			setName("GameThread");
 			running = true;
 
