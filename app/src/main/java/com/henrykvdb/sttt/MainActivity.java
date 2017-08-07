@@ -46,13 +46,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private static final String STATE_KEY = "STATE_KEY";
 	private static final String ALLOW_INCOMING_KEY = "ALLOW_INCOMING_KEY";
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
-	private static final String SAVE_TIME_KEY = "SAVE_TIME_KEY";
 
 	//Request codes
-	public static final int REQUEST_START_BTPICKER = 100;
-	public static final int REQUEST_ENABLE_BT = 200;
-	public static final int REQUEST_ENABLE_DSC = 201;
-	public static final int REQUEST_COARSE_LOCATION = 202;
+	public static final int REQUEST_START_BTPICKER = 100;	//BtPickerActivity
+	public static final int REQUEST_ENABLE_BT = 200;		//Permission for enabling Bluetooth
+	public static final int REQUEST_ENABLE_DSC = 201;		//Permission for enabling discoverability
+	public static final int REQUEST_COARSE_LOCATION = 202;	//Permission for enabling discoverability
 
 	private BluetoothAdapter btAdapter;
 	private Switch btHostSwitch;
@@ -74,11 +73,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		debug();
-
-		//Time from onSaveInstance() till onCreate() //TODO fix (SO bounty?)
-		long time = System.currentTimeMillis();
-		if (savedInstanceState != null)
-			time -= savedInstanceState.getLong(SAVE_TIME_KEY, System.currentTimeMillis() + 10000);
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
@@ -121,19 +115,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				: savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
 
 		//Add a btHostSwitch listener and set the switch to the correct state
-		if (savedInstanceState == null || time > 999)
-		{
-			//Not rotated
-			btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
-			btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-		}
-		else
-		{
-			//Rotated, bypass the listener to avoid permission request
-			allowIncoming = savedInstanceState.getBoolean(ALLOW_INCOMING_KEY, false);
-			btHostSwitch.setChecked(allowIncoming);
-			btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
-		}
+		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
+		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
 
 		//Add ads in portrait
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -161,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		debug();
 
-		outState.putLong(SAVE_TIME_KEY, System.currentTimeMillis());
 		outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
 		outState.putSerializable(STATE_KEY, game.getState());
@@ -181,16 +163,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onStop()
 	{
-		//If connected show the user a notification to decide if he wants to leave the btService open
 		if (false) //TODO if connected
 		{
 			//TODO notification disable service or keep open
 		}
-		//If not connected and user opened the app with bluetooth off -> disable it
-		else if (!startedWithBt)
+		else if (!isChangingConfigurations())
 		{
 			stopBtService();
-			btAdapter.disable();
+
+			if (!startedWithBt)
+				btAdapter.disable();
 		}
 
 		debug();
@@ -202,10 +184,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		debug();
 
-		stopBtService();
+		if (!isChangingConfigurations())
+		{
+			stopBtService();
 
-		if (!startedWithBt)
-			btAdapter.disable();
+			if (!startedWithBt)
+				btAdapter.disable();
+		}
 
 		super.onDestroy();
 	}
@@ -348,9 +333,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
 	{
 		debug();
-		//Update the field and btService
+
+		//Update the field
 		allowIncoming = isChecked;
 
+		//Update the Bluetooth Service
 		if (btServiceBound)
 			btService.setAllowIncoming(allowIncoming);
 
