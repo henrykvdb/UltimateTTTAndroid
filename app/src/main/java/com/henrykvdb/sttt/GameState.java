@@ -10,9 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import static com.henrykvdb.sttt.Game.Source.AI;
-import static com.henrykvdb.sttt.Game.Source.Bluetooth;
-import static com.henrykvdb.sttt.Game.Source.Local;
+import static com.henrykvdb.sttt.MainActivity.Source.AI;
+import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
+import static com.henrykvdb.sttt.MainActivity.Source.Local;
 
 public class GameState implements Serializable
 {
@@ -31,10 +31,10 @@ public class GameState implements Serializable
 
 	static class Players implements Serializable
 	{
-		public final Game.Source first;
-		public final Game.Source second;
+		public final MainActivity.Source first;
+		public final MainActivity.Source second;
 
-		public Players(Game.Source first, Game.Source second)
+		public Players(MainActivity.Source first, MainActivity.Source second)
 		{
 			this.first = first;
 			this.second = second;
@@ -45,7 +45,7 @@ public class GameState implements Serializable
 			return new Players(second, first);
 		}
 
-		public boolean contains(Game.Source source)
+		public boolean contains(MainActivity.Source source)
 		{
 			return first == source || second == source;
 		}

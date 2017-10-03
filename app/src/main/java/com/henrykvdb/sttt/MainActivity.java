@@ -23,23 +23,32 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.flaghacker.uttt.common.Board;
+import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Player;
+import com.flaghacker.uttt.common.Timer;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
 import com.henrykvdb.sttt.DialogUtil.NewGameDialogs;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static com.henrykvdb.sttt.Game.Source.Bluetooth;
-import static com.henrykvdb.sttt.Game.Source.Local;
+import static com.flaghacker.uttt.common.Player.ENEMY;
+import static com.flaghacker.uttt.common.Player.PLAYER;
+import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
+import static com.henrykvdb.sttt.MainActivity.Source.Local;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
@@ -54,20 +63,127 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	public static final int REQUEST_ENABLE_DSC = 201;		//Permission for enabling discoverability
 	public static final int REQUEST_COARSE_LOCATION = 202;	//Permission for enabling discoverability
 
+	//Bluetooth fields
 	private BluetoothAdapter btAdapter;
 	private Switch btHostSwitch;
-
 	private boolean allowIncoming;
 	private boolean startedWithBt;
 
-	private Game game;
-
+	//Bluetooth Service stuff
 	private BtService btService;
 	private boolean btServiceBound;
 
-	private void debugi() //TODO remove
+	//Game fields
+	private BoardView boardView;
+	private GameThread thread;
+	private GameState gs;
+	public Toast toast;
+
+/*	private void setBoardView(BoardView boardView)
 	{
-		Log.e("DEBUG", Thread.currentThread().getStackTrace()[3].getMethodName());
+		boardView.setGameService(this);
+		this.boardView = boardView;
+
+		if (thread == null || !thread.running)
+			newLocal();
+
+		updateTitle();
+		boardView.drawState(gs);
+	}*/
+
+	private void updateTitle()
+	{
+		if (gs.isBluetooth())
+			setTitle("Bluetooth Game");
+		else if (gs.isAi())
+			setTitle("AI Game");
+		else if (gs.isHuman()) //Normal local game
+			setTitle("Human Game");
+		else throw new IllegalStateException();
+	}
+
+	public void newGame(GameState gs)
+	{
+		Log.d("NEWGAME","NEWGAME");
+		closeGame();
+
+		this.gs = gs;
+		boardView.drawState(gs);
+		updateTitle();
+
+		if (!gs.isBluetooth())
+			setSubTitle(null);
+
+		thread = new GameThread();
+		thread.start();
+	}
+
+	public void newLocal()
+	{
+		newGame(GameState.builder().swapped(false).build());
+	}
+
+	public void turnLocal()
+	{
+		newGame(GameState.builder().boards(gs.boards()).build());
+	}
+
+	private void playAndUpdateBoard(Coord move)
+	{
+		if (move != null)
+		{
+			Board newBoard = gs.board().copy();
+			newBoard.play(move);
+
+			//if (gs.players().contains(Game.Source.Bluetooth))
+			//	btService.sendBoard(newBoard);
+
+			gs.pushBoard(newBoard);
+		}
+
+		boardView.drawState(gs);
+	}
+
+	public void play(Source source, Coord move)
+	{
+		synchronized (playerLock)
+		{
+			playerMove.set(new Pair<>(move, source));
+			playerLock.notify();
+		}
+	}
+
+	private final Object playerLock = new Object[0];
+	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
+
+	private Coord getMove(Source player)
+	{
+		playerMove.set(new Pair<>(null, null));
+		while (playerMove.get().first == null
+				|| !gs.board().availableMoves().contains(playerMove.get().first)
+				|| !player.equals(playerMove.get().second))
+		{
+			synchronized (playerLock)
+			{
+				try
+				{
+					playerLock.wait();
+				}
+				catch (InterruptedException e)
+				{
+					return null;
+				}
+			}
+		}
+		//TODO play sound
+		return playerMove.getAndSet(null).first;
+	}
+
+	public enum Source
+	{
+		Local,
+		AI,
+		Bluetooth
 	}
 
 	@Override
@@ -96,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			e.printStackTrace();
 		}
 
-		//Add listener to open and close drawer
+		//Add listener to open and closeGame drawer
 		ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
 				this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 		drawer.addDrawerListener(toggle);
@@ -125,13 +241,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 
 		//Prepare the BoardView and the game object
-		BoardView boardView = (BoardView) findViewById(R.id.boardView);
+		boardView = (BoardView) findViewById(R.id.boardView);
+		boardView.setMoveCallback(coord -> play(Local,coord));
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
 		//Start an actual game
-		game = new Game(gameCallback, (BoardView) findViewById(R.id.boardView));
 		if (savedInstanceState != null)
-			game.newGame((GameState) savedInstanceState.getSerializable(STATE_KEY));
+			newGame((GameState) savedInstanceState.getSerializable(STATE_KEY));
+		else
+			newLocal();
 
 		//Ask the user to rate the app
 		if (savedInstanceState == null)
@@ -143,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
-		outState.putSerializable(STATE_KEY, game.getState());
+		outState.putSerializable(STATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -217,6 +335,91 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onDestroy();
 	}
 
+	private class GameThread extends Thread implements Closeable
+	{
+		public GameThread()
+		{
+			Log.d("GAMETHREAD CREATED","yea");
+		}
+
+		private  volatile boolean running;
+		private Timer timer;
+
+		@Override
+		public void run()
+		{
+			Log.d("GAMETHREAD RAN","yea");
+			setName("GameThread");
+			running = true;
+
+			Source p1 = gs.players().first;
+			Source p2 = gs.players().second;
+
+			while (!gs.board().isDone() && running)
+			{
+				timer = new Timer(5000);
+
+				if (gs.board().nextPlayer() == PLAYER && running)
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
+
+				if (gs.board().isDone() || !running)
+					continue;
+
+				if (gs.board().nextPlayer() == ENEMY && running)
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
+			}
+		}
+
+		@Override
+		public void close() throws IOException
+		{
+			running = false;
+
+			if (timer != null)
+				timer.interrupt();
+
+			interrupt();
+		}
+	}
+
+	public void closeGame()
+	{
+		try
+		{
+			if (thread != null)
+				thread.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void setTitle(String title)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+
+		if (actionBar != null)
+			actionBar.setTitle(title);
+	}
+
+	public void setSubTitle(String subTitle)
+	{
+		final ActionBar actionBar = getSupportActionBar();
+
+		if (actionBar != null)
+			actionBar.setSubtitle(subTitle);
+	}
+
+	public void toast(String text)
+	{
+		if (toast == null)
+			toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
+
+		toast.setText(text);
+		toast.show();
+	}
+
 	private ServiceConnection btServerConn = new ServiceConnection()
 	{
 		@Override
@@ -256,7 +459,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (item.getItemId() == R.id.action_undo)
 		{
-			game.undo();
+			if (gs.boards().size() > 1)
+			{
+				GameState newState = GameState.builder().gs(gs).build();
+				newState.popBoard();
+				if (Source.AI == (gs.board().nextPlayer() == PLAYER ? gs.players().first : gs.players().second)
+						&& newState.boards().size() > 1)
+					newState.popBoard();
+
+				newGame(newState);
+			}
+			else
+			{
+				toast("No previous moves");
+			}
 			return true;
 		}
 		return false;
@@ -270,11 +486,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (id == R.id.nav_local_human)
 		{
-			NewGameDialogs.newLocal(() -> game.newLocal(), this);
+			NewGameDialogs.newLocal(this::newLocal, this);
 		}
 		else if (id == R.id.nav_local_ai)
 		{
-			NewGameDialogs.newAi(gs -> game.newGame(gs), this);
+			NewGameDialogs.newAi(this::newGame, this);
 		}
 		else if (id == R.id.nav_bt_join)
 		{
@@ -298,39 +514,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		return true;
 	}
-
-	Game.GameCallback gameCallback = new Game.GameCallback()
-	{
-		public Toast toast;
-
-		@Override
-		public void setTitle(String title)
-		{
-			final ActionBar actionBar = getSupportActionBar();
-
-			if (actionBar != null)
-				actionBar.setTitle(title);
-		}
-
-		@Override
-		public void setSubTitle(String subTitle)
-		{
-			final ActionBar actionBar = getSupportActionBar();
-
-			if (actionBar != null)
-				actionBar.setSubtitle(subTitle);
-		}
-
-		@Override
-		public void sendToast(String text)
-		{
-			if (toast == null)
-				toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
-
-			toast.setText(text);
-			toast.show();
-		}
-	};
 
 	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
 	{
@@ -384,10 +567,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					//Create the requested gameState from the activity result
 					boolean newBoard = data.getExtras().getBoolean("newBoard");
 					boolean swapped = data.getExtras().getBoolean("start")
-							^ (newBoard || game.getState().board().nextPlayer() == Player.PLAYER);
-					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
+							^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
+					GameState.Builder builder =GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
 					if (!newBoard)
-						builder.board(game.getState().board());
+						builder.board(gs.board());
 
 					//TODO actually connect
 					//btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());
