@@ -46,12 +46,6 @@ public class BtService extends Service
 		//unregisterReceiver(btStateReceiver);
 	}
 
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId)
-	{
-		return START_NOT_STICKY;
-	}
-
 	public void setAllowIncoming(boolean allowIncoming)
 	{
 		Log.e("setAllowInc",allowIncoming+"");

@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt;
 
+import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private BtService btService;
 	private boolean btServiceBound;
 
-	private void debug() //TODO remove
+	private void debugi() //TODO remove
 	{
 		Log.e("DEBUG", Thread.currentThread().getStackTrace()[3].getMethodName());
 	}
@@ -72,8 +73,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
-		debug();
-
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -142,8 +141,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		debug();
-
 		outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
 		outState.putSerializable(STATE_KEY, game.getState());
@@ -153,11 +150,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onStart()
 	{
-		debug();
 		super.onStart();
 
 		if (!btServiceBound)
-			startBtService();
+			bindBtService();
+	}
+
+	private void bindBtService()
+	{
+		if (btServiceBound)
+			throw new RuntimeException("BtService already bound");
+
+		if (!isServiceRunning(BtService.class))
+			startService(new Intent(this, BtService.class));
+
+		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
+	}
+
+	private boolean isServiceRunning(Class<?> serviceClass)
+	{
+		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+		{
+			if (serviceClass.getName().equals(service.service.getClassName()))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -169,49 +189,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (!isChangingConfigurations())
 		{
-			stopBtService();
-
-			if (!startedWithBt)
-				btAdapter.disable();
+			//Stop Bluetooth service it is not a configuration change
+			unbindBtService(!isChangingConfigurations());
 		}
 
-		debug();
 		super.onStop();
 	}
 
-	@Override
-	protected void onDestroy()
-	{
-		debug();
-
-		if (!isChangingConfigurations())
-		{
-			stopBtService();
-
-			if (!startedWithBt)
-				btAdapter.disable();
-		}
-
-		super.onDestroy();
-	}
-
-	private void startBtService()
-	{
-		if (btServiceBound)
-			throw new RuntimeException("BtService already bound");
-
-		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
-		startService(new Intent(this, BtService.class));
-	}
-
-	private void stopBtService()
+	private void unbindBtService(boolean stop)
 	{
 		if (btServiceBound)
 		{
 			unbindService(btServerConn);
 			btServiceBound = false;
-			stopService(new Intent(this, BtService.class));
+
+			if (stop)
+				stopService(new Intent(this, BtService.class));
 		}
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		if (!startedWithBt)
+			btAdapter.disable();
+
+		super.onDestroy();
 	}
 
 	private ServiceConnection btServerConn = new ServiceConnection()
@@ -264,7 +267,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		// Handle navigation view item clicks here.
 		int id = item.getItemId();
-		debug();
 
 		if (id == R.id.nav_local_human)
 		{
@@ -332,8 +334,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
 	{
-		debug();
-
 		//Update the field
 		allowIncoming = isChecked;
 
