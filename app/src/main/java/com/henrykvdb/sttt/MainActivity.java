@@ -79,29 +79,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private GameState gs;
 	public Toast toast;
 
-/*	private void setBoardView(BoardView boardView)
-	{
-		boardView.setGameService(this);
-		this.boardView = boardView;
-
-		if (thread == null || !thread.running)
-			newLocal();
-
-		updateTitle();
-		boardView.drawState(gs);
-	}*/
-
-	private void updateTitle()
-	{
-		if (gs.isBluetooth())
-			setTitle("Bluetooth Game");
-		else if (gs.isAi())
-			setTitle("AI Game");
-		else if (gs.isHuman()) //Normal local game
-			setTitle("Human Game");
-		else throw new IllegalStateException();
-	}
-
 	public void newGame(GameState gs)
 	{
 		Log.d("NEWGAME","NEWGAME");
@@ -109,7 +86,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		this.gs = gs;
 		boardView.drawState(gs);
-		updateTitle();
+
+		if (this.gs.isBluetooth())
+			setTitle("Bluetooth Game");
+		else if (this.gs.isAi())
+			setTitle("AI Game");
+		else if (this.gs.isHuman()) //Normal local game
+			setTitle("Human Game");
+		else throw new IllegalStateException();
 
 		if (!gs.isBluetooth())
 			setSubTitle(null);
