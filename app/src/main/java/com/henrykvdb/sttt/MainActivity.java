@@ -53,33 +53,35 @@ import static com.henrykvdb.sttt.MainActivity.Source.Local;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
 	//Keys
-	private static final String STATE_KEY = "STATE_KEY";
+	private static final String GAMESTATE_KEY = "GAMESTATE_KEY";
 	private static final String ALLOW_INCOMING_KEY = "ALLOW_INCOMING_KEY";
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
+	//Fields
+	private GameState gs;
+	private boolean allowIncoming;
+	private boolean startedWithBt;
+
 	//Request codes
 	public static final int REQUEST_START_BTPICKER = 100;   //BtPickerActivity
-	public static final int REQUEST_ENABLE_BT = 200;        //Permission for enabling Bluetooth
-	public static final int REQUEST_ENABLE_DSC = 201;       //Permission for enabling discoverability
-	public static final int REQUEST_COARSE_LOCATION = 202;  //Permission for enabling discoverability
+	public static final int REQUEST_ENABLE_BT = 200;        //Permission required to enable Bluetooth
+	public static final int REQUEST_ENABLE_DSC = 201;       //Permission required to enable discoverability
+	public static final int REQUEST_COARSE_LOCATION = 202;  //Permission required to search nearby devices
+
+	//Bluetooth Service
+	private BtService btService;
+	private boolean btServiceBound;
 
 	//Bluetooth fields
 	private BluetoothAdapter btAdapter;
 	private Switch btHostSwitch;
-	private boolean allowIncoming;
-	private boolean startedWithBt;
-
-	//Bluetooth Service stuff
-	private BtService btService;
-	private boolean btServiceBound;
 
 	//Game fields
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
 	private final Object playerLock = new Object[0];
 	private BoardView boardView;
 	private GameThread thread;
-	private GameState gs;
-	public Toast toast;
+	private Toast toast;
 
 	public enum Source
 	{
@@ -149,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Start an actual game
 		if (savedInstanceState != null)
-			newGame((GameState) savedInstanceState.getSerializable(STATE_KEY));
+			newGame((GameState) savedInstanceState.getSerializable(GAMESTATE_KEY));
 		else
 			newLocal();
 
@@ -163,11 +165,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
-		outState.putSerializable(STATE_KEY, gs);
+		outState.putSerializable(GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
-	public void newGame(GameState gs)
+	private void newGame(GameState gs)
 	{
 		Log.d("NEWGAME", "NEWGAME");
 		closeGame();
@@ -190,12 +192,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		thread.start();
 	}
 
-	public void newLocal()
+	private void newLocal()
 	{
 		newGame(GameState.builder().swapped(false).build());
 	}
 
-	public void turnLocal()
+	private void turnLocal()
 	{
 		newGame(GameState.builder().boards(gs.boards()).build());
 	}
@@ -272,11 +274,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private class GameThread extends Thread implements Closeable
 	{
-		public GameThread()
-		{
-			Log.d("GAMETHREAD CREATED", "yea");
-		}
-
 		private volatile boolean running;
 		private Timer timer;
 
@@ -334,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 	}
 
-	public void play(Source source, Coord move)
+	private void play(Source source, Coord move)
 	{
 		synchronized (playerLock)
 		{
@@ -345,10 +342,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private Coord getMove(Source player)
 	{
-		playerMove.set(null);
+		playerMove.set(new Pair<>(null,null));
 		while (!gs.board().availableMoves().contains(playerMove.get().first)    //Impossible move
 				|| !player.equals(playerMove.get().second)                      //Wrong player
-				|| playerMove == null                                           //No Pair
+				|| playerMove.get() == null                                     //No Pair
 				|| playerMove.get().first == null                               //No move
 				|| playerMove.get().second == null)                             //No source
 		{
@@ -368,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return playerMove.getAndSet(null).first;
 	}
 
-	public void closeGame()
+	private void closeGame()
 	{
 		try
 		{
@@ -381,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	}
 
-	public void setTitle(String title)
+	private void setTitle(String title)
 	{
 		final ActionBar actionBar = getSupportActionBar();
 
@@ -389,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			actionBar.setTitle(title);
 	}
 
-	public void setSubTitle(String subTitle)
+	private void setSubTitle(String subTitle)
 	{
 		final ActionBar actionBar = getSupportActionBar();
 
@@ -397,10 +394,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			actionBar.setSubtitle(subTitle);
 	}
 
-	public void toast(String text)
+	private void toast(String text)
 	{
 		if (toast == null)
-			toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
+			toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
 
 		toast.setText(text);
 		toast.show();
@@ -417,11 +414,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btServiceBound = true;
 
 			btService.setAllowIncoming(allowIncoming);
-
-			//TODO remove?
-			//boolean blockIncoming = btService.blockIncoming() || !btHostSwitch.isChecked();
-			//if (btService.blockIncoming() != blockIncoming)
-			//	btService.setBlockIncoming(blockIncoming);
 		}
 
 		@Override
@@ -429,7 +421,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			Log.d("BTS", "btService Disconnected");
 			btServiceBound = false;
-			//finish(); //TODO better handling
 		}
 	};
 
@@ -503,13 +494,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
 	{
-		//Update the field
-		allowIncoming = isChecked;
-
-		//Update the Bluetooth Service
-		if (btServiceBound)
-			btService.setAllowIncoming(allowIncoming);
-
 		//Stop if there is no bluetooth available
 		if (btAdapter == null)
 		{
@@ -520,7 +504,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (isChecked)
 		{
-			if (btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+			boolean discoverable = btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
+			setAllowIncoming(discoverable);
+
+			if (!discoverable)
 			{
 				Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 				discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
@@ -529,10 +516,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else
 		{
+			setAllowIncoming(false);
 			if (btAdapter.isEnabled() && !startedWithBt)
 				btAdapter.disable();
 		}
 	};
+
+	private void setAllowIncoming(boolean allowIncoming)
+	{
+		//Update the field
+		this.allowIncoming = allowIncoming;
+
+		//Update the Bluetooth Service
+		if (btServiceBound)
+			btService.setAllowIncoming(allowIncoming);
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -544,7 +542,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					pickBluetooth();
 				break;
 			case REQUEST_ENABLE_DSC:
-				if (resultCode == RESULT_CANCELED)
+				if (resultCode == RESULT_OK)
+					setAllowIncoming(true);
+				else
 					btHostSwitch.setChecked(false);
 				break;
 			case REQUEST_START_BTPICKER:
