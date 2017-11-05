@@ -2,9 +2,12 @@ package com.henrykvdb.sttt;
 
 import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -20,6 +23,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -39,6 +43,8 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
 import com.henrykvdb.sttt.DialogUtil.NewGameDialogs;
+import com.henrykvdb.sttt.Util.Callback;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -81,7 +87,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private final Object playerLock = new Object[0];
 	private BoardView boardView;
 	private GameThread thread;
+
 	private Toast toast;
+	private AlertDialog askDialog;
 
 	public enum Source
 	{
@@ -146,7 +154,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Prepare the BoardView and the game object
 		boardView = (BoardView) findViewById(R.id.boardView);
-		boardView.setMoveCallback(coord -> play(Local, coord));
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
 		//Start an actual game
@@ -167,6 +174,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		outState.putBoolean(STARTED_WITH_BT_KEY, startedWithBt);
 		outState.putSerializable(GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
+	}
+
+	public void onMessageEvent(Events.Setup setupEvent)
+	{
+		boolean force = setupEvent.force;
+		GameState requestState = setupEvent.requestState;
+
+		if (!force)
+		{
+			final boolean[] allowed = {false};
+			askUser(btService.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
+			{
+					if (allow)
+					{
+						allowed[0] = true;
+
+						btService.setLocalBoard(requestState.board());
+						btService.sendSetup(requestState, true);
+						newGame(requestState);
+					}
+					//If you press yes it will still callback false when dismissed
+					else if (!allowed[0])
+					{
+						btService.closeConnection();
+					}
+			});
+		}
+		else
+		{
+			btService.setLocalBoard(requestState.board());
+			newGame(requestState);
+		}
 	}
 
 	private void newGame(GameState gs)
@@ -197,6 +236,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		newGame(GameState.builder().swapped(false).build());
 	}
 
+	public void onMessageEvent(Events.TurnLocal event)
+	{
+		turnLocal();
+	}
+
 	private void turnLocal()
 	{
 		newGame(GameState.builder().boards(gs.boards()).build());
@@ -207,12 +251,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onStart();
 
+		EventBus.getDefault().register(this);
+
 		if (!btServiceBound)
 			bindBtService();
 	}
 
 	private void bindBtService()
 	{
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 		if (btServiceBound)
 			throw new RuntimeException("BtService already bound");
 
@@ -221,6 +268,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
 	}
+
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
+					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
+			{
+				unbindBtService(true);
+				Log.e("btStateReceiver", "TURNING OFF");
+			}
+		}
+	};
 
 	private boolean isServiceRunning(Class<?> serviceClass)
 	{
@@ -238,6 +299,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onStop()
 	{
+		EventBus.getDefault().unregister(this);
 		if (false) //TODO if connected
 		{
 			//TODO notification disable service or keep open
@@ -253,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void unbindBtService(boolean stop)
 	{
+		unregisterReceiver(btStateReceiver);
 		if (btServiceBound)
 		{
 			unbindService(btServerConn);
@@ -331,18 +394,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 	}
 
-	private void play(Source source, Coord move)
-	{
+	public void onMessageEvent(Events.NewMove moveEvent) {
 		synchronized (playerLock)
 		{
-			playerMove.set(new Pair<>(move, source));
+			playerMove.set(new Pair<>(moveEvent.move, moveEvent.source));
 			playerLock.notify();
 		}
 	}
 
 	private Coord getMove(Source player)
 	{
-		playerMove.set(new Pair<>(null,null));
+		playerMove.set(new Pair<>(null, null));
 		while (!gs.board().availableMoves().contains(playerMove.get().first)    //Impossible move
 				|| !player.equals(playerMove.get().second)                      //Wrong player
 				|| playerMove.get() == null                                     //No Pair
@@ -431,28 +493,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
+	public void onMessageEvent(Events.Undo undoEvent)
+	{
+		boolean forced = undoEvent.forced;
+
+		if (forced)
+			undo();
+		else
+		{
+			askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
+			{
+				if (allow)
+				{
+					undo();
+					btService.sendUndo(true);
+				}
+			});
+		}
+	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		if (item.getItemId() == R.id.action_undo)
-		{
-			if (gs.boards().size() > 1)
-			{
-				GameState newState = GameState.builder().gs(gs).build();
-				newState.popBoard();
-				if (Source.AI == (gs.board().nextPlayer() == PLAYER ? gs.players().first : gs.players().second)
-						&& newState.boards().size() > 1)
-					newState.popBoard();
+		if (item.getItemId() != R.id.action_undo)
+			return false;
 
-				newGame(newState);
-			}
-			else
-			{
-				toast("No previous moves");
-			}
-			return true;
+		undo();
+		return true;
+	}
+
+	public void undo()
+	{
+		if (gs.boards().size() > 1)
+		{
+			GameState newState = GameState.builder().gs(gs).build();
+			newState.popBoard();
+			if (Source.AI == (gs.board().nextPlayer() == PLAYER ? gs.players().first : gs.players().second)
+					&& newState.boards().size() > 1)
+				newState.popBoard();
+
+			newGame(newState);
+
+			if (btService != null && btService.getState() == BtService.State.CONNECTED)
+				btService.setLocalBoard(gs.board());
 		}
-		return false;
+		else
+		{
+			toast("No previous moves");
+		}
 	}
 
 	@Override
@@ -554,12 +642,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					boolean newBoard = data.getExtras().getBoolean("newBoard");
 					boolean swapped = data.getExtras().getBoolean("start")
 							^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
-					GameState.Builder builder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
+					GameState.Builder gsBuilder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
 					if (!newBoard)
-						builder.board(gs.board());
+						gsBuilder.board(gs.board());
 
-					//TODO actually connect
-					//btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), builder.build());
+					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), gsBuilder.build());
 				}
 				break;
 		}
@@ -613,5 +700,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				startActivityForResult(serverIntent, REQUEST_START_BTPICKER);
 			}
 		}
+	}
+
+	private void askUser(String message, Callback<Boolean> callBack)
+	{
+		if (askDialog != null && askDialog.isShowing())
+			askDialog.dismiss();
+
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					callBack.callback(true);
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					callBack.callback(false);
+					break;
+			}
+		};
+
+		askDialog = new AlertDialog.Builder(this).setMessage(message)
+				.setPositiveButton("Yes", dialogClickListener)
+				.setNegativeButton("No", dialogClickListener)
+				.setOnDismissListener(dialogInterface -> callBack.callback(false))
+				.show();
+
+		BasicDialogs.keepDialog(askDialog);
 	}
 }

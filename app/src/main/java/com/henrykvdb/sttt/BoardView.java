@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.Player;
-import com.henrykvdb.sttt.Util.Callback;
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.Serializable;
 
@@ -46,8 +46,6 @@ public class BoardView extends View implements Serializable
 	private int tileSymbolStroke;
 	private int macroSymbolStroke;
 	private int wonSymbolStroke;
-
-	private Callback<Coord> moveCallback;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
@@ -99,11 +97,6 @@ public class BoardView extends View implements Serializable
 		this.ds = drawSettings;
 		setVars();
 		postInvalidate();
-	}
-
-	public void setMoveCallback(Callback<Coord> moveCallback)
-	{
-		this.moveCallback = moveCallback;
 	}
 
 	protected void onDraw(Canvas canvas)
@@ -328,7 +321,7 @@ public class BoardView extends View implements Serializable
 				xs = xs > 2 ? --xs : xs;
 				ys = ys > 2 ? --ys : ys;
 
-				moveCallback.callback(Coord.coord(xm, ym, xs, ys));
+				EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Local, Coord.coord(xm, ym, xs, ys)));
 				Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 			}
 			else
