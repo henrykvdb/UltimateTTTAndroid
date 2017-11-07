@@ -158,7 +158,7 @@ public class BtService extends Service
 			BluetoothSocket socket;
 
 			// Listen to the server socket if we're not connected
-			while (state != CONNECTED)
+			while (state != CONNECTED && !Thread.interrupted())
 			{
 				try
 				{
@@ -170,12 +170,7 @@ public class BtService extends Service
 				{
 					Log.e("", "accept() failed", e);
 					break;
-				}
-				catch (NullPointerException e)
-				{
-					throw new RuntimeException(e); //TODO remove
-					//break;
-				}
+				}//TODO catch interrupted exception
 
 				// If a connection was accepted
 				if (socket != null)
@@ -263,6 +258,9 @@ public class BtService extends Service
 
 	private void connected(BluetoothSocket socket, boolean isHost)
 	{
+		if (Thread.interrupted())
+			return;
+
 		Log.d("connected", "Hi, I am the connected method");
 
 		inStream = null;
@@ -294,7 +292,7 @@ public class BtService extends Service
 			sendSetup(requestState, false);
 
 		// Keep listening to the InputStream while connected
-		while (state == CONNECTED)
+		while (state == CONNECTED && !Thread.interrupted())
 		{
 			try
 			{
@@ -365,7 +363,7 @@ public class BtService extends Service
 			{
 				Log.e("", "JSON read parsing failed");
 				e.printStackTrace();
-			}
+			}//TODO catch interrupted exception
 		}
 	}
 

@@ -318,10 +318,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void unbindBtService(boolean stop)
 	{
-		unregisterReceiver(btStateReceiver);
 		if (btServiceBound)
 		{
+			btHostSwitch.setChecked(false);
+
+			unregisterReceiver(btStateReceiver);
 			unbindService(btServerConn);
+
 			btServiceBound = false;
 
 			if (stop)
@@ -605,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 				discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
 				startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
-				return;
+				//return;
 			}
 		}
 		else
@@ -629,10 +632,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					pickBluetooth();
 				break;
 			case REQUEST_ENABLE_DSC:
-				if (resultCode == RESULT_OK)
-					btHostSwitch.setChecked(true);
-				else
+				if (resultCode == RESULT_CANCELED)
 					btHostSwitch.setChecked(false);
+				else
+					btHostSwitch.setChecked(true);
 				break;
 			case REQUEST_START_BTPICKER:
 				if (resultCode == RESULT_OK)
