@@ -45,6 +45,7 @@ import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
 import com.henrykvdb.sttt.DialogUtil.NewGameDialogs;
 import com.henrykvdb.sttt.Util.Callback;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -176,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onSaveInstanceState(outState);
 	}
 
+	@Subscribe
 	public void onMessageEvent(Events.Setup setupEvent)
 	{
 		boolean force = setupEvent.force;
@@ -236,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		newGame(GameState.builder().swapped(false).build());
 	}
 
+	@Subscribe
 	public void onMessageEvent(Events.TurnLocal event)
 	{
 		turnLocal();
@@ -394,6 +397,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 	}
 
+	@Subscribe
 	public void onMessageEvent(Events.NewMove moveEvent) {
 		synchronized (playerLock)
 		{
@@ -493,6 +497,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
+	@Subscribe
 	public void onMessageEvent(Events.Undo undoEvent)
 	{
 		boolean forced = undoEvent.forced;
@@ -593,32 +598,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (isChecked)
 		{
 			boolean discoverable = btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
-			setAllowIncoming(discoverable);
+			btHostSwitch.setChecked(discoverable);
 
 			if (!discoverable)
 			{
 				Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 				discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
 				startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
+				return;
 			}
 		}
 		else
 		{
-			setAllowIncoming(false);
 			if (btAdapter.isEnabled() && !startedWithBt)
 				btAdapter.disable();
 		}
-	};
 
-	private void setAllowIncoming(boolean allowIncoming)
-	{
-		//Update the field
-		this.allowIncoming = allowIncoming;
-
-		//Update the Bluetooth Service
+		allowIncoming = isChecked;
 		if (btServiceBound)
 			btService.setAllowIncoming(allowIncoming);
-	}
+	};
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -631,7 +630,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				break;
 			case REQUEST_ENABLE_DSC:
 				if (resultCode == RESULT_OK)
-					setAllowIncoming(true);
+					btHostSwitch.setChecked(true);
 				else
 					btHostSwitch.setChecked(false);
 				break;

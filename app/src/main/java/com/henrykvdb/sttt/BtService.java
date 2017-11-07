@@ -20,8 +20,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static android.content.ContentValues.TAG;
 import static com.henrykvdb.sttt.BtService.State.CONNECTED;
@@ -32,8 +30,8 @@ public class BtService extends Service
 {
 	private final java.util.UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
-	private final ExecutorService executor = Executors.newSingleThreadExecutor();
-	private final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+	private SingleTaskExecutor executor;
+	private BluetoothAdapter btAdapter;
 	private final IBinder mBinder = new LocalBinder();
 
 	private boolean allowIncoming;
@@ -82,6 +80,9 @@ public class BtService extends Service
 	{
 		super.onCreate();
 
+		executor = new SingleTaskExecutor();
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+
 		Log.e("BTSERVICE", "CREATED");
 	}
 
@@ -107,21 +108,20 @@ public class BtService extends Service
 		{
 			if (state != LISTENING)
 			{
-				executor.shutdown();
 				executor.submit(new ListenRunnable());
 			}
 		}
 		else
 		{
-			if (state == LISTENING)
-				executor.shutdown();
+			if (state != State.CONNECTING && state != State.CONNECTED)
+				executor.cancel();
 		}
 	}
 
 	public void connect(String address, GameState requestState)
 	{
 		if (state != NONE)
-			executor.shutdownNow();
+			executor.cancel();
 
 		this.requestState = requestState;
 
@@ -371,7 +371,7 @@ public class BtService extends Service
 
 	public void closeConnection()
 	{
-		executor.shutdown();
+		executor.cancel();
 		EventBus.getDefault().post(new Events.TurnLocal());
 	}
 
