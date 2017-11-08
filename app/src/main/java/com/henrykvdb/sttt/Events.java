@@ -8,6 +8,16 @@ public class Events
 	{
 	}
 
+	public static class Toast
+	{
+		public final String text;
+
+		public Toast(String text)
+		{
+			this.text = text;
+		}
+	}
+
 	public static class TurnLocal
 	{
 	}

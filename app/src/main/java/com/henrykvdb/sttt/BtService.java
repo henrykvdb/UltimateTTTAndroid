@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static android.content.ContentValues.TAG;
 import static com.henrykvdb.sttt.BtService.State.CONNECTED;
 import static com.henrykvdb.sttt.BtService.State.LISTENING;
 import static com.henrykvdb.sttt.BtService.State.NONE;
@@ -83,16 +82,7 @@ public class BtService extends Service
 		executor = new SingleTaskExecutor();
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 
-		Log.e("BTSERVICE", "CREATED");
-	}
-
-	private void toast(String text)
-	{
-		if (toast == null)
-			toast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
-
-		toast.setText(text);
-		toast.show();
+		Log.e(MainActivity.debuglog, "BTSERVICE CREATED");
 	}
 
 	public void setAllowIncoming(boolean allowIncoming)
@@ -100,7 +90,7 @@ public class BtService extends Service
 		if (this.allowIncoming == allowIncoming)
 			return;
 
-		Log.e("setAllowInc", allowIncoming + "");
+		Log.e(MainActivity.debuglog, allowIncoming + "");
 
 		this.allowIncoming = allowIncoming;
 
@@ -126,7 +116,7 @@ public class BtService extends Service
 		this.requestState = requestState;
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
-		Log.d("", "connect to: " + device);
+		Log.e(MainActivity.debuglog, "connect to: " + device);
 
 		executor.submit(new ConnectingRunnable(device));
 	}
@@ -146,14 +136,14 @@ public class BtService extends Service
 			}
 			catch (IOException e)
 			{
-				Log.e("", "listen() failed", e);
+				Log.e(MainActivity.debuglog, "listen() failed", e);
 			}
 		}
 
 		@Override
 		public void run()
 		{
-			Log.d("", "BEGIN ListenThread" + this);
+			Log.e(MainActivity.debuglog, "BEGIN ListenThread" + this);
 
 			BluetoothSocket socket;
 
@@ -168,7 +158,7 @@ public class BtService extends Service
 				}
 				catch (IOException e)
 				{
-					Log.e("", "accept() failed", e);
+					Log.e(MainActivity.debuglog, "accept() failed", e);
 					break;
 				}//TODO catch interrupted exception
 
@@ -192,7 +182,7 @@ public class BtService extends Service
 							}
 							catch (IOException e)
 							{
-								Log.e(TAG, "Could not close unwanted socket", e);
+								Log.e(MainActivity.debuglog, "Could not close unwanted socket", e);
 							}
 							break;
 					}
@@ -200,7 +190,7 @@ public class BtService extends Service
 			}
 
 			state = State.NONE;
-			Log.i(TAG, "END ListenThread");
+			Log.e(MainActivity.debuglog, "END ListenThread");
 		}
 	}
 
@@ -223,7 +213,7 @@ public class BtService extends Service
 		@Override
 		public void run()
 		{
-			Log.i("BTSERVICE", "BEGIN connectingThread");
+			Log.e(MainActivity.debuglog, "BEGIN connectingThread");
 			btAdapter.cancelDiscovery();
 
 			// Make a connection to the BluetoothSocket
@@ -235,8 +225,8 @@ public class BtService extends Service
 			catch (IOException e)
 			{
 				state = NONE;
-				toast("Unable to connect to device");
-				Log.e("lol", "Unable to connect to device", e);
+				EventBus.getDefault().post(new Events.Toast("Unable to connect to device"));
+				Log.e(MainActivity.debuglog, "Unable to connect to device", e);
 
 				// Close the socket
 				try
@@ -245,7 +235,7 @@ public class BtService extends Service
 				}
 				catch (IOException e2)
 				{
-					Log.e("lol", "unable to close() socket during connection failure", e2);
+					Log.e(MainActivity.debuglog, "unable to close() socket during connection failure", e2);
 				}
 
 				return;
@@ -261,7 +251,7 @@ public class BtService extends Service
 		if (Thread.interrupted())
 			return;
 
-		Log.d("connected", "Hi, I am the connected method");
+		Log.e(MainActivity.debuglog, "Connected method");
 
 		inStream = null;
 		outStream = null;
@@ -274,14 +264,14 @@ public class BtService extends Service
 		}
 		catch (IOException e)
 		{
-			Log.e("lol", "connected sockets not created", e);
+			Log.e(MainActivity.debuglog, "connected sockets not created", e);
 			state = NONE;
 			return;
 		}
 
 		connectedDeviceName = socket.getRemoteDevice().getName();
-		Log.e("CONNECTED", "CONNECTED to " + socket.getRemoteDevice().getName());
-		toast("Connected to " + socket.getRemoteDevice().getName());
+		Log.e(MainActivity.debuglog, "CONNECTED to " + socket.getRemoteDevice().getName());
+		EventBus.getDefault().post(new Events.Toast("Connected to " + socket.getRemoteDevice().getName()));
 
 		//TODO callback enemy to UI
 		//setEnemy(socket.getRemoteDevice().getName());
@@ -303,6 +293,7 @@ public class BtService extends Service
 
 				int message = json.getInt("message");
 
+				Log.e(MainActivity.debuglog,"RECEIVED BTMESSAGE: " + message);
 				if (message == Message.SEND_BOARD_UPDATE.ordinal())
 				{
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
@@ -313,7 +304,7 @@ public class BtService extends Service
 
 					if (!localBoard.availableMoves().contains(newMove))
 					{
-						toast("Games got desynchronized");
+						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
 						closeConnection();
 					}
 					else
@@ -323,13 +314,13 @@ public class BtService extends Service
 
 						if (verifyBoard.equals(newBoard))
 						{
-							Log.d("", "We received a valid board");
+							Log.e(MainActivity.debuglog, "We received a valid board");
 
 							EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Bluetooth, newMove));
 						}
 						else
 						{
-							toast("Games got desynchronized");
+							EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
 							closeConnection();
 						}
 					}
@@ -351,17 +342,17 @@ public class BtService extends Service
 			}
 			catch (IOException e)
 			{
-				Log.e(TAG, "disconnected", e);
+				Log.e(MainActivity.debuglog, "disconnected", e);
 
 				closeConnection();
 				state = State.NONE; //TODO not needed?
 
-				toast("Connection lost");
+				EventBus.getDefault().post(new Events.Toast("Connection lost"));
 				break;
 			}
 			catch (JSONException e)
 			{
-				Log.e("", "JSON read parsing failed");
+				Log.e(MainActivity.debuglog, "JSON read parsing failed");
 				e.printStackTrace();
 			}//TODO catch interrupted exception
 		}
@@ -393,6 +384,8 @@ public class BtService extends Service
 
 	public void sendUndo(boolean force)
 	{
+		Log.e(MainActivity.debuglog,"Sending undo");
+
 		if (state != CONNECTED)
 			return;
 
@@ -407,7 +400,7 @@ public class BtService extends Service
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Exception during undo", e);
+			Log.e(MainActivity.debuglog, "Exception during undo", e);
 		}
 		catch (JSONException e)
 		{
@@ -417,6 +410,7 @@ public class BtService extends Service
 
 	public void sendSetup(GameState gs, boolean force)
 	{
+		Log.e(MainActivity.debuglog,"Sending setup");
 		//localBoard = gs.board();
 		//TODO
 
@@ -426,7 +420,7 @@ public class BtService extends Service
 
 			json.put("message", Message.RECEIVE_SETUP.ordinal());
 			json.put("force", force);
-			json.put("swapped", gs.players().first.equals(MainActivity.Source.Bluetooth));
+			json.put("swapped", gs.players().second.equals(MainActivity.Source.Bluetooth));
 			json.put("board", JSONBoard.toJSON(gs.board()).toString());
 
 			byte[] data = json.toString().getBytes();
@@ -435,7 +429,7 @@ public class BtService extends Service
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Exception during boardUpdate", e);
+			Log.e(MainActivity.debuglog, "Exception during boardUpdate", e);
 		}
 		catch (JSONException e)
 		{
@@ -445,6 +439,8 @@ public class BtService extends Service
 
 	public void sendBoard(Board board)
 	{
+		Log.e(MainActivity.debuglog,"Sending board");
+
 		localBoard = board;
 
 		try
@@ -461,7 +457,7 @@ public class BtService extends Service
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Exception during boardUpdate", e);
+			Log.e(MainActivity.debuglog, "Exception during boardUpdate", e);
 		}
 		catch (JSONException e)
 		{
