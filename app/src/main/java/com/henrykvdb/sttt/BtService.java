@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import static com.henrykvdb.sttt.BtService.State.CONNECTED;
+import static com.henrykvdb.sttt.BtService.State.CONNECTING;
 import static com.henrykvdb.sttt.BtService.State.LISTENING;
 import static com.henrykvdb.sttt.BtService.State.NONE;
 
@@ -90,7 +91,7 @@ public class BtService extends Service
 		if (this.allowIncoming == allowIncoming)
 			return;
 
-		Log.e(MainActivity.debuglog, allowIncoming + "");
+		Log.e(MainActivity.debuglog, "allow incoming? " + allowIncoming);
 
 		this.allowIncoming = allowIncoming;
 
@@ -129,7 +130,6 @@ public class BtService extends Service
 		{
 			state = LISTENING;
 
-			// Create a new listening server socket
 			try
 			{
 				serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("BluetoothChatSecure", UUID);
@@ -152,41 +152,17 @@ public class BtService extends Service
 			{
 				try
 				{
-					// This is a blocking call and will only return on a
-					// successful connection or an exception
+					// This is a blocking call and will only return on a successful connection or an exception
 					socket = serverSocket.accept();
 				}
 				catch (IOException e)
 				{
 					Log.e(MainActivity.debuglog, "accept() failed", e);
 					break;
-				}//TODO catch interrupted exception
-
-				// If a connection was accepted
-				if (socket != null)
-				{
-					switch (state)
-					{
-						case LISTENING:
-						case CONNECTING:
-							// Situation normal. Start the connected thread.
-							connected(socket, true);
-							break;
-						case NONE: //TODO remove
-							break;
-						case CONNECTED:
-							// Either not ready or already connected. Terminate new socket.
-							try
-							{
-								socket.close();
-							}
-							catch (IOException e)
-							{
-								Log.e(MainActivity.debuglog, "Could not close unwanted socket", e);
-							}
-							break;
-					}
 				}
+
+				if (socket != null && !Thread.interrupted())
+					connected(socket, true);
 			}
 
 			state = State.NONE;
@@ -200,6 +176,8 @@ public class BtService extends Service
 
 		public ConnectingRunnable(BluetoothDevice device)
 		{
+			state = CONNECTING;
+
 			try
 			{
 				socket = device.createRfcommSocketToServiceRecord(UUID);
@@ -219,8 +197,11 @@ public class BtService extends Service
 			// Make a connection to the BluetoothSocket
 			try
 			{
-				// Blocking call; only returns on a successful connection or an exception
+				// This is a blocking call and will only return on a successful connection or an exception
 				socket.connect();
+
+				// Start the actual connection
+				connected(socket, false);
 			}
 			catch (IOException e)
 			{
@@ -228,7 +209,6 @@ public class BtService extends Service
 				EventBus.getDefault().post(new Events.Toast("Unable to connect to device"));
 				Log.e(MainActivity.debuglog, "Unable to connect to device", e);
 
-				// Close the socket
 				try
 				{
 					socket.close();
@@ -237,12 +217,7 @@ public class BtService extends Service
 				{
 					Log.e(MainActivity.debuglog, "unable to close() socket during connection failure", e2);
 				}
-
-				return;
 			}
-
-			// Start the connected thread
-			connected(socket, false);
 		}
 	}
 
@@ -293,36 +268,21 @@ public class BtService extends Service
 
 				int message = json.getInt("message");
 
-				Log.e(MainActivity.debuglog,"RECEIVED BTMESSAGE: " + message);
+				Log.e(MainActivity.debuglog, "RECEIVED BTMESSAGE: " + message);
 				if (message == Message.SEND_BOARD_UPDATE.ordinal())
 				{
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (newBoard.equals(localBoard)) //TODO is this even needed?
-						return;
-
-					if (!localBoard.availableMoves().contains(newMove))
+					if (isValidBoard(newBoard))
 					{
-						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
-						closeConnection();
+						Log.e(MainActivity.debuglog, "We received a valid board");
+						EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Bluetooth, newMove));
 					}
 					else
 					{
-						Board verifyBoard = localBoard.copy();
-						verifyBoard.play(newMove);
-
-						if (verifyBoard.equals(newBoard))
-						{
-							Log.e(MainActivity.debuglog, "We received a valid board");
-
-							EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Bluetooth, newMove));
-						}
-						else
-						{
-							EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
-							closeConnection();
-						}
+						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
+						closeConnection();
 					}
 				}
 				else if (message == Message.RECEIVE_SETUP.ordinal())
@@ -333,7 +293,7 @@ public class BtService extends Service
 					localBoard = board;
 
 					GameState requestState = GameState.builder().bt().swapped(swapped).board(board).build();
-					EventBus.getDefault().post(new Events.Setup(requestState,json.getBoolean("force")));
+					EventBus.getDefault().post(new Events.Setup(requestState, json.getBoolean("force")));
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal())
 				{
@@ -356,6 +316,20 @@ public class BtService extends Service
 				e.printStackTrace();
 			}//TODO catch interrupted exception
 		}
+	}
+
+	private boolean isValidBoard(Board board)
+	{
+		if (board.equals(localBoard)) //TODO is this even needed?
+			throw new RuntimeException("It's lit fam not a valid board fix ur code");
+
+		if (!localBoard.availableMoves().contains(board.getLastMove()))
+			return false;
+
+		Board verifyBoard = localBoard.copy();
+		verifyBoard.play(board.getLastMove());
+
+		return verifyBoard.equals(board);
 	}
 
 	public void closeConnection()
@@ -384,7 +358,7 @@ public class BtService extends Service
 
 	public void sendUndo(boolean force)
 	{
-		Log.e(MainActivity.debuglog,"Sending undo");
+		Log.e(MainActivity.debuglog, "Sending undo");
 
 		if (state != CONNECTED)
 			return;
@@ -410,7 +384,7 @@ public class BtService extends Service
 
 	public void sendSetup(GameState gs, boolean force)
 	{
-		Log.e(MainActivity.debuglog,"Sending setup");
+		Log.e(MainActivity.debuglog, "Sending setup");
 		//localBoard = gs.board();
 		//TODO
 
@@ -439,7 +413,7 @@ public class BtService extends Service
 
 	public void sendBoard(Board board)
 	{
-		Log.e(MainActivity.debuglog,"Sending board");
+		Log.e(MainActivity.debuglog, "Sending board");
 
 		localBoard = board;
 
@@ -463,5 +437,10 @@ public class BtService extends Service
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public void cancelRunnable()
+	{
+		executor.cancel();
 	}
 }

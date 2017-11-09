@@ -281,8 +281,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
 					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 			{
+				btHostSwitch.setChecked(false);
+				btService.cancelRunnable();
 				keepBtOn = false;
-				unbindBtService(true);
 				Log.e("btStateReceiver", "TURNING OFF");
 			}
 		}
