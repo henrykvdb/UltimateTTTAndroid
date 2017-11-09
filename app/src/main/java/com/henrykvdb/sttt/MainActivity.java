@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				//If you press yes it will still callback false when dismissed
 				else if (!allowed[0])
 				{
-					btService.closeConnection();
+					btService.cancelRunnable();
 				}
 			}));
 		}
@@ -247,7 +247,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void turnLocal()
 	{
-		newGame(GameState.builder().boards(gs.boards()).build());
+		if (!gs.isAi() && !gs.isHuman())
+			newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
 	@Override

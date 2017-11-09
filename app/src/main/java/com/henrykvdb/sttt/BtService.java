@@ -86,7 +86,7 @@ public class BtService extends Service
 		Log.e(MainActivity.debuglog, "BTSERVICE CREATED");
 	}
 
-	public void setAllowIncoming(boolean allowIncoming)
+	public void setAllowIncoming(boolean allowIncoming) //TODO SHOULD ONLY BE CALLED FROM MAIN ACTIVITY
 	{
 		if (this.allowIncoming == allowIncoming)
 			return;
@@ -105,14 +105,14 @@ public class BtService extends Service
 		else
 		{
 			if (state != State.CONNECTING && state != State.CONNECTED)
-				executor.cancel();
+				cancelRunnable();
 		}
 	}
 
 	public void connect(String address, GameState requestState)
 	{
 		if (state != NONE)
-			executor.cancel();
+			cancelRunnable();
 
 		this.requestState = requestState;
 
@@ -143,7 +143,7 @@ public class BtService extends Service
 		@Override
 		public void run()
 		{
-			Log.e(MainActivity.debuglog, "BEGIN ListenThread" + this);
+			Log.e(MainActivity.debuglog, "BEGIN ListenThread " + this);
 
 			BluetoothSocket socket;
 
@@ -236,6 +236,7 @@ public class BtService extends Service
 			inStream = socket.getInputStream();
 			outStream = socket.getOutputStream();
 			state = CONNECTED;
+
 		}
 		catch (IOException e)
 		{
@@ -282,7 +283,7 @@ public class BtService extends Service
 					else
 					{
 						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
-						closeConnection();
+						cancelRunnable();
 					}
 				}
 				else if (message == Message.RECEIVE_SETUP.ordinal())
@@ -302,19 +303,16 @@ public class BtService extends Service
 			}
 			catch (IOException e)
 			{
+				state = State.NONE;
 				Log.e(MainActivity.debuglog, "disconnected", e);
-
-				closeConnection();
-				state = State.NONE; //TODO not needed?
-
 				EventBus.getDefault().post(new Events.Toast("Connection lost"));
-				break;
 			}
 			catch (JSONException e)
 			{
+				state = State.NONE;
 				Log.e(MainActivity.debuglog, "JSON read parsing failed");
 				e.printStackTrace();
-			}//TODO catch interrupted exception
+			}
 		}
 	}
 
@@ -332,7 +330,7 @@ public class BtService extends Service
 		return verifyBoard.equals(board);
 	}
 
-	public void closeConnection()
+	public void cancelRunnable()
 	{
 		executor.cancel();
 		EventBus.getDefault().post(new Events.TurnLocal());
@@ -437,10 +435,5 @@ public class BtService extends Service
 		{
 			e.printStackTrace();
 		}
-	}
-
-	public void cancelRunnable()
-	{
-		executor.cancel();
 	}
 }
