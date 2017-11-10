@@ -1,6 +1,7 @@
 package com.henrykvdb.sttt;
 
 import android.app.ActivityManager;
+import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -18,7 +19,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.ActionBar;
@@ -28,10 +28,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.CompoundButton;
-import android.widget.Switch;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
@@ -50,6 +53,7 @@ import org.greenrobot.eventbus.Subscribe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.flaghacker.uttt.common.Player.ENEMY;
@@ -61,12 +65,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 {
 	//Keys
 	private static final String GAMESTATE_KEY = "GAMESTATE_KEY";
-	private static final String ALLOW_INCOMING_KEY = "ALLOW_INCOMING_KEY";
+	//private static final String ALLOW_INCOMING_KEY = "ALLOW_INCOMING_KEY";
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
 	//Fields
 	private GameState gs;
-	private boolean allowIncoming;
+	//private boolean allowIncoming;
 	private boolean keepBtOn; //If the app started with bluetooth the app won't disable bluetooth
 
 	//Request codes
@@ -81,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	//Bluetooth fields
 	private BluetoothAdapter btAdapter;
-	private Switch btHostSwitch;
+	private Dialog btDialog;
 
 	//Game fields
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
@@ -91,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private Toast toast;
 	private AlertDialog askDialog;
+
+	//
 	public static String debuglog = "DEBUGLOG";
 
 	public enum Source
@@ -138,14 +144,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Set some fields used for bluetooth
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		btHostSwitch = (Switch) MenuItemCompat.getActionView(navigationView.getMenu().findItem(R.id.nav_bt_host_switch));
 		keepBtOn = savedInstanceState == null
 				? btAdapter != null && btAdapter.isEnabled()
 				: savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
-
-		//Add a btHostSwitch listener and set the switch to the correct state
-		btHostSwitch.setOnCheckedChangeListener(incomingSwitchListener);
-		btHostSwitch.setChecked(btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
 
 		//Add ads in portrait
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
@@ -172,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
+		//outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, keepBtOn);
 		outState.putSerializable(GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
@@ -186,23 +187,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (!force)
 		{
-			final boolean[] allowed = {false};
-			runOnUiThread(() -> askUser(btService.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
+			runOnUiThread(() ->
 			{
-				if (allow)
-				{
-					allowed[0] = true;
 
+				//Allow always returns an extra "false" when the dialog is dismissed //TODO improve
+				final boolean[] allowed = {false};
+				askUser(btService.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
+				{
+					if (allow)
+						allowed[0] = true;
+				});
+
+				if (allowed[0])
+				{
 					btService.setLocalBoard(requestState.board());
 					btService.sendSetup(requestState, true);
 					newGame(requestState);
 				}
-				//If you press yes it will still callback false when dismissed
-				else if (!allowed[0])
+				else
 				{
 					btService.cancelRunnable();
 				}
-			}));
+
+			});
 		}
 		else
 		{
@@ -282,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
 					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 			{
-				btHostSwitch.setChecked(false);
+				btDialog.dismiss();
 				btService.cancelRunnable();
 				keepBtOn = false;
 				Log.e("btStateReceiver", "TURNING OFF");
@@ -324,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btServiceBound)
 		{
-			btHostSwitch.setChecked(false);
+			btDialog.dismiss();
 
 			unregisterReceiver(btStateReceiver);
 			unbindService(btServerConn);
@@ -492,8 +499,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			btService = ((BtService.LocalBinder) service).getService();
 			btServiceBound = true;
-
-			btService.setAllowIncoming(allowIncoming);
 		}
 
 		@Override
@@ -565,7 +570,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	public boolean onNavigationItemSelected(@NonNull MenuItem item)
 	{
-		// Handle navigation view item clicks here.
 		int id = item.getItemId();
 
 		if (id == R.id.nav_local_human)
@@ -576,9 +580,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			NewGameDialogs.newAi(this::newGame, this);
 		}
+		else if (id == R.id.nav_bt_host)
+		{
+			hostBt();
+		}
 		else if (id == R.id.nav_bt_join)
 		{
-			pickBluetooth();
+			joinBt();
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
@@ -592,97 +600,73 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			BasicDialogs.about(this);
 		}
+		else return false;
 
-		if (id != R.id.nav_bt_host_switch)
-			((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
-
+		//Close drawer and return
+		((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
 		return true;
 	}
 
-	private CompoundButton.OnCheckedChangeListener incomingSwitchListener = (buttonView, isChecked) ->
+	private void hostBt()
 	{
-		//Stop if there is no bluetooth available
 		if (btAdapter == null)
 		{
 			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-			btHostSwitch.setChecked(false);
 			return;
 		}
 
-		if (isChecked)
-		{
-			boolean discoverable = btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
-			btHostSwitch.setChecked(discoverable);
+		boolean discoverable = btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
 
-			if (!discoverable)
+		if (discoverable)
+		{
+			btService.listen();
+
+			LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+			View layout = inflater.inflate(R.layout.dialog_bt_host, (ViewGroup) findViewById(R.id.bt_host_layout));
+			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, "TODO: UPDATE"));
+
+			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
 			{
-				Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-				discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-				startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
-				return;
-			}
+				//Get board type
+				boolean newBoard = ((RadioButton) layout.findViewById(R.id.board_new)).isChecked();
+
+				//Get the beginning player
+				int beginner = ((RadioGroup) layout.findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
+				boolean start = new Random().nextBoolean();
+				if (beginner == R.id.start_you) start = true;
+				else if (beginner == R.id.start_other) start = false;
+
+				//Create the actual requested gamestate
+				boolean swapped = start ^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
+				GameState.Builder gsBuilder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
+				if (!newBoard)
+					gsBuilder.board(gs.board());
+
+				btService.setRequestState(gsBuilder.build());
+			};
+
+			((RadioGroup) layout.findViewById(R.id.start_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
+			((RadioGroup) layout.findViewById(R.id.board_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
+
+			btDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(this)
+					.setView(layout)
+					.setTitle("Host Bluetooth game")
+					.setNegativeButton("close", (dialog, which) ->
+					{
+						dialog.dismiss();
+						btService.cancelRunnable();
+					})
+					.show());
 		}
 		else
 		{
-			if (btAdapter.isEnabled() && !keepBtOn)
-				btAdapter.disable();
+			Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+			discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+			startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
 		}
-
-		allowIncoming = isChecked;
-		if (btServiceBound)
-			btService.setAllowIncoming(allowIncoming);
-	};
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		switch (requestCode)
-		{
-			case REQUEST_ENABLE_BT:
-				if (resultCode == RESULT_OK)
-					pickBluetooth();
-				break;
-			case REQUEST_ENABLE_DSC:
-				if (resultCode == RESULT_CANCELED)
-					btHostSwitch.setChecked(false);
-				else
-					btHostSwitch.setChecked(true);
-				break;
-			case REQUEST_START_BTPICKER:
-				if (resultCode == RESULT_OK)
-				{
-					//Create the requested gameState from the activity result
-					boolean newBoard = data.getExtras().getBoolean("newBoard");
-					boolean swapped = data.getExtras().getBoolean("start")
-							^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
-					GameState.Builder gsBuilder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
-					if (!newBoard)
-						gsBuilder.board(gs.board());
-
-					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS), gsBuilder.build());
-				}
-				break;
-		}
-
-		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-	{
-		switch (requestCode)
-		{
-			case REQUEST_COARSE_LOCATION:
-				// If request is cancelled, the result arrays are empty.
-				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-					pickBluetooth();
-				break;
-		}
-
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-	}
-
-	private void pickBluetooth()
+	private void joinBt()
 	{
 		// If the adapter is null, then Bluetooth is not supported
 		if (btAdapter == null)
@@ -713,6 +697,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				startActivityForResult(serverIntent, REQUEST_START_BTPICKER);
 			}
 		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_ENABLE_BT:
+				if (resultCode == RESULT_OK)
+					joinBt();
+				break;
+			case REQUEST_ENABLE_DSC:
+				if (resultCode != RESULT_CANCELED)
+					hostBt();
+				break;
+			case REQUEST_START_BTPICKER:
+				if (resultCode == RESULT_OK)
+					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
+				break;
+		}
+
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_COARSE_LOCATION:
+				// If request is cancelled, the result arrays are empty.
+				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+					joinBt();
+				break;
+		}
+
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
 	private void askUser(String message, Callback<Boolean> callBack)

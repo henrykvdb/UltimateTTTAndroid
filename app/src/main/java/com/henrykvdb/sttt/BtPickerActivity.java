@@ -9,29 +9,19 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class BtPickerActivity extends Activity
 {
-	/**
-	 * Return Intent extra
-	 */
 	public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
 	private BluetoothAdapter btAdapter;
 
 	private List<BluetoothDevice> devices = new ArrayList<>();
-
 	private LinearLayout devicesLayout;
 
 	@Override
@@ -40,7 +30,7 @@ public class BtPickerActivity extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Setup the window
-		setContentView(R.layout.dialog_bluetooth);
+		setContentView(R.layout.dialog_bt_join);
 
 		// Set result CANCELED in case the user backs out
 		setResult(Activity.RESULT_CANCELED);
@@ -49,38 +39,14 @@ public class BtPickerActivity extends Activity
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		devicesLayout = (LinearLayout) findViewById(R.id.devices);
 
-		//Set local vars
-		ProgressBar spinner = (ProgressBar) findViewById(R.id.loading_spinner);
-		Button scanButton = (Button) findViewById(R.id.button_scan);
-
-		// Initialize the button to perform device discovery
-		scanButton.setOnClickListener(v ->
-		{
-			doDiscovery();
-			scanButton.setEnabled(false);
-			spinner.setVisibility(View.VISIBLE);
-			new java.util.Timer().schedule(
-					new java.util.TimerTask()
-					{
-						@Override
-						public void run()
-						{
-							runOnUiThread(() ->
-							{
-								scanButton.setEnabled(true);
-								spinner.setVisibility(View.INVISIBLE);
-							});
-						}
-					}, 15000
-			);
-		});
-
 		// Register filters
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 		registerReceiver(mReceiver, filter);
+
+		doDiscovery();
 	}
 
 	private void updateLayout()
@@ -108,14 +74,6 @@ public class BtPickerActivity extends Activity
 					// Create the result Intent and include the MAC address
 					Intent intent = new Intent();
 					intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
-
-					int beginner = ((RadioGroup) findViewById(R.id.start_radio_group)).getCheckedRadioButtonId();
-					boolean start = new Random().nextBoolean();
-					if (beginner == R.id.start_you) start = true;
-					else if (beginner == R.id.start_other) start = false;
-
-					intent.putExtra("newBoard", ((RadioButton) findViewById(R.id.board_new)).isChecked());
-					intent.putExtra("start", start);
 
 					// Set result and finish this Activity
 					setResult(Activity.RESULT_OK, intent);
@@ -175,8 +133,11 @@ public class BtPickerActivity extends Activity
 			{
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-				if (device.getName() != null)
-					devices.add(device);
+				boolean add = device.getName() != null;
+				for (BluetoothDevice d : devices)
+					add = (d == device) && add;
+
+				if (add) devices.add(device);
 
 				updateLayout();
 			}
@@ -186,7 +147,7 @@ public class BtPickerActivity extends Activity
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
 			{
-				//Nothing
+				doDiscovery();
 			}
 		}
 	};

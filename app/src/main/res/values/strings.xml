@@ -4,6 +4,9 @@
     <string name="app_name_long">Super Tic Tac Toe</string>
     <string name="drawer_subtitle">No inspirational quote here</string>
 
+	<!-- Dynamic -->
+	<string name="host_desc">You are hosting a game, ask a friend to join you (%1$s) over bluetooth</string>
+
     <!-- FireBase -->
     <string name="banner_ad_unit_id">ca-app-pub-6464324284979557/5400944625</string>
 
@@ -12,7 +15,7 @@
     <string name="current_board">Current</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="feedback">Feedback</string>
-    <string name="incoming">Incoming</string>
+    <string name="host">Host</string>
     <string name="new_board">New</string>
     <string name="random">Random</string>
     <string name="share">Share</string>
@@ -29,11 +32,12 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="join_bluetooth_game">Join Bluetooth game</string>
+	<string name="host_bluetooth_game">Host Bluetooth game</string>
     <string name="joinable_devices">Joinable devices</string>
     <string name="starting_player">Beginning player</string>
     <string name="none_found">No devices found</string>
     <string name="button_scan">Scan for devices</string>
-    <string name="select_boards">Select boards</string>
+    <string name="select_board">Select board</string>
     <string name="app_icon">app icon</string>
     <string name="current_player">Current Player</string>
     <string name="won_by">Won by</string>

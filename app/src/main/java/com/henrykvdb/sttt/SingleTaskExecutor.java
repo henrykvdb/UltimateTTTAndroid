@@ -17,6 +17,7 @@ public class SingleTaskExecutor
 
 	public void cancel()
 	{
+		new RuntimeException("cancel task, not a bug").printStackTrace();
 		Log.e("Executor","Cancled task");
 
 		if (lastTask != null)
@@ -25,6 +26,7 @@ public class SingleTaskExecutor
 
 	public <T extends InterruptableRunnable> void submit(T task)
 	{
+		new RuntimeException("submit task, not a bug").printStackTrace();
 		Log.e("Executor","Submitted task");
 
 		if (lastTask != null)

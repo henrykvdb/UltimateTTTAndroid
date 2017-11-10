@@ -26,7 +26,7 @@ public class BasicDialogs
 	private final static int LAUNCHES_UNTIL_PROMPT = 3;//Min number of launches
 
 	// Prevent dialog dismiss when orientation changes
-	public static void keepDialog(Dialog dialog)
+	public static AlertDialog keepDialog(Dialog dialog)
 	{
 		try
 		{
@@ -40,6 +40,7 @@ public class BasicDialogs
 		{
 			//NOP
 		}
+		return null;
 	}
 
 	public static void sendFeedback(Context context)

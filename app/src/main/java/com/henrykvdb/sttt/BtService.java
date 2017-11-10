@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.JSONBoard;
@@ -37,14 +36,11 @@ public class BtService extends Service
 	private boolean allowIncoming;
 	private volatile State state = NONE;
 
-	private InputStream inStream = null;
 	private OutputStream outStream = null;
 
 	private Board localBoard = new Board();
 	private GameState requestState;
 	private String connectedDeviceName;
-
-	private Toast toast;
 
 	public enum State
 	{
@@ -109,12 +105,15 @@ public class BtService extends Service
 		}
 	}
 
-	public void connect(String address, GameState requestState)
+	public void listen()
+	{
+		executor.submit(new ListenRunnable());
+	}
+
+	public void connect(String address)
 	{
 		if (state != NONE)
 			cancelRunnable();
-
-		this.requestState = requestState;
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.e(MainActivity.debuglog, "connect to: " + device);
@@ -230,7 +229,7 @@ public class BtService extends Service
 
 		Log.e(MainActivity.debuglog, "Connected method");
 
-		inStream = null;
+		InputStream inStream = null;
 		outStream = null;
 
 		try
@@ -256,7 +255,7 @@ public class BtService extends Service
 
 		byte[] buffer = new byte[1024];
 
-		if (!isHost)
+		if (isHost)
 			sendSetup(requestState, false);
 
 		// Keep listening to the InputStream while connected
@@ -437,5 +436,10 @@ public class BtService extends Service
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public void setRequestState(GameState requestState)
+	{
+		this.requestState = requestState;
 	}
 }
