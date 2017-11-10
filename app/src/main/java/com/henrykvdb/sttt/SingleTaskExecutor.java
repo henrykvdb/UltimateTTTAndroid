@@ -4,12 +4,11 @@ import android.util.Log;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class SingleTaskExecutor
 {
 	private final ExecutorService executor;
-	private Future<?> lastTask;
+	private InterruptableFuture lastTask;
 
 	public SingleTaskExecutor()
 	{
@@ -24,13 +23,14 @@ public class SingleTaskExecutor
 			lastTask.cancel(true);
 	}
 
-	public void submit(Runnable task)
+	public <T extends InterruptableRunnable> void submit(T task)
 	{
 		Log.e("Executor","Submitted task");
 
 		if (lastTask != null)
 			lastTask.cancel(true);
 
-		lastTask = executor.submit(task);
+		lastTask = new InterruptableFuture(executor.submit(task),task);
 	}
+
 }

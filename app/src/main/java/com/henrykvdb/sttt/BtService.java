@@ -122,7 +122,7 @@ public class BtService extends Service
 		executor.submit(new ConnectingRunnable(device));
 	}
 
-	private class ListenRunnable implements Runnable
+	private class ListenRunnable extends InterruptableRunnable
 	{
 		private BluetoothServerSocket serverSocket = null;
 
@@ -148,7 +148,7 @@ public class BtService extends Service
 			BluetoothSocket socket;
 
 			// Listen to the server socket if we're not connected
-			while (state != CONNECTED && !Thread.interrupted())
+			while (state != CONNECTED && !isInterrupted())
 			{
 				try
 				{
@@ -161,8 +161,8 @@ public class BtService extends Service
 					break;
 				}
 
-				if (socket != null && !Thread.interrupted())
-					connected(socket, true);
+				if (socket != null && !isInterrupted())
+					connected(socket, true,this);
 			}
 
 			state = State.NONE;
@@ -170,7 +170,7 @@ public class BtService extends Service
 		}
 	}
 
-	private class ConnectingRunnable implements Runnable
+	private class ConnectingRunnable extends InterruptableRunnable
 	{
 		private BluetoothSocket socket;
 
@@ -191,7 +191,7 @@ public class BtService extends Service
 		@Override
 		public void run()
 		{
-			Log.e(MainActivity.debuglog, "BEGIN connectingThread");
+			Log.e(MainActivity.debuglog, "BEGIN connectingThread" + this);
 			btAdapter.cancelDiscovery();
 
 			// Make a connection to the BluetoothSocket
@@ -201,7 +201,7 @@ public class BtService extends Service
 				socket.connect();
 
 				// Start the actual connection
-				connected(socket, false);
+				connected(socket, false,this);
 			}
 			catch (IOException e)
 			{
@@ -215,15 +215,17 @@ public class BtService extends Service
 				}
 				catch (IOException e2)
 				{
-					Log.e(MainActivity.debuglog, "unable to close() socket during connection failure", e2);
+					Log.e(MainActivity.debuglog, "unable to interrupt() socket during connection failure", e2);
 				}
 			}
+
+			Log.e(MainActivity.debuglog, "END connectingThread" + this);
 		}
 	}
 
-	private void connected(BluetoothSocket socket, boolean isHost)
+	private void connected(BluetoothSocket socket, boolean isHost, InterruptableRunnable runnable)
 	{
-		if (Thread.interrupted())
+		if (runnable.isInterrupted())
 			return;
 
 		Log.e(MainActivity.debuglog, "Connected method");
@@ -258,7 +260,7 @@ public class BtService extends Service
 			sendSetup(requestState, false);
 
 		// Keep listening to the InputStream while connected
-		while (state == CONNECTED && !Thread.interrupted())
+		while (state == CONNECTED && !runnable.isInterrupted())
 		{
 			try
 			{
