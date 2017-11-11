@@ -256,7 +256,7 @@ public class BtService extends Service
 		byte[] buffer = new byte[1024];
 
 		if (isHost)
-			sendSetup(requestState, false);
+			sendSetup();
 
 		// Keep listening to the InputStream while connected
 		while (state == CONNECTED && !runnable.isInterrupted())
@@ -290,12 +290,10 @@ public class BtService extends Service
 				else if (message == Message.RECEIVE_SETUP.ordinal())
 				{
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
-					boolean swapped = json.getBoolean("swapped");
-
 					localBoard = board;
 
-					GameState requestState = GameState.builder().bt().swapped(swapped).board(board).build();
-					EventBus.getDefault().post(new Events.Setup(requestState, json.getBoolean("force")));
+					GameState requestState = GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build();
+					EventBus.getDefault().post(new Events.NewGame(requestState));
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal())
 				{
@@ -381,20 +379,18 @@ public class BtService extends Service
 		}
 	}
 
-	public void sendSetup(GameState gs, boolean force)
+	private void sendSetup()
 	{
+		EventBus.getDefault().post(new Events.NewGame(requestState));
 		Log.e(MainActivity.debuglog, "Sending setup");
-		//localBoard = gs.board();
-		//TODO
 
 		try
 		{
 			JSONObject json = new JSONObject();
 
 			json.put("message", Message.RECEIVE_SETUP.ordinal());
-			json.put("force", force);
-			json.put("swapped", gs.players().second.equals(MainActivity.Source.Bluetooth));
-			json.put("board", JSONBoard.toJSON(gs.board()).toString());
+			json.put("start", requestState.players().first.equals(MainActivity.Source.Bluetooth));
+			json.put("board", JSONBoard.toJSON(requestState.board()).toString());
 
 			byte[] data = json.toString().getBytes();
 

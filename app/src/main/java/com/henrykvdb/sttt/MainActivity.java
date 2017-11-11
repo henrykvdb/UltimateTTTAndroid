@@ -65,12 +65,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 {
 	//Keys
 	private static final String GAMESTATE_KEY = "GAMESTATE_KEY";
-	//private static final String ALLOW_INCOMING_KEY = "ALLOW_INCOMING_KEY";
 	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
 	//Fields
 	private GameState gs;
-	//private boolean allowIncoming;
 	private boolean keepBtOn; //If the app started with bluetooth the app won't disable bluetooth
 
 	//Request codes
@@ -96,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private Toast toast;
 	private AlertDialog askDialog;
 
-	//
+	//TEMP
 	public static String debuglog = "DEBUGLOG";
 
 	public enum Source
@@ -142,12 +140,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
-		//Set some fields used for bluetooth
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		keepBtOn = savedInstanceState == null
-				? btAdapter != null && btAdapter.isEnabled()
-				: savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
-
 		//Add ads in portrait
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
 		{
@@ -155,17 +147,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
 		}
 
-		//Prepare the BoardView and the game object
+		//Prepare the BoardView
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
-		//Start an actual game
-		if (savedInstanceState != null)
-			newGame((GameState) savedInstanceState.getSerializable(GAMESTATE_KEY));
-		else
+		if (savedInstanceState == null)
+		{
+			//New game
+			keepBtOn = btAdapter != null && btAdapter.isEnabled();
 			newLocal();
+		}
+		else
+		{
+			//Restore game
+			keepBtOn = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
+			newGame((GameState) savedInstanceState.getSerializable(GAMESTATE_KEY));
+		}
 
-		//Ask the user to rate the app
+		//Ask the user to rate
 		if (savedInstanceState == null)
 			BasicDialogs.rate(this);
 	}
@@ -180,42 +179,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Subscribe
-	public void onMessageEvent(Events.Setup setupEvent)
+	public void onMessageEvent(Events.NewGame newGame)
 	{
-		boolean force = setupEvent.force;
-		GameState requestState = setupEvent.requestState;
-
-		if (!force)
-		{
-			runOnUiThread(() ->
-			{
-
-				//Allow always returns an extra "false" when the dialog is dismissed //TODO improve
-				final boolean[] allowed = {false};
-				askUser(btService.getConnectedDeviceName() + " challenges you for a duel, do you accept?", allow ->
-				{
-					if (allow)
-						allowed[0] = true;
-				});
-
-				if (allowed[0])
-				{
-					btService.setLocalBoard(requestState.board());
-					btService.sendSetup(requestState, true);
-					newGame(requestState);
-				}
-				else
-				{
-					btService.cancelRunnable();
-				}
-
-			});
-		}
-		else
-		{
-			btService.setLocalBoard(requestState.board());
-			runOnUiThread(() -> newGame(requestState));
-		}
+		runOnUiThread(() -> newGame(newGame.requestState));
 	}
 
 	private void newGame(GameState gs)
@@ -281,22 +247,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
 	}
 
-	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
-	{
-		@Override
-		public void onReceive(Context context, Intent intent)
-		{
-			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
-					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
-			{
-				btDialog.dismiss();
-				btService.cancelRunnable();
-				keepBtOn = false;
-				Log.e("btStateReceiver", "TURNING OFF");
-			}
-		}
-	};
-
 	private boolean isServiceRunning(Class<?> serviceClass)
 	{
 		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -308,6 +258,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 		}
 		return false;
+	}
+
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
+					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
+			{
+				closeBtDialog();
+				btService.cancelRunnable();
+				keepBtOn = false;
+				Log.e("btStateReceiver", "TURNING OFF");
+			}
+		}
+	};
+
+	private void closeBtDialog()
+	{
+		if (btDialog != null)
+		{
+			btDialog.dismiss();
+			btDialog = null;
+		}
 	}
 
 	@Override
@@ -331,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btServiceBound)
 		{
-			btDialog.dismiss();
+			closeBtDialog();
 
 			unregisterReceiver(btStateReceiver);
 			unbindService(btServerConn);
@@ -393,7 +368,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			interrupt();
 		}
 	}
-
 
 	private void playAndUpdateBoard(Coord move)
 	{
@@ -653,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					.setTitle("Host Bluetooth game")
 					.setNegativeButton("close", (dialog, which) ->
 					{
-						dialog.dismiss();
+						closeBtDialog();
 						btService.cancelRunnable();
 					})
 					.show());

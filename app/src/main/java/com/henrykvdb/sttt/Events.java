@@ -18,19 +18,17 @@ public class Events
 		}
 	}
 
-	public static class TurnLocal
+	public static class TurnLocal //TODO remove, same as newgame
 	{
 	}
 
-	public static class Setup
+	public static class NewGame
 	{
 		public final GameState requestState;
-		public final boolean force;
 
-		public Setup(GameState requestState, boolean force)
+		public NewGame(GameState requestState)
 		{
 			this.requestState = requestState;
-			this.force = force;
 		}
 	}
 
