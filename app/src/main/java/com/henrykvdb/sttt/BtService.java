@@ -82,29 +82,6 @@ public class BtService extends Service
 		Log.e(MainActivity.debuglog, "BTSERVICE CREATED");
 	}
 
-	public void setAllowIncoming(boolean allowIncoming) //TODO SHOULD ONLY BE CALLED FROM MAIN ACTIVITY
-	{
-		if (this.allowIncoming == allowIncoming)
-			return;
-
-		Log.e(MainActivity.debuglog, "allow incoming? " + allowIncoming);
-
-		this.allowIncoming = allowIncoming;
-
-		if (allowIncoming)
-		{
-			if (state != LISTENING)
-			{
-				executor.submit(new ListenRunnable());
-			}
-		}
-		else
-		{
-			if (state != State.CONNECTING && state != State.CONNECTED)
-				cancelRunnable();
-		}
-	}
-
 	public void listen()
 	{
 		executor.submit(new ListenRunnable());
@@ -328,9 +305,6 @@ public class BtService extends Service
 
 	private boolean isValidBoard(Board board)
 	{
-		if (board.equals(localBoard)) //TODO is this even needed?
-			throw new RuntimeException("It's lit fam not a valid board fix ur code");
-
 		if (!localBoard.availableMoves().contains(board.getLastMove()))
 			return false;
 
