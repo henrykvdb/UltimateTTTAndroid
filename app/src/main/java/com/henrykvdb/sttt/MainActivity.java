@@ -1,7 +1,6 @@
 package com.henrykvdb.sttt;
 
 import android.app.ActivityManager;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -58,8 +57,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.flaghacker.uttt.common.Player.ENEMY;
 import static com.flaghacker.uttt.common.Player.PLAYER;
-import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
-import static com.henrykvdb.sttt.MainActivity.Source.Local;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
@@ -83,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	//Bluetooth fields
 	private BluetoothAdapter btAdapter;
-	private Dialog btDialog;
+	private AlertDialog btDialog;
 
 	//Game fields
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
@@ -147,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
 		}
 
-		//Prepare the BoardView
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 
@@ -172,7 +169,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		//outState.putBoolean(ALLOW_INCOMING_KEY, allowIncoming);
 		outState.putBoolean(STARTED_WITH_BT_KEY, keepBtOn);
 		outState.putSerializable(GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
@@ -202,6 +198,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (!gs.isBluetooth())
 			setSubTitle(null);
+
+		if (btDialog!=null)
+			btDialog.dismiss();
 
 		thread = new GameThread();
 		thread.start();
@@ -280,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btDialog != null)
 		{
+			Log.e(MainActivity.debuglog,"Closing bt dialog");
 			btDialog.dismiss();
 			btDialog = null;
 		}
@@ -593,6 +593,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (discoverable)
 		{
+			btService.setRequestState(GameState.builder().bt().build());
 			btService.listen();
 
 			LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -612,7 +613,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 				//Create the actual requested gamestate
 				boolean swapped = start ^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
-				GameState.Builder gsBuilder = GameState.builder().players(new GameState.Players(Local, Bluetooth)).swapped(swapped);
+				GameState.Builder gsBuilder = GameState.builder().bt().swapped(swapped);
 				if (!newBoard)
 					gsBuilder.board(gs.board());
 
@@ -625,6 +626,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
 					.setTitle("Host Bluetooth game")
+					.setOnCancelListener(dialog -> btService.cancelRunnable())
 					.setNegativeButton("close", (dialog, which) ->
 					{
 						closeBtDialog();

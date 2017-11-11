@@ -229,7 +229,7 @@ public class BtService extends Service
 
 		Log.e(MainActivity.debuglog, "Connected method");
 
-		InputStream inStream = null;
+		InputStream inStream;
 		outStream = null;
 
 		try
@@ -303,7 +303,7 @@ public class BtService extends Service
 			catch (IOException e)
 			{
 				state = State.NONE;
-				Log.e(MainActivity.debuglog, "disconnected", e);
+				Log.e(MainActivity.debuglog, "disconnected", e); //TODO turn local
 				EventBus.getDefault().post(new Events.Toast("Connection lost"));
 			}
 			catch (JSONException e)

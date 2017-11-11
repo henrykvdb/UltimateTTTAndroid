@@ -92,12 +92,6 @@ public class GameState implements Serializable
 			return this;
 		}
 
-		public Builder players(Players players)
-		{
-			this.players = players;
-			return this;
-		}
-
 		public Builder bt()
 		{
 			players = new Players(Local, Bluetooth);

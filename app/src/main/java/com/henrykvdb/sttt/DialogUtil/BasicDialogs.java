@@ -1,7 +1,6 @@
 package com.henrykvdb.sttt.DialogUtil;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,7 +25,7 @@ public class BasicDialogs
 	private final static int LAUNCHES_UNTIL_PROMPT = 3;//Min number of launches
 
 	// Prevent dialog dismiss when orientation changes
-	public static AlertDialog keepDialog(Dialog dialog)
+	public static AlertDialog keepDialog(AlertDialog dialog)
 	{
 		try
 		{
@@ -40,7 +39,7 @@ public class BasicDialogs
 		{
 			//NOP
 		}
-		return null;
+		return dialog;
 	}
 
 	public static void sendFeedback(Context context)

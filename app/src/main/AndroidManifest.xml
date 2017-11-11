@@ -1,32 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.henrykvdb.sttt"
-          android:installLocation="preferExternal">
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+		  package="com.henrykvdb.sttt"
+		  android:installLocation="preferExternal">
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+	<uses-permission android:name="android.permission.BLUETOOTH"/>
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
 
-    <application
-            android:allowBackup="false"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name_long"
-            android:supportsRtl="true"
-            android:theme="@style/AppTheme.NoActionBar">
-        <activity
-                android:name="com.henrykvdb.sttt.MainActivity">
-            <intent-filter android:label="@string/app_name">
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <activity
-                android:name="com.henrykvdb.sttt.BtPickerActivity"
-                android:configChanges="keyboardHidden|orientation|screenSize"
-                android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
-        <service
-                android:name="com.henrykvdb.sttt.BtService"
-                android:exported="false"/>
-    </application>
+	<application
+			android:allowBackup="false"
+			android:icon="@mipmap/ic_launcher"
+			android:label="@string/app_name_long"
+			android:supportsRtl="true"
+			android:theme="@style/AppTheme.NoActionBar">
+		<activity
+				android:name="com.henrykvdb.sttt.MainActivity">
+			<intent-filter android:label="@string/app_name">
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+		<activity android:name="com.henrykvdb.sttt.BtPickerActivity"
+				  android:configChanges="keyboardHidden|orientation|screenSize"
+				  android:theme="@android:style/Theme.Holo.Light.Dialog.NoActionBar.MinWidth"/>
+		<service
+				android:name="com.henrykvdb.sttt.BtService"
+				android:exported="false"/>
+	</application>
 
 </manifest>
