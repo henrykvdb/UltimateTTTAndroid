@@ -18,7 +18,7 @@ public class Events
 		}
 	}
 
-	public static class TurnLocal //TODO remove, same as newgame
+	public static class TurnLocal
 	{
 	}
 

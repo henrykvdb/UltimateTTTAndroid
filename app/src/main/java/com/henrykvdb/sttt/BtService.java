@@ -161,7 +161,7 @@ public class BtService extends Service
 				}
 
 				if (socket != null && !isInterrupted())
-					connected(socket, true,this);
+					connected(socket, true, this);
 			}
 
 			state = State.NONE;
@@ -200,7 +200,7 @@ public class BtService extends Service
 				socket.connect();
 
 				// Start the actual connection
-				connected(socket, false,this);
+				connected(socket, false, this);
 			}
 			catch (IOException e)
 			{
@@ -303,7 +303,8 @@ public class BtService extends Service
 			catch (IOException e)
 			{
 				state = State.NONE;
-				Log.e(MainActivity.debuglog, "disconnected", e); //TODO turn local
+				Log.e(MainActivity.debuglog, "disconnected", e);
+				cancelRunnable();
 				EventBus.getDefault().post(new Events.Toast("Connection lost"));
 			}
 			catch (JSONException e)

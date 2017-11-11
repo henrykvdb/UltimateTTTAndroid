@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (!gs.isBluetooth())
 			setSubTitle(null);
 
-		if (btDialog!=null)
+		if (btDialog != null)
 			btDialog.dismiss();
 
 		thread = new GameThread();
@@ -279,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btDialog != null)
 		{
-			Log.e(MainActivity.debuglog,"Closing bt dialog");
+			Log.e(MainActivity.debuglog, "Closing bt dialog");
 			btDialog.dismiss();
 			btDialog = null;
 		}
@@ -376,7 +376,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Board newBoard = gs.board().copy();
 			newBoard.play(move);
 
-			if (gs.players().contains(Source.Bluetooth))
+			if (gs.players().contains(Source.Bluetooth)
+					&& ((gs.board().nextPlayer() == PLAYER) == (gs.players().first == Source.Local)))
 				btService.sendBoard(newBoard);
 
 			gs.pushBoard(newBoard);
