@@ -144,6 +144,7 @@ public class BtService extends Service
 		{
 			Log.e(MainActivity.debuglog, "BEGIN ListenThread " + this);
 
+			executor.addCloseable(serverSocket);
 			BluetoothSocket socket;
 
 			// Listen to the server socket if we're not connected
@@ -191,16 +192,20 @@ public class BtService extends Service
 		public void run()
 		{
 			Log.e(MainActivity.debuglog, "BEGIN connectingThread" + this);
+
+			executor.addCloseable(socket);
 			btAdapter.cancelDiscovery();
 
-			// Make a connection to the BluetoothSocket
 			try
 			{
 				// This is a blocking call and will only return on a successful connection or an exception
 				socket.connect();
 
-				// Start the actual connection
+				// Manage the connection, returns when the connection is stopped
 				connected(socket, false, this);
+
+				// No longer connected, close the socket
+				socket.close();
 			}
 			catch (IOException e)
 			{
@@ -224,10 +229,10 @@ public class BtService extends Service
 
 	private void connected(BluetoothSocket socket, boolean isHost, InterruptableRunnable runnable)
 	{
+		Log.e(MainActivity.debuglog, "BEGIN connected thread");
+
 		if (runnable.isInterrupted())
 			return;
-
-		Log.e(MainActivity.debuglog, "Connected method");
 
 		InputStream inStream;
 		outStream = null;
@@ -236,8 +241,11 @@ public class BtService extends Service
 		{
 			inStream = socket.getInputStream();
 			outStream = socket.getOutputStream();
+
 			state = CONNECTED;
 
+			executor.addCloseable(inStream);
+			executor.addCloseable(outStream);
 		}
 		catch (IOException e)
 		{
@@ -302,18 +310,20 @@ public class BtService extends Service
 			}
 			catch (IOException e)
 			{
-				state = State.NONE;
 				Log.e(MainActivity.debuglog, "disconnected", e);
-				cancelRunnable();
 				EventBus.getDefault().post(new Events.Toast("Connection lost"));
+				state = State.NONE;
+				cancelRunnable();
 			}
 			catch (JSONException e)
 			{
-				state = State.NONE;
 				Log.e(MainActivity.debuglog, "JSON read parsing failed");
-				e.printStackTrace();
+				state = State.NONE;
+				cancelRunnable();
 			}
 		}
+
+		Log.e(MainActivity.debuglog, "END connected thread");
 	}
 
 	private boolean isValidBoard(Board board)

@@ -197,7 +197,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else throw new IllegalStateException();
 
 		if (!gs.isBluetooth())
+		{
 			setSubTitle(null);
+
+			if (btService != null)
+				btService.cancelRunnable();
+		}
 
 		if (btDialog != null)
 			btDialog.dismiss();
