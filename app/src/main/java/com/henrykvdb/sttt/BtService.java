@@ -33,7 +33,6 @@ public class BtService extends Service
 	private BluetoothAdapter btAdapter;
 	private final IBinder mBinder = new LocalBinder();
 
-	private boolean allowIncoming;
 	private volatile State state = NONE;
 
 	private OutputStream outStream = null;
@@ -89,8 +88,7 @@ public class BtService extends Service
 
 	public void connect(String address)
 	{
-		if (state != NONE)
-			cancelRunnable();
+		cancelRunnable();
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.e(MainActivity.debuglog, "connect to: " + device);
@@ -368,6 +366,8 @@ public class BtService extends Service
 	{
 		EventBus.getDefault().post(new Events.NewGame(requestState));
 		Log.e(MainActivity.debuglog, "Sending setup");
+
+		localBoard = requestState.board();
 
 		try
 		{

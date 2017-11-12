@@ -36,7 +36,7 @@ public class InterruptableFuture implements Future
 	@Override
 	public boolean isDone()
 	{
-		return lastTask.isDone() || isCancelled();
+		return lastTask.isDone();
 	}
 
 	@Override

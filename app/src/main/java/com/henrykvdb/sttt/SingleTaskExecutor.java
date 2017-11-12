@@ -6,7 +6,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +14,7 @@ public class SingleTaskExecutor
 {
 	private final ExecutorService executor;
 	private InterruptableFuture lastTask;
-	private List<Closeable> closeables = new ArrayList<>();
+	private List<Closeable> closeables = Collections.synchronizedList(new ArrayList<>());
 
 	public SingleTaskExecutor()
 	{
@@ -30,19 +29,20 @@ public class SingleTaskExecutor
 		if (lastTask != null)
 			lastTask.cancel(true);
 
-		Iterator<Closeable> iter = closeables.iterator();
-		while (iter.hasNext())
+		synchronized (this)
 		{
-			Closeable closeable = iter.next();
-			closeables.remove(closeable);
-			try
+			for (Closeable c:closeables)
 			{
-				closeable.close();
+				try
+				{
+					c.close();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
 			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
+			closeables.clear();
 		}
 	}
 

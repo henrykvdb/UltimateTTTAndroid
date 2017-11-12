@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	//Bluetooth fields
 	private BluetoothAdapter btAdapter;
-	private AlertDialog btDialog;
 
 	//Game fields
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
@@ -90,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private Toast toast;
 	private AlertDialog askDialog;
+	private AlertDialog btDialog;
 
 	//TEMP
 	public static String debuglog = "DEBUGLOG";
