@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			setSubTitle(null);
 
 			if (btService != null)
-				btService.cancelRunnable();
+				btService.closeThread();
 		}
 
 		if (btDialog != null)
@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 			{
 				closeBtDialog();
-				btService.cancelRunnable();
+				btService.closeThread();
 				keepBtOn = false;
 				Log.e("btStateReceiver", "TURNING OFF");
 			}
@@ -632,11 +632,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
 					.setTitle("Host Bluetooth game")
-					.setOnCancelListener(dialog -> btService.cancelRunnable())
+					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton("close", (dialog, which) ->
 					{
 						closeBtDialog();
-						btService.cancelRunnable();
+						btService.closeThread();
 					})
 					.show());
 		}

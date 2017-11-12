@@ -29,7 +29,6 @@ public class BtService extends Service
 {
 	private final java.util.UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
-	private SingleTaskExecutor executor;
 	private BluetoothAdapter btAdapter;
 	private final IBinder mBinder = new LocalBinder();
 
@@ -40,6 +39,8 @@ public class BtService extends Service
 	private Board localBoard = new Board();
 	private GameState requestState;
 	private String connectedDeviceName;
+
+	private CloseableThread btThread;
 
 	public enum State
 	{
@@ -75,7 +76,6 @@ public class BtService extends Service
 	{
 		super.onCreate();
 
-		executor = new SingleTaskExecutor();
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 
 		Log.e(MainActivity.debuglog, "BTSERVICE CREATED");
@@ -83,24 +83,45 @@ public class BtService extends Service
 
 	public void listen()
 	{
-		executor.submit(new ListenRunnable());
+		closeThread();
+		btThread = new ListenThread();
+		btThread.start();
 	}
 
 	public void connect(String address)
 	{
-		cancelRunnable();
+		closeThread();
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
 		Log.e(MainActivity.debuglog, "connect to: " + device);
 
-		executor.submit(new ConnectingRunnable(device));
+		btThread = new ConnectingThread(device);
+		btThread.start();
 	}
 
-	private class ListenRunnable extends InterruptableRunnable
+	public void closeThread()
 	{
-		private BluetoothServerSocket serverSocket = null;
+		if (btThread!=null)
+		{
+			try
+			{
+				btThread.close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 
-		public ListenRunnable()
+		EventBus.getDefault().post(new Events.TurnLocal());
+	}
+
+	private class ListenThread extends CloseableThread
+	{
+		private BluetoothServerSocket serverSocket;
+		private BluetoothSocket socket;
+
+		public ListenThread()
 		{
 			state = LISTENING;
 
@@ -119,9 +140,6 @@ public class BtService extends Service
 		{
 			Log.e(MainActivity.debuglog, "BEGIN ListenThread " + this);
 
-			executor.addCloseable(serverSocket);
-			BluetoothSocket socket;
-
 			// Listen to the server socket if we're not connected
 			while (state != CONNECTED && !isInterrupted())
 			{
@@ -137,19 +155,29 @@ public class BtService extends Service
 				}
 
 				if (socket != null && !isInterrupted())
-					connected(socket, true, this);
+					connected(socket, true);
 			}
 
-			state = State.NONE;
+			state = BtService.State.NONE;
 			Log.e(MainActivity.debuglog, "END ListenThread");
+		}
+
+
+		@Override
+		public void close() throws IOException
+		{
+			if (serverSocket != null) //TODO needed?
+				serverSocket.close();
+			if (socket != null)
+				socket.close();
 		}
 	}
 
-	private class ConnectingRunnable extends InterruptableRunnable
+	private class ConnectingThread extends CloseableThread
 	{
 		private BluetoothSocket socket;
 
-		public ConnectingRunnable(BluetoothDevice device)
+		public ConnectingThread(BluetoothDevice device)
 		{
 			state = CONNECTING;
 
@@ -168,7 +196,6 @@ public class BtService extends Service
 		{
 			Log.e(MainActivity.debuglog, "BEGIN connectingThread" + this);
 
-			executor.addCloseable(socket);
 			btAdapter.cancelDiscovery();
 
 			try
@@ -177,7 +204,7 @@ public class BtService extends Service
 				socket.connect();
 
 				// Manage the connection, returns when the connection is stopped
-				connected(socket, false, this);
+				connected(socket, false);
 
 				// No longer connected, close the socket
 				socket.close();
@@ -200,13 +227,20 @@ public class BtService extends Service
 
 			Log.e(MainActivity.debuglog, "END connectingThread" + this);
 		}
+
+		@Override
+		public void close() throws IOException
+		{
+			if (socket!=null) //TODO needed?
+				socket.close();
+		}
 	}
 
-	private void connected(BluetoothSocket socket, boolean isHost, InterruptableRunnable runnable)
+	private void connected(BluetoothSocket socket, boolean isHost)
 	{
 		Log.e(MainActivity.debuglog, "BEGIN connected thread");
 
-		if (runnable.isInterrupted())
+		if (Thread.interrupted())
 			return;
 
 		InputStream inStream;
@@ -218,9 +252,6 @@ public class BtService extends Service
 			outStream = socket.getOutputStream();
 
 			state = CONNECTED;
-
-			executor.addCloseable(inStream);
-			executor.addCloseable(outStream);
 		}
 		catch (IOException e)
 		{
@@ -238,11 +269,11 @@ public class BtService extends Service
 
 		byte[] buffer = new byte[1024];
 
-		if (isHost)
+		if (isHost && !Thread.interrupted())
 			sendSetup();
 
 		// Keep listening to the InputStream while connected
-		while (state == CONNECTED && !runnable.isInterrupted())
+		while (state == CONNECTED && !Thread.interrupted())
 		{
 			try
 			{
@@ -267,7 +298,7 @@ public class BtService extends Service
 					else
 					{
 						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
-						cancelRunnable();
+						break;
 					}
 				}
 				else if (message == Message.RECEIVE_SETUP.ordinal())
@@ -287,17 +318,27 @@ public class BtService extends Service
 			{
 				Log.e(MainActivity.debuglog, "disconnected", e);
 				EventBus.getDefault().post(new Events.Toast("Connection lost"));
-				state = State.NONE;
-				cancelRunnable();
+				break;
 			}
 			catch (JSONException e)
 			{
 				Log.e(MainActivity.debuglog, "JSON read parsing failed");
-				state = State.NONE;
-				cancelRunnable();
+				break;
 			}
 		}
 
+		state = State.NONE;
+		EventBus.getDefault().post(new Events.TurnLocal());
+
+		try
+		{
+			inStream.close();
+			outStream.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 		Log.e(MainActivity.debuglog, "END connected thread");
 	}
 
@@ -310,12 +351,6 @@ public class BtService extends Service
 		verifyBoard.play(board.getLastMove());
 
 		return verifyBoard.equals(board);
-	}
-
-	public void cancelRunnable()
-	{
-		executor.cancel();
-		EventBus.getDefault().post(new Events.TurnLocal());
 	}
 
 	public String getConnectedDeviceName()
