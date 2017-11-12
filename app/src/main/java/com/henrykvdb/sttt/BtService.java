@@ -84,6 +84,12 @@ public class BtService extends Service
 		Log.e(MainActivity.debuglog, "BTSERVICE CREATED");
 	}
 
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+	}
+
 	public void listen()
 	{
 		closeThread();
@@ -104,7 +110,7 @@ public class BtService extends Service
 
 	public void closeThread()
 	{
-		if (btThread!=null)
+		if (btThread != null)
 		{
 			try
 			{
@@ -234,7 +240,7 @@ public class BtService extends Service
 		@Override
 		public void close() throws IOException
 		{
-			if (socket!=null) //TODO needed?
+			if (socket != null) //TODO needed?
 				socket.close();
 		}
 	}
@@ -293,7 +299,7 @@ public class BtService extends Service
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (isValidBoard(localBoard,newBoard))
+					if (isValidBoard(localBoard, newBoard))
 					{
 						Log.e(MainActivity.debuglog, "We received a valid board");
 						localBoard = newBoard;
@@ -463,8 +469,9 @@ public class BtService extends Service
 		this.requestState = requestState;
 	}
 
-	public String getLocalBluetoothName(){
-		return btAdapter.getName() !=null? btAdapter.getName() :btAdapter.getAddress();
+	public String getLocalBluetoothName()
+	{
+		return btAdapter.getName() != null ? btAdapter.getName() : btAdapter.getAddress();
 	}
 
 	public Board getLocalBoard()

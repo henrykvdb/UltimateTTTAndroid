@@ -1,6 +1,8 @@
 package com.henrykvdb.sttt;
 
 import android.app.ActivityManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -16,6 +18,8 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -73,6 +77,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	public static final int REQUEST_ENABLE_BT = 200;        //Permission required to enable Bluetooth
 	public static final int REQUEST_ENABLE_DSC = 201;       //Permission required to enable discoverability
 	public static final int REQUEST_COARSE_LOCATION = 202;  //Permission required to search nearby devices
+
+	//Intents
+	public static final String CLOSE_BT_SERVICE_INTENT = "close_bt_service_intent";
+
+	//Notification ID's
+	private static final int BT_STILL_RUNNING = 1;
 
 	//Bluetooth Service
 	private BtService btService;
@@ -145,6 +155,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
 		}
 
+		//Register receiver to close bt service intent
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(CLOSE_BT_SERVICE_INTENT);
+		registerReceiver(intentReceiver, filter);
+
+		//Prepare fields
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
@@ -182,6 +198,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		EventBus.getDefault().register(this);
 
+		//Kill notification
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+		notificationManager.cancel(BT_STILL_RUNNING);
+
 		if (btServiceBound)
 		{
 			if (btService.getState() == BtService.State.CONNECTED)
@@ -197,18 +217,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	protected void onResume()
-	{
-		super.onResume();
-	}
-
-	@Override
 	protected void onStop()
 	{
 		EventBus.getDefault().unregister(this);
 		if (btService.getState() == BtService.State.CONNECTED)
 		{
-			//TODO notification disable service or keep open
+			//Notification telling the user that BtService is still open
+			btRunningNotification();
 		}
 		else if (!isChangingConfigurations())
 		{
@@ -219,9 +234,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onStop();
 	}
 
+	public void btRunningNotification(){
+		//This intent reopens the app
+		Intent reopenIntent = new Intent(this, MainActivity.class);
+		reopenIntent.setAction(Intent.ACTION_MAIN);
+		reopenIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+		PendingIntent reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT);
+
+		//This intent shuts down the btService
+		Intent intentAction = new Intent(CLOSE_BT_SERVICE_INTENT);
+		PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT);
+
+		Notification notification = new NotificationCompat.Builder(this)
+				.setSmallIcon(R.drawable.ic_icon)
+				.setContentTitle("Super Tic Tac Toe")
+				.setContentIntent(reopenPendingIntent)
+				.setContentText("A Bluetooth game is still running.\nTouch to open STTT")
+				.setStyle(new NotificationCompat.BigTextStyle().bigText("A Bluetooth game is still running.\nTouch to open STTT"))
+				.addAction(R.drawable.ic_menu_bluetooth, "Turn OFF driving mode", pendingCloseIntent)
+				.setOngoing(true).build();
+
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+		notificationManager.notify(BT_STILL_RUNNING, notification);
+	}
+
+	private BroadcastReceiver intentReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			unbindBtService(true);
+			NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+			notificationManager.cancel(BT_STILL_RUNNING);
+		}
+	};
+
 	@Override
 	protected void onDestroy()
 	{
+		unregisterReceiver(intentReceiver);
+
 		if (!keepBtOn)
 			btAdapter.disable();
 
@@ -254,6 +306,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			if (stop)
 				stopService(new Intent(this, BtService.class));
+
+			turnLocal();
 		}
 	}
 
