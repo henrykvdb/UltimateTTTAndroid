@@ -4,10 +4,6 @@ import com.flaghacker.uttt.common.Coord;
 
 public class Events
 {
-	public static class Connected
-	{
-	}
-
 	public static class Toast
 	{
 		public final String text;

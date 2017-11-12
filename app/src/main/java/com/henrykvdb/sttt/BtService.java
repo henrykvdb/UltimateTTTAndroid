@@ -460,14 +460,6 @@ public class BtService extends Service
 	}
 
 	public String getLocalBluetoothName(){
-		if(btAdapter == null){
-			btAdapter = BluetoothAdapter.getDefaultAdapter();
-		}
-		String name = btAdapter.getName();
-		if(name == null){
-			System.out.println("Name is null!");
-			name = btAdapter.getAddress();
-		}
-		return name;
+		return btAdapter.getName() !=null? btAdapter.getName() :btAdapter.getAddress();
 	}
 }

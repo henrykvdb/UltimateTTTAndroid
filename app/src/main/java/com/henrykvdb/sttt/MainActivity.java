@@ -85,8 +85,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
 	private final Object playerLock = new Object[0];
 	private BoardView boardView;
-	private GameThread thread;
+	private GameThread gameThread;
 
+	//Other
 	private Toast toast;
 	private AlertDialog askDialog;
 	private AlertDialog btDialog;
@@ -174,6 +175,130 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onSaveInstanceState(outState);
 	}
 
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+
+		EventBus.getDefault().register(this);
+
+		if (!btServiceBound)
+			bindBtService();
+	}
+
+	@Override
+	protected void onStop()
+	{
+		EventBus.getDefault().unregister(this);
+		if (btService.getState()== BtService.State.CONNECTED)
+		{
+			//TODO notification disable service or keep open
+		}
+		else if (!isChangingConfigurations())
+		{
+			//Stop Bluetooth service it is not a configuration change
+			unbindBtService(!isChangingConfigurations());
+		}
+
+		super.onStop();
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		if (!keepBtOn)
+			btAdapter.disable();
+
+		super.onDestroy();
+	}
+
+	private void bindBtService()
+	{
+		if (btServiceBound)
+			throw new RuntimeException("BtService already bound");
+
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+
+		if (!isServiceRunning(BtService.class,this))
+			startService(new Intent(this, BtService.class));
+
+		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
+	}
+
+	private void unbindBtService(boolean stop)
+	{
+		if (btServiceBound)
+		{
+			closeBtDialog();
+
+			unregisterReceiver(btStateReceiver);
+			unbindService(btServerConn);
+
+			btServiceBound = false;
+
+			if (stop)
+				stopService(new Intent(this, BtService.class));
+		}
+	}
+
+	private ServiceConnection btServerConn = new ServiceConnection()
+	{
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service)
+		{
+			Log.e("BTS", "btService Connected");
+
+			btService = ((BtService.LocalBinder) service).getService();
+			btServiceBound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName name)
+		{
+			Log.e("BTS", "btService Disconnected");
+			btServiceBound = false;
+		}
+	};
+
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive(Context context, Intent intent)
+		{
+			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
+					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
+			{
+				closeBtDialog();
+				btService.closeThread();
+				keepBtOn = false;
+				Log.e("btStateReceiver", "TURNING OFF");
+			}
+		}
+	};
+
+	private static boolean isServiceRunning(Class<?> serviceClass, Context context) //TODO move to util
+	{
+		ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+		{
+			if (serviceClass.getName().equals(service.service.getClassName()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void closeBtDialog()
+	{
+		if (btDialog != null)
+		{
+			Log.e(MainActivity.debuglog, "Closing bt dialog");
+			btDialog.dismiss();
+			btDialog = null;
+		}
+	}
+
 	@Subscribe
 	public void onMessageEvent(Events.NewGame newGame)
 	{
@@ -210,19 +335,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (btDialog != null)
 			btDialog.dismiss();
 
-		thread = new GameThread();
-		thread.start();
-	}
-
-	private void newLocal()
-	{
-		newGame(GameState.builder().swapped(false).build());
+		gameThread = new GameThread();
+		gameThread.start();
 	}
 
 	@Subscribe
 	public void onMessageEvent(Events.TurnLocal event)
 	{
-		runOnUiThread(() -> turnLocal());
+		runOnUiThread(this::turnLocal);
 	}
 
 	private void turnLocal()
@@ -231,108 +351,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
-	@Override
-	protected void onStart()
+	private void newLocal()
 	{
-		super.onStart();
-
-		EventBus.getDefault().register(this);
-
-		if (!btServiceBound)
-			bindBtService();
-	}
-
-	private void bindBtService()
-	{
-		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-		if (btServiceBound)
-			throw new RuntimeException("BtService already bound");
-
-		if (!isServiceRunning(BtService.class))
-			startService(new Intent(this, BtService.class));
-
-		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
-	}
-
-	private boolean isServiceRunning(Class<?> serviceClass)
-	{
-		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-		{
-			if (serviceClass.getName().equals(service.service.getClassName()))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
-	{
-		@Override
-		public void onReceive(Context context, Intent intent)
-		{
-			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
-					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
-			{
-				closeBtDialog();
-				btService.closeThread();
-				keepBtOn = false;
-				Log.e("btStateReceiver", "TURNING OFF");
-			}
-		}
-	};
-
-	private void closeBtDialog()
-	{
-		if (btDialog != null)
-		{
-			Log.e(MainActivity.debuglog, "Closing bt dialog");
-			btDialog.dismiss();
-			btDialog = null;
-		}
-	}
-
-	@Override
-	protected void onStop()
-	{
-		EventBus.getDefault().unregister(this);
-		if (false) //TODO if connected
-		{
-			//TODO notification disable service or keep open
-		}
-		else if (!isChangingConfigurations())
-		{
-			//Stop Bluetooth service it is not a configuration change
-			unbindBtService(!isChangingConfigurations());
-		}
-
-		super.onStop();
-	}
-
-	private void unbindBtService(boolean stop)
-	{
-		if (btServiceBound)
-		{
-			closeBtDialog();
-
-			unregisterReceiver(btStateReceiver);
-			unbindService(btServerConn);
-
-			btServiceBound = false;
-
-			if (stop)
-				stopService(new Intent(this, BtService.class));
-		}
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		if (!keepBtOn)
-			btAdapter.disable();
-
-		super.onDestroy();
+		newGame(GameState.builder().swapped(false).build());
 	}
 
 	private class GameThread extends Thread implements Closeable
@@ -433,8 +454,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		try
 		{
-			if (thread != null)
-				thread.close();
+			if (gameThread != null)
+				gameThread.close();
 		}
 		catch (IOException e)
 		{
@@ -472,25 +493,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		toast.setText(text);
 		toast.show();
 	}
-
-	private ServiceConnection btServerConn = new ServiceConnection()
-	{
-		@Override
-		public void onServiceConnected(ComponentName name, IBinder service)
-		{
-			Log.e("BTS", "btService Connected");
-
-			btService = ((BtService.LocalBinder) service).getService();
-			btServiceBound = true;
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName name)
-		{
-			Log.e("BTS", "btService Disconnected");
-			btServiceBound = false;
-		}
-	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
