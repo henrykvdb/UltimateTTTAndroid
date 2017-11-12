@@ -182,15 +182,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		EventBus.getDefault().register(this);
 
-		if (!btServiceBound)
-			bindBtService();
+		if (btServiceBound)
+		{
+			if (btService.getState() == BtService.State.CONNECTED)
+			{
+				Board newBoard = btService.getLocalBoard();
+				if (newBoard != gs.board())
+					play(newBoard.getLastMove(), Source.Bluetooth);
+
+			}
+			else turnLocal();
+		}
+		else bindBtService();
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
 	}
 
 	@Override
 	protected void onStop()
 	{
 		EventBus.getDefault().unregister(this);
-		if (btService.getState()== BtService.State.CONNECTED)
+		if (btService.getState() == BtService.State.CONNECTED)
 		{
 			//TODO notification disable service or keep open
 		}
@@ -219,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
-		if (!isServiceRunning(BtService.class,this))
+		if (!isServiceRunning(BtService.class, this))
 			startService(new Intent(this, BtService.class));
 
 		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
@@ -250,6 +266,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			btService = ((BtService.LocalBinder) service).getService();
 			btServiceBound = true;
+
+			if (gs.isBluetooth())
+				setSubTitle("Connected to " + btService.getConnectedDeviceName());
 		}
 
 		@Override
@@ -314,10 +333,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 
 		if (this.gs.isBluetooth())
-		{
 			setTitle("Bluetooth Game");
-			setSubTitle("Connected to " + btService.getConnectedDeviceName());
-		}
 		else if (this.gs.isAi())
 			setTitle("AI Game");
 		else if (this.gs.isHuman()) //Normal local game
@@ -331,6 +347,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (btService != null)
 				btService.closeThread();
 		}
+		else if (btService != null)
+			setSubTitle("Connected to " + btService.getConnectedDeviceName());
 
 		if (btDialog != null)
 			btDialog.dismiss();
@@ -418,9 +436,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Subscribe
 	public void onMessageEvent(Events.NewMove moveEvent)
 	{
+		play(moveEvent.move, moveEvent.source);
+	}
+
+	private void play(Coord move, Source source)
+	{
 		synchronized (playerLock)
 		{
-			playerMove.set(new Pair<>(moveEvent.move, moveEvent.source));
+			playerMove.set(new Pair<>(move, source));
 			playerLock.notify();
 		}
 	}

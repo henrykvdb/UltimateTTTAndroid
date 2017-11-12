@@ -27,6 +27,9 @@ import static com.henrykvdb.sttt.BtService.State.NONE;
 
 public class BtService extends Service
 {
+	//TODO fix bt starting player
+	//TODO fix bt undo
+
 	private final java.util.UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
 	private BluetoothAdapter btAdapter;
@@ -290,9 +293,10 @@ public class BtService extends Service
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (isValidBoard(newBoard))
+					if (isValidBoard(localBoard,newBoard))
 					{
 						Log.e(MainActivity.debuglog, "We received a valid board");
+						localBoard = newBoard;
 						EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Bluetooth, newMove));
 					}
 					else
@@ -342,15 +346,15 @@ public class BtService extends Service
 		Log.e(MainActivity.debuglog, "END connected thread");
 	}
 
-	private boolean isValidBoard(Board board)
+	private static boolean isValidBoard(Board cBoard, Board newBoard) //TODO move to util
 	{
-		if (!localBoard.availableMoves().contains(board.getLastMove()))
+		if (!cBoard.availableMoves().contains(newBoard.getLastMove()))
 			return false;
 
-		Board verifyBoard = localBoard.copy();
-		verifyBoard.play(board.getLastMove());
+		Board verifyBoard = cBoard.copy();
+		verifyBoard.play(newBoard.getLastMove());
 
-		return verifyBoard.equals(board);
+		return verifyBoard.equals(newBoard);
 	}
 
 	public String getConnectedDeviceName()
@@ -461,5 +465,10 @@ public class BtService extends Service
 
 	public String getLocalBluetoothName(){
 		return btAdapter.getName() !=null? btAdapter.getName() :btAdapter.getAddress();
+	}
+
+	public Board getLocalBoard()
+	{
+		return localBoard;
 	}
 }
