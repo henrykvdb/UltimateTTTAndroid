@@ -189,7 +189,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 
 		if (this.gs.isBluetooth())
+		{
 			setTitle("Bluetooth Game");
+			setSubTitle("Connected to " + btService.getConnectedDeviceName());
+		}
 		else if (this.gs.isAi())
 			setTitle("AI Game");
 		else if (this.gs.isHuman()) //Normal local game
@@ -604,7 +607,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 			View layout = inflater.inflate(R.layout.dialog_bt_host, (ViewGroup) findViewById(R.id.bt_host_layout));
-			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, "TODO: UPDATE"));
+			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, btService.getLocalBluetoothName()));
 
 			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
 			{

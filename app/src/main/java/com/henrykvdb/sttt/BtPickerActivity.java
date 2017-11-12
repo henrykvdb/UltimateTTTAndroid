@@ -128,18 +128,20 @@ public class BtPickerActivity extends Activity
 		{
 			String action = intent.getAction();
 
-			// When discovery finds a device
 			if (BluetoothDevice.ACTION_FOUND.equals(action))
 			{
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-				boolean add = device.getName() != null;
-				for (BluetoothDevice d : devices)
-					add = (d == device) && add;
+				boolean add = true;
+				if (device.getName() != null)
+					for (BluetoothDevice d : devices)
+						add = !d.getAddress().equals(device.getAddress()) && add;
 
-				if (add) devices.add(device);
-
-				updateLayout();
+				if (add)
+				{
+					devices.add(device);
+					updateLayout();
+				}
 			}
 			else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))
 			{
