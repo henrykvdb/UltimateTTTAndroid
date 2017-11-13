@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				.setContentIntent(reopenPendingIntent)
 				.setContentText("A Bluetooth game is still running.\nTouch to open STTT")
 				.setStyle(new NotificationCompat.BigTextStyle().bigText("A Bluetooth game is still running.\nTouch to open STTT"))
-				.addAction(R.drawable.ic_menu_bluetooth, "Turn OFF driving mode", pendingCloseIntent)
+				.addAction(R.drawable.ic_menu_bluetooth, "close", pendingCloseIntent)
 				.setOngoing(true).build();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -579,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Subscribe
-	public void onMessageEvent(Events.Undo undoEvent)
+	public void onMessageEvent(Events.Undo undoEvent) //TODO not working
 	{
 		boolean forced = undoEvent.forced;
 
@@ -700,7 +700,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				else if (beginner == R.id.start_other) start = false;
 
 				//Create the actual requested gamestate
-				boolean swapped = start ^ (newBoard || gs.board().nextPlayer() == Player.PLAYER);
+				boolean swapped = newBoard?(!start):(start ^ (gs.board().nextPlayer() == Player.PLAYER));
 				GameState.Builder gsBuilder = GameState.builder().bt().swapped(swapped);
 				if (!newBoard)
 					gsBuilder.board(gs.board());

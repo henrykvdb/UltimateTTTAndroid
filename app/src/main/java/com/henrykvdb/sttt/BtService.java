@@ -27,9 +27,6 @@ import static com.henrykvdb.sttt.BtService.State.NONE;
 
 public class BtService extends Service
 {
-	//TODO fix bt starting player
-	//TODO fix bt undo
-
 	private final java.util.UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
 	private BluetoothAdapter btAdapter;
