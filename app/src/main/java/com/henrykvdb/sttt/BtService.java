@@ -5,16 +5,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.JSONBoard;
@@ -25,8 +19,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.henrykvdb.sttt.BtService.State.CONNECTED;
 import static com.henrykvdb.sttt.BtService.State.CONNECTING;
@@ -97,6 +89,8 @@ public class BtService extends Service
 
 	public void listen()
 	{
+		setRequestState(GameState.builder().bt().build());
+
 		closeThread();
 		btThread = new ListenThread();
 		btThread.start();
@@ -415,7 +409,7 @@ public class BtService extends Service
 	private void sendSetup()
 	{
 		EventBus.getDefault().post(new Events.NewGame(requestState));
-		Log.e(MainActivity.debuglog, "Sending setup");
+		Log.e(MainActivity.debuglog, "Sending setup, starting: " + requestState.players().first);
 
 		localBoard = requestState.board();
 

@@ -198,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		EventBus.getDefault().register(this);
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
-		//Kill notification
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
 		notificationManager.cancel(BT_STILL_RUNNING);
 
@@ -266,6 +265,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (!keepBtOn)
 			btAdapter.disable();
+
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+		notificationManager.cancel(BT_STILL_RUNNING);
 
 		super.onDestroy();
 	}
@@ -678,7 +680,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (discoverable)
 		{
-			btService.setRequestState(GameState.builder().bt().build());
 			btService.listen();
 
 			LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);

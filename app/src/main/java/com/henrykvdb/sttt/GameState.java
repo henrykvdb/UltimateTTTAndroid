@@ -8,7 +8,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import static com.henrykvdb.sttt.MainActivity.Source.AI;
 import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
@@ -60,7 +59,7 @@ public class GameState implements Serializable
 	{
 		private Players players = new Players(Local, Local);
 		private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
-		private boolean swapped = new Random().nextBoolean();
+		private boolean swapped = false;
 		private Bot extraBot = new RandomBot();
 
 		public GameState build()
@@ -102,7 +101,6 @@ public class GameState implements Serializable
 		{
 			this.players = gs.players();
 			this.boards = gs.boards();
-			this.swapped = false;
 			this.extraBot = gs.extraBot();
 			return this;
 		}
