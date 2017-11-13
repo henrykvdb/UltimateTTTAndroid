@@ -12,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
+import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Callback;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class BtPicker
 		this.context = context;
 
 		view = LayoutInflater.from(context).inflate(R.layout.dialog_bt_join, null);
-		alertDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(context)
+		alertDialog = DialogUtil.keepDialog(new AlertDialog.Builder(context)
 				.setView(view)
 				.setNegativeButton("close", (dialog, which) -> dialog.dismiss())
 				.setOnDismissListener(dialog -> destroy())
@@ -73,7 +73,7 @@ public class BtPicker
 
 				view1.setOnClickListener(v ->
 				{
-					// Cancel discovery because it's costly and we're about to connect
+					// Cancel discovery because it's costly and we're aboutDialog to connect
 					btAdapter.cancelDiscovery();
 
 					// Get the device MAC address, which is the last 17 chars in the View

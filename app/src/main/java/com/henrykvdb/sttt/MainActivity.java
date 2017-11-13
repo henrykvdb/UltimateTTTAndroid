@@ -47,8 +47,7 @@ import com.flaghacker.uttt.common.Timer;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
-import com.henrykvdb.sttt.DialogUtil.NewGameDialogs;
+import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Callback;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -177,9 +176,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			newGame((GameState) savedInstanceState.getSerializable(GAMESTATE_KEY));
 		}
 
-		//Ask the user to rate
+		//Ask the user to rateDialog
 		if (savedInstanceState == null)
-			BasicDialogs.rate(this);
+			DialogUtil.rateDialog(this);
 	}
 
 	@Override
@@ -635,11 +634,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (id == R.id.nav_local_human)
 		{
-			NewGameDialogs.newLocal(this::newLocal, this);
+			DialogUtil.newLocal(accept -> newLocal(), this);
 		}
 		else if (id == R.id.nav_local_ai)
 		{
-			NewGameDialogs.newAi(this::newGame, this);
+			DialogUtil.newAi(this::newGame, this);
 		}
 		else if (id == R.id.nav_bt_host)
 		{
@@ -651,19 +650,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else if (id == R.id.nav_other_feedback)
 		{
-			BasicDialogs.sendFeedback(this);
+			DialogUtil.feedbackSender(this);
 		}
 		else if (id == R.id.nav_other_share)
 		{
-			BasicDialogs.share(this);
+			DialogUtil.shareDialog(this);
 		}
 		else if (id == R.id.nav_other_about)
 		{
-			BasicDialogs.about(this);
+			DialogUtil.aboutDialog(this);
 		}
 		else return false;
 
-		//Close drawer and return
 		((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
 		return true;
 	}
@@ -709,7 +707,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((RadioGroup) layout.findViewById(R.id.start_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
 			((RadioGroup) layout.findViewById(R.id.board_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
 
-			btDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(this)
+			btDialog = DialogUtil.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
 					.setTitle("Host Bluetooth game")
 					.setOnCancelListener(dialog -> btService.closeThread())
@@ -717,8 +715,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					{
 						dismissBtDialog();
 						btService.closeThread();
-					})
-					.show());
+					}).show());
 		}
 		else
 		{
@@ -762,17 +759,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		switch (requestCode)
-		{
-			case REQUEST_ENABLE_BT:
-				if (resultCode == RESULT_OK)
-					joinBt();
-				break;
-			case REQUEST_ENABLE_DSC:
-				if (resultCode != RESULT_CANCELED)
-					hostBt();
-				break;
-		}
+		if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK)
+			joinBt();
+		else if (requestCode == REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
+			hostBt();
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
@@ -780,14 +770,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
 	{
-		switch (requestCode)
-		{
-			case REQUEST_COARSE_LOCATION:
-				// If request is cancelled, the result arrays are empty.
-				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-					joinBt();
-				break;
-		}
+		if (requestCode == REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+			joinBt();
 
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
@@ -799,16 +783,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 		{
-			switch (which)
-			{
-				case DialogInterface.BUTTON_POSITIVE:
-					callBack.callback(true);
-					break;
-
-				case DialogInterface.BUTTON_NEGATIVE:
-					callBack.callback(false);
-					break;
-			}
+			if (which == DialogInterface.BUTTON_POSITIVE)
+				callBack.callback(true);
+			else if (which == DialogInterface.BUTTON_NEGATIVE)
+				callBack.callback(false);
 		};
 
 		askDialog = new AlertDialog.Builder(this).setMessage(message)
@@ -817,6 +795,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				.setOnDismissListener(dialogInterface -> callBack.callback(false))
 				.show();
 
-		BasicDialogs.keepDialog(askDialog);
+		DialogUtil.keepDialog(askDialog);
 	}
 }

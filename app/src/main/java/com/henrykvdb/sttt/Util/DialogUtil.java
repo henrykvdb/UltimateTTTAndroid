@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt.DialogUtil;
+package com.henrykvdb.sttt.Util;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,15 +14,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import com.henrykvdb.sttt.GameState;
+import com.henrykvdb.sttt.MMBot;
 import com.henrykvdb.sttt.R;
+
+import java.util.Random;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
-public class BasicDialogs
+public class DialogUtil
 {
-	private final static int DAYS_UNTIL_PROMPT = 3;//Min number of days
-	private final static int LAUNCHES_UNTIL_PROMPT = 3;//Min number of launches
+	//Rate dialog
+	private final static int DAYS_UNTIL_PROMPT = 3;      //Min number of days
+	private final static int LAUNCHES_UNTIL_PROMPT = 3;  //Min number of launches
 
 	// Prevent dialog destroy when orientation changes
 	public static AlertDialog keepDialog(AlertDialog dialog)
@@ -42,7 +49,7 @@ public class BasicDialogs
 		return dialog;
 	}
 
-	public static void sendFeedback(Context context)
+	public static void feedbackSender(Context context)
 	{
 		String deviceInfo = "\n /** please do not remove this block, technical info: "
 				+ "os version: " + System.getProperty("os.version")
@@ -67,7 +74,7 @@ public class BasicDialogs
 		context.startActivity(Intent.createChooser(send, "Send feedback"));
 	}
 
-	public static void share(Context context)
+	public static void shareDialog(Context context)
 	{
 		Intent i = new Intent(Intent.ACTION_SEND);
 		i.setType("text/plain");
@@ -77,7 +84,7 @@ public class BasicDialogs
 		context.startActivity(Intent.createChooser(i, "choose one"));
 	}
 
-	public static void about(Activity activity)
+	public static void aboutDialog(Activity activity)
 	{
 		LayoutInflater inflater = (LayoutInflater) activity.getSystemService(LAYOUT_INFLATER_SERVICE);
 		View layout = inflater.inflate(R.layout.dialog_about, (ViewGroup) activity.findViewById(R.id.dialog_about_layout));
@@ -101,7 +108,7 @@ public class BasicDialogs
 				.show());
 	}
 
-	public static void rate(Activity activity)
+	public static void rateDialog(Activity activity)
 	{
 		SharedPreferences prefs = activity.getSharedPreferences("APP_RATER", 0);
 
@@ -152,7 +159,7 @@ public class BasicDialogs
 
 			keepDialog(new AlertDialog.Builder(activity)
 					.setMessage("If you enjoy using " + activity.getResources().getString(R.string.app_name_long)
-							+ ", please take a moment to rate it. Thanks for your support!")
+							+ ", please take a moment to rateDialog it. Thanks for your support!")
 					.setTitle("Rate app")
 					.setPositiveButton("Rate", dialogClickListener)
 					.setNeutralButton("Later", dialogClickListener)
@@ -161,5 +168,63 @@ public class BasicDialogs
 		}
 
 		editor.apply();
+	}
+	public static void newLocal(Callback<Boolean> callback, Context context)
+	{
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					callback.callback(true);
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					dialog.dismiss();
+					break;
+			}
+		};
+
+		DialogUtil.keepDialog(new AlertDialog.Builder(context)
+				.setTitle("Start a new game?")
+				.setMessage("This wil create a new local two player game.")
+				.setPositiveButton("start", dialogClickListener)
+				.setNegativeButton("close", dialogClickListener)
+				.show());
+	}
+
+	public static void newAi(Callback<GameState> callback, Activity activity)
+	{
+		final boolean[] swapped = new boolean[1];
+
+		LayoutInflater inflater = (LayoutInflater) activity.getSystemService(LAYOUT_INFLATER_SERVICE);
+		View layout = inflater.inflate(R.layout.dialog_ai, (ViewGroup) activity.findViewById(R.id.new_ai_layout));
+
+		RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
+		beginner.setOnCheckedChangeListener((group, checkedId) ->
+				swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
+
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
+			switch (which)
+			{
+				case DialogInterface.BUTTON_POSITIVE:
+					callback.callback(GameState.builder()
+							.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
+							.swapped(swapped[0]).build());
+					break;
+
+				case DialogInterface.BUTTON_NEGATIVE:
+					dialog.dismiss();
+					break;
+			}
+		};
+
+		DialogUtil.keepDialog(new AlertDialog.Builder(activity)
+				.setView(layout)
+				.setTitle("Start a new ai game?")
+				.setPositiveButton("start", dialogClickListener)
+				.setNegativeButton("close", dialogClickListener)
+				.show());
 	}
 }

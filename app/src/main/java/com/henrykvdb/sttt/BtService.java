@@ -443,7 +443,6 @@ public class BtService extends Service
 
 		try
 		{
-
 			JSONObject json = new JSONObject();
 
 			json.put("message", Message.SEND_BOARD_UPDATE.ordinal());

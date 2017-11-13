@@ -11,7 +11,7 @@
 				  android:paddingLeft="24dp"
 				  android:paddingRight="24dp"
 				  android:paddingTop="9dp"
-				  android:paddingBottom="9dp">
+				  android:paddingBottom="0dp">
 		<TextView
 				android:text="@string/select_board"
 				android:layout_width="match_parent"
