@@ -24,7 +24,7 @@ public class BasicDialogs
 	private final static int DAYS_UNTIL_PROMPT = 3;//Min number of days
 	private final static int LAUNCHES_UNTIL_PROMPT = 3;//Min number of launches
 
-	// Prevent dialog dismiss when orientation changes
+	// Prevent dialog destroy when orientation changes
 	public static AlertDialog keepDialog(AlertDialog dialog)
 	{
 		try

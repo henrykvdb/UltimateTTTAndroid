@@ -73,10 +73,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private boolean keepBtOn; //If the app started with bluetooth the app won't disable bluetooth
 
 	//Request codes
-	public static final int REQUEST_START_BTPICKER = 100;   //BtPickerActivity
-	public static final int REQUEST_ENABLE_BT = 200;        //Permission required to enable Bluetooth
-	public static final int REQUEST_ENABLE_DSC = 201;       //Permission required to enable discoverability
-	public static final int REQUEST_COARSE_LOCATION = 202;  //Permission required to search nearby devices
+	public static final int REQUEST_ENABLE_BT = 100;        //Permission required to enable Bluetooth
+	public static final int REQUEST_ENABLE_DSC = 101;       //Permission required to enable discoverability
+	public static final int REQUEST_COARSE_LOCATION = 102;  //Permission required to search nearby devices
 
 	//Intents
 	public static final String CLOSE_BT_SERVICE_INTENT = "close_bt_service_intent";
@@ -225,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			//Notification telling the user that BtService is still open
 			btRunningNotification();
 		}
-		else if (!isChangingConfigurations())
+		else if (!isChangingConfigurations()) //TODO bug
 		{
 			//Stop Bluetooth service it is not a configuration change
 			unbindBtService(!isChangingConfigurations());
@@ -234,7 +233,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onStop();
 	}
 
-	public void btRunningNotification(){
+	public void btRunningNotification()
+	{
 		//This intent reopens the app
 		Intent reopenIntent = new Intent(this, MainActivity.class);
 		reopenIntent.setAction(Intent.ACTION_MAIN);
@@ -285,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (btServiceBound)
 			throw new RuntimeException("BtService already bound");
 
+		Log.e("REGH","REGISTERED");
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
 		if (!isServiceRunning(BtService.class, this))
@@ -295,10 +296,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void unbindBtService(boolean stop)
 	{
+		Log.e("REGH","need to unregister? " + btServiceBound + "(stop:"+stop+")");
 		if (btServiceBound)
 		{
-			closeBtDialog();
+			dismissBtDialog();
 
+			Log.e("REGH","UNREGISTERED");
 			unregisterReceiver(btStateReceiver);
 			unbindService(btServerConn);
 
@@ -341,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
 					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
 			{
-				closeBtDialog();
+				dismissBtDialog();
 				btService.closeThread();
 				keepBtOn = false;
 				Log.e("btStateReceiver", "TURNING OFF");
@@ -362,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return false;
 	}
 
-	private void closeBtDialog()
+	private void dismissBtDialog()
 	{
 		if (btDialog != null)
 		{
@@ -404,8 +407,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else if (btService != null)
 			setSubTitle("Connected to " + btService.getConnectedDeviceName());
 
-		if (btDialog != null)
-			btDialog.dismiss();
+		dismissBtDialog();
 
 		gameThread = new GameThread();
 		gameThread.start();
@@ -700,7 +702,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				else if (beginner == R.id.start_other) start = false;
 
 				//Create the actual requested gamestate
-				boolean swapped = newBoard?(!start):(start ^ (gs.board().nextPlayer() == Player.PLAYER));
+				boolean swapped = newBoard ? (!start) : (start ^ (gs.board().nextPlayer() == Player.PLAYER));
 				GameState.Builder gsBuilder = GameState.builder().bt().swapped(swapped);
 				if (!newBoard)
 					gsBuilder.board(gs.board());
@@ -717,7 +719,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton("close", (dialog, which) ->
 					{
-						closeBtDialog();
+						dismissBtDialog();
 						btService.closeThread();
 					})
 					.show());
@@ -756,9 +758,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 			else
 			{
-				//Make the bluetooth-picker main
-				Intent serverIntent = new Intent(getApplicationContext(), BtPickerActivity.class);
-				startActivityForResult(serverIntent, REQUEST_START_BTPICKER);
+				btDialog = BtPicker.createDialog(this, btAdapter, adr -> btService.connect(adr));
 			}
 		}
 	}
@@ -775,10 +775,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			case REQUEST_ENABLE_DSC:
 				if (resultCode != RESULT_CANCELED)
 					hostBt();
-				break;
-			case REQUEST_START_BTPICKER:
-				if (resultCode == RESULT_OK)
-					btService.connect(data.getExtras().getString(BtPickerActivity.EXTRA_DEVICE_ADDRESS));
 				break;
 		}
 

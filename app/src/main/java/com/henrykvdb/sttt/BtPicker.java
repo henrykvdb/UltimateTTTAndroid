@@ -1,57 +1,66 @@
 package com.henrykvdb.sttt;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.henrykvdb.sttt.DialogUtil.BasicDialogs;
+import com.henrykvdb.sttt.Util.Callback;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BtPickerActivity extends Activity
+public class BtPicker
 {
-	public static String EXTRA_DEVICE_ADDRESS = "device_address";
+	private final BluetoothAdapter btAdapter;
+	private final Context context;
 
-	private BluetoothAdapter btAdapter;
+	private final AlertDialog alertDialog;
+	private final Callback<String> addressCallback;
+	private final View view;
 
 	private List<BluetoothDevice> devices = new ArrayList<>();
-	private LinearLayout devicesLayout;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
+	private BtPicker(Context context, BluetoothAdapter btAdapter, Callback<String> addressCallback)
 	{
-		super.onCreate(savedInstanceState);
+		this.addressCallback = addressCallback;
+		this.btAdapter = btAdapter;
+		this.context = context;
 
-		// Setup the window
-		setContentView(R.layout.dialog_bt_join);
-
-		// Set result CANCELED in case the user backs out
-		setResult(Activity.RESULT_CANCELED);
-
-		// Set fields
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		devicesLayout = (LinearLayout) findViewById(R.id.devices);
+		view = LayoutInflater.from(context).inflate(R.layout.dialog_bt_join, null);
+		alertDialog = BasicDialogs.keepDialog(new AlertDialog.Builder(context)
+				.setView(view)
+				.setNegativeButton("close", (dialog, which) -> dialog.dismiss())
+				.setOnDismissListener(dialog -> destroy())
+				.show());
 
 		// Register filters
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(BluetoothDevice.ACTION_FOUND);
 		filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		registerReceiver(mReceiver, filter);
+		context.registerReceiver(btReceiver, filter);
 
 		doDiscovery();
 	}
 
-	private void updateLayout()
+	public static AlertDialog createDialog(Context context, BluetoothAdapter btAdapter, Callback<String> addressCallback)
+	{
+		return new com.henrykvdb.sttt.BtPicker(context, btAdapter, addressCallback).alertDialog;
+	}
+
+	public AlertDialog updateLayout()
 	{
 		//Clear layout
+		LinearLayout devicesLayout = (LinearLayout) view.findViewById(R.id.devices);
 		devicesLayout.removeAllViews();
 
 		//Add all the devices
@@ -59,10 +68,10 @@ public class BtPickerActivity extends Activity
 		{
 			for (BluetoothDevice device : devices)
 			{
-				TextView view = new TextView(this);
-				view.setText(device.getName() + "\n" + device.getAddress());
+				TextView view1 = new TextView(context);
+				view1.setText(device.getName() + "\n" + device.getAddress());
 
-				view.setOnClickListener(v ->
+				view1.setOnClickListener(v ->
 				{
 					// Cancel discovery because it's costly and we're about to connect
 					btAdapter.cancelDiscovery();
@@ -71,38 +80,22 @@ public class BtPickerActivity extends Activity
 					String info = ((TextView) v).getText().toString();
 					String address = info.substring(info.length() - 17);
 
-					// Create the result Intent and include the MAC address
-					Intent intent = new Intent();
-					intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
-
-					// Set result and finish this Activity
-					setResult(Activity.RESULT_OK, intent);
-					finish();
+					alertDialog.dismiss();
+					addressCallback.callback(address);
 				});
 
-				devicesLayout.addView(view);
+				devicesLayout.addView(view1);
 			}
 		}
 		else
 		{
 			//There are no devices in the list
-			TextView view = new TextView(this);
-			view.setText(getResources().getText(R.string.none_found).toString());
-			devicesLayout.addView(view);
+			TextView view1 = new TextView(context);
+			view1.setText(context.getResources().getText(R.string.none_found).toString());
+			devicesLayout.addView(view1);
 		}
-	}
 
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-
-		// Make sure we're not doing discovery anymore
-		if (btAdapter != null)
-			btAdapter.cancelDiscovery();
-
-		// Unregister broadcast listeners
-		this.unregisterReceiver(mReceiver);
+		return alertDialog;
 	}
 
 	private void doDiscovery()
@@ -121,7 +114,7 @@ public class BtPickerActivity extends Activity
 		btAdapter.startDiscovery();
 	}
 
-	private final BroadcastReceiver mReceiver = new BroadcastReceiver()
+	private final BroadcastReceiver btReceiver = new BroadcastReceiver()
 	{
 		@Override
 		public void onReceive(Context context, Intent intent)
@@ -145,7 +138,7 @@ public class BtPickerActivity extends Activity
 			}
 			else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action))
 			{
-				finish();
+				alertDialog.dismiss();
 			}
 			else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action))
 			{
@@ -153,4 +146,16 @@ public class BtPickerActivity extends Activity
 			}
 		}
 	};
+
+	public void destroy()
+	{
+		Log.e("BTPICKER", "DISMISSED");
+
+		// Unregister broadcast listeners
+		context.unregisterReceiver(btReceiver);
+
+		// Make sure we're not doing discovery anymore
+		if (btAdapter != null)
+			btAdapter.cancelDiscovery();
+	}
 }
