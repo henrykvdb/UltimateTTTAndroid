@@ -196,41 +196,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onStart();
 
 		EventBus.getDefault().register(this);
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
 		//Kill notification
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
 		notificationManager.cancel(BT_STILL_RUNNING);
 
-		if (btServiceBound)
-		{
-			if (btService.getState() == BtService.State.CONNECTED)
-			{
-				Board newBoard = btService.getLocalBoard();
-				if (newBoard != gs.board())
-					play(newBoard.getLastMove(), Source.Bluetooth);
-
-			}
-			else turnLocal();
-		}
-		else bindBtService();
+		if (!btServiceBound)
+			bindBtService();
+		else throw new RuntimeException("Not expected?"); //TODO remove this please;
 	}
 
 	@Override
 	protected void onStop()
 	{
-		EventBus.getDefault().unregister(this);
-		if (btService.getState() == BtService.State.CONNECTED)
-		{
-			//Notification telling the user that BtService is still open
-			btRunningNotification();
-		}
-		else if (!isChangingConfigurations()) //TODO bug
-		{
-			//Stop Bluetooth service it is not a configuration change
-			unbindBtService(!isChangingConfigurations());
-		}
-
 		super.onStop();
+
+		EventBus.getDefault().unregister(this);
+		unregisterReceiver(btStateReceiver);
+
+		//Notification telling the user that BtService is still open
+		if (btService.getState() == BtService.State.CONNECTED)
+			btRunningNotification();
+
+		boolean kill = !isChangingConfigurations() && btService.getState() != BtService.State.CONNECTED;
+		unbindBtService(kill);
 	}
 
 	public void btRunningNotification()
@@ -285,9 +275,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (btServiceBound)
 			throw new RuntimeException("BtService already bound");
 
-		Log.e("REGH","REGISTERED");
-		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-
 		if (!isServiceRunning(BtService.class, this))
 			startService(new Intent(this, BtService.class));
 
@@ -296,20 +283,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void unbindBtService(boolean stop)
 	{
-		Log.e("REGH","need to unregister? " + btServiceBound + "(stop:"+stop+")");
 		if (btServiceBound)
 		{
 			dismissBtDialog();
-
-			Log.e("REGH","UNREGISTERED");
-			unregisterReceiver(btStateReceiver);
 			unbindService(btServerConn);
-
 			btServiceBound = false;
+		}
 
-			if (stop)
-				stopService(new Intent(this, BtService.class));
-
+		if (stop)
+		{
+			stopService(new Intent(this, BtService.class));
 			turnLocal();
 		}
 	}
@@ -325,7 +308,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btServiceBound = true;
 
 			if (gs.isBluetooth())
-				setSubTitle("Connected to " + btService.getConnectedDeviceName());
+			{
+				if (btService.getState() == BtService.State.CONNECTED)
+				{
+					//Fetch latest board
+					Board newBoard = btService.getLocalBoard();
+					if (newBoard != gs.board())
+						play(newBoard.getLastMove(), Source.Bluetooth);
+
+					//Update subtitle
+					setSubTitle("Connected to " + btService.getConnectedDeviceName());
+				}
+				else turnLocal();
+			}
 		}
 
 		@Override
