@@ -1,6 +1,5 @@
 package com.henrykvdb.sttt;
 
-import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -47,8 +46,8 @@ import com.flaghacker.uttt.common.Timer;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Callback;
+import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Util;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -203,7 +202,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		if (!btServiceBound)
 			bindBtService();
-		else throw new RuntimeException("Not expected?"); //TODO remove this please;
 	}
 
 	@Override
@@ -277,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (btServiceBound)
 			throw new RuntimeException("BtService already bound");
 
-		if (!isServiceRunning(BtService.class, this))
+		if (!Util.isServiceRunning(BtService.class, this))
 			startService(new Intent(this, BtService.class));
 
 		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
@@ -348,19 +346,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			}
 		}
 	};
-
-	private static boolean isServiceRunning(Class<?> serviceClass, Context context) //TODO move to util
-	{
-		ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-		{
-			if (serviceClass.getName().equals(service.service.getClassName()))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private void dismissBtDialog()
 	{

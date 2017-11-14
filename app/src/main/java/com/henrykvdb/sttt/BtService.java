@@ -12,6 +12,7 @@ import android.util.Log;
 import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Coord;
 import com.flaghacker.uttt.common.JSONBoard;
+import com.henrykvdb.sttt.Util.Util;
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -179,7 +180,7 @@ public class BtService extends Service
 		@Override
 		public void close() throws IOException
 		{
-			if (serverSocket != null) //TODO needed?
+			if (serverSocket != null)
 				serverSocket.close();
 			if (socket != null)
 				socket.close();
@@ -244,7 +245,7 @@ public class BtService extends Service
 		@Override
 		public void close() throws IOException
 		{
-			if (socket != null) //TODO needed?
+			if (socket != null)
 				socket.close();
 		}
 	}
@@ -277,9 +278,6 @@ public class BtService extends Service
 		Log.e(MainActivity.debuglog, "CONNECTED to " + socket.getRemoteDevice().getName());
 		EventBus.getDefault().post(new Events.Toast("Connected to " + socket.getRemoteDevice().getName()));
 
-		//TODO callback enemy to UI
-		//setEnemy(socket.getRemoteDevice().getName());
-
 		byte[] buffer = new byte[1024];
 
 		if (isHost && !Thread.interrupted())
@@ -303,7 +301,7 @@ public class BtService extends Service
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (isValidBoard(localBoard, newBoard))
+					if (Util.isValidBoard(localBoard, newBoard))
 					{
 						Log.e(MainActivity.debuglog, "We received a valid board");
 						localBoard = newBoard;
@@ -354,17 +352,6 @@ public class BtService extends Service
 			e.printStackTrace();
 		}
 		Log.e(MainActivity.debuglog, "END connected thread");
-	}
-
-	private static boolean isValidBoard(Board cBoard, Board newBoard) //TODO move to util
-	{
-		if (!cBoard.availableMoves().contains(newBoard.getLastMove()))
-			return false;
-
-		Board verifyBoard = cBoard.copy();
-		verifyBoard.play(newBoard.getLastMove());
-
-		return verifyBoard.equals(newBoard);
 	}
 
 	public String getConnectedDeviceName()
