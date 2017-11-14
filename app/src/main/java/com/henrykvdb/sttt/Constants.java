@@ -10,6 +10,10 @@ public class Constants
 	public static final String INTENT_STOP_BT_SERVICE = "INTENT_STOP_BT_SERVICE";
 	public static final String INTENT_TURNLOCAL = "INTENT_TURNLOCAL";
 
+	//Intents data types
+	public static final String INTENT_DATA_FIRST = "INTENT_DATA_FIRST";
+	public static final String INTENT_DATA_SECOND = "INTENT_DATA_SECOND";
+
 	//Request codes
 	public static final int REQUEST_ENABLE_BT = 100;        //Permission required to enable Bluetooth
 	public static final int REQUEST_ENABLE_DSC = 101;       //Permission required to enable discoverability

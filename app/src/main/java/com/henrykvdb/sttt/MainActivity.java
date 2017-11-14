@@ -26,8 +26,6 @@ import com.flaghacker.uttt.common.*;
 import com.google.android.gms.ads.*;
 import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Util;
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -110,12 +108,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		//Register receiver to close bt service intent
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
+		filter.addAction(Constants.INTENT_TOAST);
+		filter.addAction(Constants.INTENT_NEWGAME);
+		filter.addAction(Constants.INTENT_MOVE);
+		filter.addAction(Constants.INTENT_UNDO);
+		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
+		filter.addAction(Constants.INTENT_TURNLOCAL);
 		registerReceiver(intentReceiver, filter);
 
 		//Prepare fields
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = (BoardView) findViewById(R.id.boardView);
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
+		boardView.setMoveCallback(coord -> play(Source.Local, coord));
 
 		if (savedInstanceState == null)
 		{
@@ -148,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onStart();
 
-		EventBus.getDefault().register(this);
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
@@ -163,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		super.onStop();
 
-		EventBus.getDefault().unregister(this);
 		unregisterReceiver(btStateReceiver);
 
 		//Notification telling the user that BtService is still open
@@ -204,9 +207,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
-			unbindBtService(true);
-			NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-			notificationManager.cancel(Constants.BT_STILL_RUNNING);
+			String action = intent.getAction();
+			Log.e("INTENT", "RECEIVED INTENT: " + action);
+
+
+			switch (action)
+			{
+				case Constants.INTENT_MOVE:
+					Source src = (Source) intent.getSerializableExtra(Constants.INTENT_DATA_FIRST);
+					Coord move = (Coord) intent.getSerializableExtra(Constants.INTENT_DATA_SECOND);
+					play(src, move);
+					break;
+				case Constants.INTENT_NEWGAME:
+					newGame((GameState) intent.getSerializableExtra(Constants.INTENT_DATA_FIRST));
+					break;
+				case Constants.INTENT_STOP_BT_SERVICE:
+					unbindBtService(true);
+					NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+					notificationManager.cancel(Constants.BT_STILL_RUNNING);
+					break;
+				case Constants.INTENT_TOAST:
+					toast(intent.getStringExtra(Constants.INTENT_DATA_FIRST));
+					break;
+				case Constants.INTENT_TURNLOCAL:
+					turnLocal();
+					break;
+				case Constants.INTENT_UNDO:
+					Boolean forced = intent.getBooleanExtra(Constants.INTENT_DATA_FIRST, false);
+
+					if (forced)
+						undo();
+					else
+					{
+						runOnUiThread(() -> askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
+						{
+							if (allow)
+							{
+								undo();
+								btService.sendUndo(true);
+							}
+						}));
+					}
+					break;
+			}
 		}
 	};
 
@@ -268,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					//Fetch latest board
 					Board newBoard = btService.getLocalBoard();
 					if (newBoard != gs.board())
-						play(newBoard.getLastMove(), Source.Bluetooth);
+						play(Source.Bluetooth, newBoard.getLastMove());
 
 					//Update subtitle
 					setSubTitle("Connected to " + btService.getConnectedDeviceName());
@@ -311,12 +354,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	}
 
-	@Subscribe
-	public void onMessageEvent(Events.NewGame newGame)
-	{
-		runOnUiThread(() -> newGame(newGame.requestState));
-	}
-
 	private void newGame(GameState gs)
 	{
 		Log.e("NEWGAME", "NEWGAME");
@@ -347,12 +384,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		gameThread = new GameThread();
 		gameThread.start();
-	}
-
-	@Subscribe
-	public void onMessageEvent(Events.TurnLocal event)
-	{
-		runOnUiThread(this::turnLocal);
 	}
 
 	private void turnLocal()
@@ -425,13 +456,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 	}
 
-	@Subscribe
-	public void onMessageEvent(Events.NewMove moveEvent)
-	{
-		play(moveEvent.move, moveEvent.source);
-	}
-
-	private void play(Coord move, Source source)
+	private void play(Source source, Coord move)
 	{
 		synchronized (playerLock)
 		{
@@ -494,12 +519,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			actionBar.setSubtitle(subTitle);
 	}
 
-	@Subscribe
-	public void onMessageEvent(Events.Toast toastEvent)
-	{
-		runOnUiThread(() -> toast(toastEvent.text));
-	}
-
 	private void toast(String text)
 	{
 		if (toast == null)
@@ -514,26 +533,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		getMenuInflater().inflate(R.menu.menu, menu);
 		return true;
-	}
-
-	@Subscribe
-	public void onMessageEvent(Events.Undo undoEvent) //TODO not working
-	{
-		boolean forced = undoEvent.forced;
-
-		if (forced)
-			undo();
-		else
-		{
-			runOnUiThread(() -> askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
-			{
-				if (allow)
-				{
-					undo();
-					btService.sendUndo(true);
-				}
-			}));
-		}
 	}
 
 	@Override

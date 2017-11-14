@@ -7,8 +7,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import com.flaghacker.uttt.common.*;
+import com.henrykvdb.sttt.Util.IntentUtil;
 import com.henrykvdb.sttt.Util.Util;
-import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,9 +65,8 @@ public class BtService extends Service
 	{
 		super.onCreate();
 
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-
 		Log.e(Constants.LOG_TAG, "BTSERVICE CREATED");
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class BtService extends Service
 			}
 		}
 
-		EventBus.getDefault().post(new Events.TurnLocal());
+		IntentUtil.sendTurnLocal(this);
 	}
 
 	public static abstract class CloseableThread extends Thread implements Closeable
@@ -213,7 +212,7 @@ public class BtService extends Service
 			catch (IOException e)
 			{
 				state = BtService.State.NONE;
-				EventBus.getDefault().post(new Events.Toast("Unable to connect to device"));
+				IntentUtil.sendToast(BtService.this,"Unable to connect to device");
 				Log.e(Constants.LOG_TAG, "Unable to connect to device", e);
 
 				try
@@ -263,7 +262,7 @@ public class BtService extends Service
 
 		connectedDeviceName = socket.getRemoteDevice().getName();
 		Log.e(Constants.LOG_TAG, "CONNECTED to " + socket.getRemoteDevice().getName());
-		EventBus.getDefault().post(new Events.Toast("Connected to " + socket.getRemoteDevice().getName()));
+		IntentUtil.sendToast(this,"Connected to " + socket.getRemoteDevice().getName());
 
 		byte[] buffer = new byte[1024];
 
@@ -292,11 +291,11 @@ public class BtService extends Service
 					{
 						Log.e(Constants.LOG_TAG, "We received a valid board");
 						localBoard = newBoard;
-						EventBus.getDefault().post(new Events.NewMove(MainActivity.Source.Bluetooth, newMove));
+						IntentUtil.sendMove(this,MainActivity.Source.Bluetooth, newMove);
 					}
 					else
 					{
-						EventBus.getDefault().post(new Events.Toast("Games got desynchronized"));
+						IntentUtil.sendToast(this,"Games got desynchronized");
 						break;
 					}
 				}
@@ -305,18 +304,17 @@ public class BtService extends Service
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					localBoard = board;
 
-					GameState requestState = GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build();
-					EventBus.getDefault().post(new Events.NewGame(requestState));
+					IntentUtil.sendNewGame(this, GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build());
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal())
 				{
-					EventBus.getDefault().post(new Events.Undo(json.getBoolean("force")));
+					IntentUtil.sendUndo(this,json.getBoolean("force"));
 				}
 			}
 			catch (IOException e)
 			{
 				Log.e(Constants.LOG_TAG, "disconnected", e);
-				EventBus.getDefault().post(new Events.Toast("Connection lost"));
+				IntentUtil.sendToast(this,"Connection lost");
 				break;
 			}
 			catch (JSONException e)
@@ -327,7 +325,7 @@ public class BtService extends Service
 		}
 
 		state = State.NONE;
-		EventBus.getDefault().post(new Events.TurnLocal());
+		IntentUtil.sendTurnLocal(this);
 
 		try
 		{
@@ -387,7 +385,7 @@ public class BtService extends Service
 
 	private void sendSetup()
 	{
-		EventBus.getDefault().post(new Events.NewGame(requestState));
+		IntentUtil.sendNewGame(this,requestState);
 		Log.e(Constants.LOG_TAG, "Sending setup, starting: " + requestState.players().first);
 
 		localBoard = requestState.board();
