@@ -3,13 +3,7 @@ package com.henrykvdb.sttt;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -17,33 +11,19 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.*;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Pair;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Player;
-import com.flaghacker.uttt.common.Timer;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
+import android.view.*;
+import android.widget.*;
+import com.flaghacker.uttt.common.*;
+import com.google.android.gms.ads.*;
 import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Util;
 import org.greenrobot.eventbus.EventBus;
@@ -55,36 +35,11 @@ import java.lang.reflect.Field;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.flaghacker.uttt.common.Player.ENEMY;
-import static com.flaghacker.uttt.common.Player.PLAYER;
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
 {
-	//Keys
-	private static final String GAMESTATE_KEY = "GAMESTATE_KEY";
-	private static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
-
-	//Fields
+	//Fields that get saved to bundle
 	private GameState gs;
-	private boolean keepBtOn; //If the app started with bluetooth the app won't disable bluetooth
-
-	//Request codes
-	public static final int REQUEST_ENABLE_BT = 100;        //Permission required to enable Bluetooth
-	public static final int REQUEST_ENABLE_DSC = 101;       //Permission required to enable discoverability
-	public static final int REQUEST_COARSE_LOCATION = 102;  //Permission required to search nearby devices
-
-	//Intents
-	public static final String CLOSE_BT_SERVICE_INTENT = "close_bt_service_intent";
-
-	//Notification ID's
-	private static final int BT_STILL_RUNNING = 1;
-
-	//Bluetooth Service
-	private BtService btService;
-	private boolean btServiceBound;
-
-	//Bluetooth fields
-	private BluetoothAdapter btAdapter;
+	private boolean keepBtOn;
 
 	//Game fields
 	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
@@ -92,13 +47,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private BoardView boardView;
 	private GameThread gameThread;
 
+	//Bluetooth
+	private BtService btService;
+	private boolean btServiceBound;
+	private BluetoothAdapter btAdapter;
+
 	//Other
 	private Toast toast;
 	private AlertDialog askDialog;
 	private AlertDialog btDialog;
-
-	//TEMP
-	public static String debuglog = "DEBUGLOG";
 
 	public enum Source
 	{
@@ -152,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Register receiver to close bt service intent
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(CLOSE_BT_SERVICE_INTENT);
+		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
 		registerReceiver(intentReceiver, filter);
 
 		//Prepare fields
@@ -169,8 +126,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else
 		{
 			//Restore game
-			keepBtOn = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY, false);
-			newGame((GameState) savedInstanceState.getSerializable(GAMESTATE_KEY));
+			keepBtOn = savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY, false);
+			newGame((GameState) savedInstanceState.getSerializable(Constants.GAMESTATE_KEY));
 		}
 
 		//Ask the user to rateDialog
@@ -181,8 +138,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		outState.putBoolean(STARTED_WITH_BT_KEY, keepBtOn);
-		outState.putSerializable(GAMESTATE_KEY, gs);
+		outState.putBoolean(Constants.STARTED_WITH_BT_KEY, keepBtOn);
+		outState.putSerializable(Constants.GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -195,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(BT_STILL_RUNNING);
+		notificationManager.cancel(Constants.BT_STILL_RUNNING);
 
 		if (!btServiceBound)
 			bindBtService();
@@ -226,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		PendingIntent reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT);
 
 		//This intent shuts down the btService
-		Intent intentAction = new Intent(CLOSE_BT_SERVICE_INTENT);
+		Intent intentAction = new Intent(Constants.INTENT_STOP_BT_SERVICE);
 		PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT);
 
 		Notification notification = new NotificationCompat.Builder(this)
@@ -239,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				.setOngoing(true).build();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-		notificationManager.notify(BT_STILL_RUNNING, notification);
+		notificationManager.notify(Constants.BT_STILL_RUNNING, notification);
 	}
 
 	private BroadcastReceiver intentReceiver = new BroadcastReceiver()
@@ -249,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			unbindBtService(true);
 			NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-			notificationManager.cancel(BT_STILL_RUNNING);
+			notificationManager.cancel(Constants.BT_STILL_RUNNING);
 		}
 	};
 
@@ -262,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			btAdapter.disable();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(BT_STILL_RUNNING);
+		notificationManager.cancel(Constants.BT_STILL_RUNNING);
 
 		super.onDestroy();
 	}
@@ -348,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	{
 		if (btDialog != null)
 		{
-			Log.e(MainActivity.debuglog, "Closing bt dialog");
+			Log.e(Constants.LOG_TAG, "Closing bt dialog");
 			btDialog.dismiss();
 			btDialog = null;
 		}
@@ -428,13 +385,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			{
 				timer = new Timer(5000);
 
-				if (gs.board().nextPlayer() == PLAYER && running)
+				if (gs.board().nextPlayer() == Player.PLAYER && running)
 					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
-				if (gs.board().nextPlayer() == ENEMY && running)
+				if (gs.board().nextPlayer() == Player.ENEMY && running)
 					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
 			}
 		}
@@ -459,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			newBoard.play(move);
 
 			if (gs.players().contains(Source.Bluetooth)
-					&& ((gs.board().nextPlayer() == PLAYER) == (gs.players().first == Source.Local)))
+					&& ((gs.board().nextPlayer() == Player.PLAYER) == (gs.players().first == Source.Local)))
 				btService.sendBoard(newBoard);
 
 			gs.pushBoard(newBoard);
@@ -595,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			GameState newState = GameState.builder().gs(gs).build();
 			newState.popBoard();
-			if (Source.AI == (gs.board().nextPlayer() == PLAYER ? gs.players().first : gs.players().second)
+			if (Source.AI == (gs.board().nextPlayer() == Player.PLAYER ? gs.players().first : gs.players().second)
 					&& newState.boards().size() > 1)
 				newState.popBoard();
 
@@ -646,7 +603,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			btService.listen();
 
-			View layout = View.inflate(this,R.layout.dialog_bt_host,null);
+			View layout = View.inflate(this, R.layout.dialog_bt_host, null);
 			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, btService.getLocalBluetoothName()));
 
 			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
@@ -674,7 +631,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			btDialog = DialogUtil.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
-					.setCustomTitle(DialogUtil.newTitle(this,Util.getString(this,R.string.host_bluetooth_game)))
+					.setCustomTitle(DialogUtil.newTitle(this, Util.getString(this, R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton("close", (dialog, which) ->
 					{
@@ -686,7 +643,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 			discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-			startActivityForResult(discoverableIntent, REQUEST_ENABLE_DSC);
+			startActivityForResult(discoverableIntent, Constants.REQUEST_ENABLE_DSC);
 		}
 	}
 
@@ -703,13 +660,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (!btAdapter.isEnabled())
 		{
 			Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+			startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BT);
 		}
 		else
 		{
 			//If we don't have the COARSE LOCATION permission, request it
 			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
-				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_COARSE_LOCATION);
+				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_COARSE_LOCATION);
 			else btDialog = BtPicker.createDialog(this, btAdapter, adr -> btService.connect(adr));
 		}
 	}
@@ -717,9 +674,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
-		if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK)
+		if (requestCode == Constants.REQUEST_ENABLE_BT && resultCode == RESULT_OK)
 			joinBt();
-		else if (requestCode == REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
+		else if (requestCode == Constants.REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
 			hostBt();
 
 		super.onActivityResult(requestCode, resultCode, data);
@@ -728,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
 	{
-		if (requestCode == REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+		if (requestCode == Constants.REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			joinBt();
 
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);

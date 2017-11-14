@@ -34,11 +34,11 @@ public class BtPicker
 		this.btAdapter = btAdapter;
 		this.context = context;
 
-		View view = View.inflate(context,R.layout.dialog_bt_join,null);
+		View view = View.inflate(context, R.layout.dialog_bt_join, null);
 		devicesLayout = (LinearLayout) view.findViewById(R.id.devices);
 
 		alertDialog = DialogUtil.keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(DialogUtil.newLoadTitle(context, Util.getString(context,R.string.join_bluetooth_game)))
+				.setCustomTitle(DialogUtil.newLoadTitle(context, Util.getString(context, R.string.join_bluetooth_game)))
 				.setView(view)
 				.setNegativeButton("close", (dialog, which) -> dialog.dismiss())
 				.setOnDismissListener(dialog -> destroy())
@@ -150,7 +150,7 @@ public class BtPicker
 
 	public void destroy()
 	{
-		Log.e(MainActivity.debuglog, "Dialog dismissed");
+		Log.e(Constants.LOG_TAG, "Dialog dismissed");
 
 		// Unregister broadcast listeners
 		context.unregisterReceiver(btReceiver);

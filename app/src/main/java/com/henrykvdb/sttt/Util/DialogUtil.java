@@ -14,10 +14,7 @@ import android.view.WindowManager;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import com.henrykvdb.sttt.Callback;
-import com.henrykvdb.sttt.GameState;
-import com.henrykvdb.sttt.MMBot;
-import com.henrykvdb.sttt.R;
+import com.henrykvdb.sttt.*;
 
 import java.util.Random;
 

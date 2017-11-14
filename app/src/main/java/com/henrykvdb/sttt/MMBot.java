@@ -1,11 +1,6 @@
 package com.henrykvdb.sttt;
 
-import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Bot;
-import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Player;
-import com.flaghacker.uttt.common.Timer;
-import com.flaghacker.uttt.common.Util;
+import com.flaghacker.uttt.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
