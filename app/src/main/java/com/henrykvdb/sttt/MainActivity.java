@@ -49,6 +49,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Callback;
+import com.henrykvdb.sttt.Util.Util;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -621,10 +622,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (btService != null && btService.getState() == BtService.State.CONNECTED)
 				btService.setLocalBoard(gs.board());
 		}
-		else
-		{
-			toast("No previous moves");
-		}
+		else toast("No previous moves");
 	}
 
 	@Override
@@ -633,33 +631,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		int id = item.getItemId();
 
 		if (id == R.id.nav_local_human)
-		{
 			DialogUtil.newLocal(accept -> newLocal(), this);
-		}
 		else if (id == R.id.nav_local_ai)
-		{
 			DialogUtil.newAi(this::newGame, this);
-		}
 		else if (id == R.id.nav_bt_host)
-		{
 			hostBt();
-		}
 		else if (id == R.id.nav_bt_join)
-		{
 			joinBt();
-		}
 		else if (id == R.id.nav_other_feedback)
-		{
 			DialogUtil.feedbackSender(this);
-		}
 		else if (id == R.id.nav_other_share)
-		{
 			DialogUtil.shareDialog(this);
-		}
 		else if (id == R.id.nav_other_about)
-		{
 			DialogUtil.aboutDialog(this);
-		}
 		else return false;
 
 		((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
@@ -709,7 +693,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			btDialog = DialogUtil.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
-					.setTitle("Host Bluetooth game")
+					.setCustomTitle(DialogUtil.newTitle(this,Util.getString(this,R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton("close", (dialog, which) ->
 					{
@@ -743,16 +727,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else
 		{
 			//If we don't have the COARSE LOCATION permission, request it
-			if (ContextCompat.checkSelfPermission(this,
-					android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-			{
-				ActivityCompat.requestPermissions(this,
-						new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_COARSE_LOCATION);
-			}
-			else
-			{
-				btDialog = BtPicker.createDialog(this, btAdapter, adr -> btService.connect(adr));
-			}
+			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
+				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_COARSE_LOCATION);
+			else btDialog = BtPicker.createDialog(this, btAdapter, adr -> btService.connect(adr));
 		}
 	}
 

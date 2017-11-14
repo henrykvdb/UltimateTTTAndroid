@@ -4,7 +4,7 @@
     <string name="app_name_long">Super Tic Tac Toe</string>
     <string name="drawer_subtitle">No inspirational quote here</string>
 
-	<!-- Dynamic -->
+	<!-- Bluetooth -->
 	<string name="host_desc">You are hosting a game, ask a friend to join you (%1$s) over bluetooth</string>
 
     <!-- FireBase -->
@@ -41,4 +41,6 @@
     <string name="app_icon">app icon</string>
     <string name="current_player">Current Player</string>
     <string name="won_by">Won by</string>
+	<string name="author_credit">by Henrykvdb</string>
+	<string name="other_credits">credits to Flaghacker\'s SuperTTTApi</string>
 </resources>

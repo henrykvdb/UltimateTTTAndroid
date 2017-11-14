@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="fill_parent"
+			  android:layout_height="fill_parent"
 			  android:orientation="vertical"
-			  android:layout_width="match_parent"
-			  android:layout_height="match_parent">
+			  android:paddingLeft="20dp"
+			  android:paddingRight="20dp"
+			  android:paddingTop="20dp"
+			  android:paddingBottom="0dp">
 	<TextView
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:layout_gravity="center"
 			android:id="@+id/action_bar_title"
-			android:text="@string/host_bluetooth_game"
 			android:textColor="@color/dialogTitle"
-			android:textSize="24sp"/>
+			android:textStyle="bold"
+			android:textSize="20sp"/>
 </LinearLayout>

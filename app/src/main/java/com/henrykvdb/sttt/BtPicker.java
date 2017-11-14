@@ -8,12 +8,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Callback;
+import com.henrykvdb.sttt.Util.DialogUtil;
+import com.henrykvdb.sttt.Util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class BtPicker
 
 	private final AlertDialog alertDialog;
 	private final Callback<String> addressCallback;
-	private final View view;
+	private final LinearLayout devicesLayout;
 
 	private List<BluetoothDevice> devices = new ArrayList<>();
 
@@ -35,8 +35,11 @@ public class BtPicker
 		this.btAdapter = btAdapter;
 		this.context = context;
 
-		view = LayoutInflater.from(context).inflate(R.layout.dialog_bt_join, null);
+		View view = View.inflate(context,R.layout.dialog_bt_join,null);
+		devicesLayout = (LinearLayout) view.findViewById(R.id.devices);
+
 		alertDialog = DialogUtil.keepDialog(new AlertDialog.Builder(context)
+				.setCustomTitle(DialogUtil.newLoadTitle(context, Util.getString(context,R.string.join_bluetooth_game)))
 				.setView(view)
 				.setNegativeButton("close", (dialog, which) -> dialog.dismiss())
 				.setOnDismissListener(dialog -> destroy())
@@ -60,7 +63,6 @@ public class BtPicker
 	public AlertDialog updateLayout()
 	{
 		//Clear layout
-		LinearLayout devicesLayout = (LinearLayout) view.findViewById(R.id.devices);
 		devicesLayout.removeAllViews();
 
 		//Add all the devices
@@ -149,7 +151,7 @@ public class BtPicker
 
 	public void destroy()
 	{
-		Log.e("BTPICKER", "DISMISSED");
+		Log.e(MainActivity.debuglog, "Dialog dismissed");
 
 		// Unregister broadcast listeners
 		context.unregisterReceiver(btReceiver);

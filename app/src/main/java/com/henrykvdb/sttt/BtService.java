@@ -16,6 +16,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -122,6 +123,10 @@ public class BtService extends Service
 		}
 
 		EventBus.getDefault().post(new Events.TurnLocal());
+	}
+
+	public static abstract class CloseableThread extends Thread implements Closeable
+	{
 	}
 
 	private class ListenThread extends CloseableThread

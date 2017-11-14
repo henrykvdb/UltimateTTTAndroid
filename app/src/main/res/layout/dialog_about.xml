@@ -14,13 +14,13 @@
             android:paddingTop="@dimen/nav_header_vertical_spacing"
             android:text="@string/app_name_long"
             android:drawableStart="@mipmap/ic_launcher"
-            android:drawableLeft="@mipmap/ic_launcher"
             android:gravity="center_vertical"
             android:textStyle="normal|bold"
+			android:textSize="20sp"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:id="@+id/versionName_view"/>
     <TextView
-            android:text="by Henrykvdb"
+            android:text="@string/author_credit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat"
@@ -28,7 +28,7 @@
             android:textSize="20sp"
             android:paddingBottom="9dp"/>
     <TextView
-            android:text="credits to Flaghacker's SuperTTTApi"
+            android:text="@string/other_credits"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat"

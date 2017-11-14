@@ -72,6 +72,7 @@
 					android:textAppearance="@style/TextAppearance.AppCompat"/>
 		</RadioGroup>
 		<TextView
+				android:paddingTop="10dp"
 				android:id="@+id/bt_host_desc"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
