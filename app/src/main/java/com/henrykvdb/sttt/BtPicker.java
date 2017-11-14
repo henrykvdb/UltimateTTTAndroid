@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import com.henrykvdb.sttt.Util.Callback;
 import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Util;
 

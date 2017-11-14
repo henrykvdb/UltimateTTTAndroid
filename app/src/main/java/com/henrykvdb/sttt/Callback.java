@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt.Util;
+package com.henrykvdb.sttt;
 
 public interface Callback<T>
 {

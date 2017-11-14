@@ -30,11 +30,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -46,7 +44,6 @@ import com.flaghacker.uttt.common.Timer;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.henrykvdb.sttt.Util.Callback;
 import com.henrykvdb.sttt.Util.DialogUtil;
 import com.henrykvdb.sttt.Util.Util;
 import org.greenrobot.eventbus.EventBus;
@@ -649,8 +646,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		{
 			btService.listen();
 
-			LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-			View layout = inflater.inflate(R.layout.dialog_bt_host, (ViewGroup) findViewById(R.id.bt_host_layout));
+			View layout = View.inflate(this,R.layout.dialog_bt_host,null);
 			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, btService.getLocalBluetoothName()));
 
 			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
