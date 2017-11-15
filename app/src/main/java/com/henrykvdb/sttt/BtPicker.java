@@ -35,7 +35,7 @@ public class BtPicker {
 		alertDialog = DialogUtil.keepDialog(new AlertDialog.Builder(context)
 				.setCustomTitle(DialogUtil.newLoadTitle(context, Util.getString(context, R.string.join_bluetooth_game)))
 				.setView(view)
-				.setNegativeButton("close", (dialog, which) -> dialog.dismiss())
+				.setNegativeButton(Util.getString(context,R.string.close), (dialog, which) -> dialog.dismiss())
 				.setOnDismissListener(dialog -> destroy())
 				.show());
 

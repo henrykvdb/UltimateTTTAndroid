@@ -110,30 +110,28 @@ public class BoardView extends View implements Serializable {
 			//TODO cleanup
 			if (!board.isDone()) {
 				if (!gameState.isHuman())
-					nextPlayerView.setText(yourTurn ? "It is your turn!" : "The enemy is playing!");
+					nextPlayerView.setText(yourTurn
+							? getResources().getString(R.string.your_turn)
+							: getResources().getString(R.string.enemy_turn));
 			}
 			else {
 				if (board.wonBy() == NEUTRAL) {
-					try {
-						nextPlayerView.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
-					}
-					catch (Exception e) {
-						nextPlayerView.setTextColor(Color.BLACK);
-					}
-
-					nextPlayerView.setText("It is a tie!");
+					nextPlayerView.setTextColor(Color.BLACK);
+					nextPlayerView.setText(getResources().getText(R.string.tie_message));
 				}
 				else {
 					if (gameState.isHuman()) {
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
-						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + " won the game!");
+						nextPlayerView.setText(getResources().getString(R.string.game_winner, board.wonBy() == PLAYER ? "X" : "O"));
 					}
 					else {
 						boolean youWon = board.wonBy() == PLAYER
 								? players.first == MainActivity.Source.Local
 								: players.second == MainActivity.Source.Local;
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
-						nextPlayerView.setText(youWon ? "You won!" : "You lost!");
+						nextPlayerView.setText(youWon
+								? getResources().getString(R.string.you_won)
+								: getResources().getString(R.string.you_lost));
 					}
 				}
 			}

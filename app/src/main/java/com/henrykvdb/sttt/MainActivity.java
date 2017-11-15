@@ -178,11 +178,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		Notification notification = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_icon)
-				.setContentTitle("Super Tic Tac Toe")
+				.setContentTitle(Util.getString(this, R.string.app_name_long))
 				.setContentIntent(reopenPendingIntent)
-				.setContentText("A Bluetooth game is still running.\nTouch to open STTT")
-				.setStyle(new NotificationCompat.BigTextStyle().bigText("A Bluetooth game is still running.\nTouch to open STTT"))
-				.addAction(R.drawable.ic_menu_bluetooth, "close", pendingCloseIntent)
+				.setContentText(Util.getString(this, R.string.bt_running_notification))
+				.setStyle(new NotificationCompat.BigTextStyle().bigText(Util.getString(this, R.string.bt_running_notification)))
+				.addAction(R.drawable.ic_menu_bluetooth, Util.getString(this, R.string.close), pendingCloseIntent)
 				.setOngoing(true).build();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						play(Source.Bluetooth, newBoard.getLastMove());
 
 					//Update subtitle
-					setSubTitle("Connected to " + btService.getConnectedDeviceName());
+					setSubTitle(getString(R.string.connected_to, btService.getConnectedDeviceName()));
 				}
 				else turnLocal();
 			}
@@ -315,11 +315,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 
 		if (this.gs.isBluetooth())
-			setTitle("Bluetooth Game");
+			setTitle(Util.getString(this, R.string.bt_game));
 		else if (this.gs.isAi())
-			setTitle("AI Game");
-		else if (this.gs.isHuman()) //Normal local game
-			setTitle("Human Game");
+			setTitle(Util.getString(this, R.string.ai_game));
+		else if (this.gs.isHuman())
+			setTitle(Util.getString(this, R.string.human_game));
 		else throw new IllegalStateException();
 
 		if (!gs.isBluetooth()) {
@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				btService.closeThread();
 		}
 		else if (btService != null)
-			setSubTitle("Connected to " + btService.getConnectedDeviceName());
+			setSubTitle(getString(R.string.connected_to, btService.getConnectedDeviceName()));
 
 		dismissBtDialog();
 
@@ -471,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			return false;
 
 		if (gs.boards().size() == 1) {
-			toast("No previous moves");
+			toast(Util.getString(this, R.string.no_prev_moves));
 			return true;
 		}
 
@@ -483,11 +483,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	public void undo(boolean force) {
 		if (!force && btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth()) {
-			askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
-			{
+			askUser(getString(R.string.undo_request, btService.getConnectedDeviceName()), allow -> {
 				if (!allow)
 					return;
-
 				undo(true);
 				btService.sendUndo(true);
 			});
@@ -532,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void hostBt() {
 		if (btAdapter == null) {
-			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show();
 			return;
 		}
 
@@ -544,8 +542,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			View layout = View.inflate(this, R.layout.dialog_bt_host, null);
 			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, btService.getLocalBluetoothName()));
 
-			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
-			{
+			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) -> {
 				//Get board type
 				boolean newBoard = ((RadioButton) layout.findViewById(R.id.board_new)).isChecked();
 
@@ -571,8 +568,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					.setView(layout)
 					.setCustomTitle(DialogUtil.newTitle(this, Util.getString(this, R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
-					.setNegativeButton("close", (dialog, which) ->
-					{
+					.setNegativeButton(getString(R.string.close), (dialog, which) -> {
 						dismissBtDialog();
 						btService.closeThread();
 					}).show());
@@ -587,7 +583,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private void joinBt() {
 		// If the adapter is null, then Bluetooth is not supported
 		if (btAdapter == null) {
-			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show();
 			return;
 		}
 
@@ -626,8 +622,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (askDialog != null && askDialog.isShowing())
 			askDialog.dismiss();
 
-		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
-		{
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
 			if (which == DialogInterface.BUTTON_POSITIVE)
 				callBack.callback(true);
 			else if (which == DialogInterface.BUTTON_NEGATIVE)
@@ -635,10 +630,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		};
 
 		askDialog = new AlertDialog.Builder(this).setMessage(message)
-				.setPositiveButton("Yes", dialogClickListener)
-				.setNegativeButton("No", dialogClickListener)
-				.setOnDismissListener(dialogInterface -> callBack.callback(false))
-				.show();
+				.setPositiveButton(getString(R.string.yes), dialogClickListener)
+				.setNegativeButton(getString(R.string.no), dialogClickListener)
+				.setOnDismissListener(dialogInterface -> callBack.callback(false)).show();
 
 		DialogUtil.keepDialog(askDialog);
 	}

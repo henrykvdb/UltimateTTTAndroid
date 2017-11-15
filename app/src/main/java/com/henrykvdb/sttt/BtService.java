@@ -177,7 +177,7 @@ public class BtService extends Service {
 			}
 			catch (IOException e) {
 				state = BtService.State.NONE;
-				IntentUtil.sendToast(BtService.this, "Unable to connect to device");
+				IntentUtil.sendToast(BtService.this, Util.getString(BtService.this, R.string.unable_to_connect));
 				Log.e(Constants.LOG_TAG, "Unable to connect to device", e);
 
 				try {
@@ -220,8 +220,8 @@ public class BtService extends Service {
 		}
 
 		connectedDeviceName = socket.getRemoteDevice().getName();
-		Log.e(Constants.LOG_TAG, "CONNECTED to " + socket.getRemoteDevice().getName());
-		IntentUtil.sendToast(this, "Connected to " + socket.getRemoteDevice().getName());
+		Log.e(Constants.LOG_TAG, "CONNECTED to " + connectedDeviceName);
+		IntentUtil.sendToast(this, getString(R.string.connected_to, connectedDeviceName));
 
 		byte[] buffer = new byte[1024];
 
@@ -249,14 +249,13 @@ public class BtService extends Service {
 						IntentUtil.sendMove(this, MainActivity.Source.Bluetooth, newMove);
 					}
 					else {
-						IntentUtil.sendToast(this, "Games got desynchronized");
+						IntentUtil.sendToast(this, getString(R.string.desync_message));
 						break;
 					}
 				}
 				else if (message == Message.RECEIVE_SETUP.ordinal()) {
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					localBoard = board;
-
 					IntentUtil.sendNewGame(this, GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build());
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal()) {
@@ -265,7 +264,7 @@ public class BtService extends Service {
 			}
 			catch (IOException e) {
 				Log.e(Constants.LOG_TAG, "disconnected", e);
-				IntentUtil.sendToast(this, "Connection lost");
+				IntentUtil.sendToast(this, getString(R.string.connection_lost));
 				break;
 			}
 			catch (JSONException e) {
@@ -290,7 +289,6 @@ public class BtService extends Service {
 	public String getConnectedDeviceName() {
 		if (state != State.CONNECTED)
 			return null;
-
 		return connectedDeviceName;
 	}
 
