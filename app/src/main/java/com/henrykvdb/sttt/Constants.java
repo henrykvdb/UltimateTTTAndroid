@@ -1,7 +1,6 @@
 package com.henrykvdb.sttt;
 
-public class Constants
-{
+public class Constants {
 	//Intents
 	public static final String INTENT_TOAST = "INTENT_TOAST";       //String text
 	public static final String INTENT_NEWGAME = "INTENT_NEWGAME";   //GameState requeststate

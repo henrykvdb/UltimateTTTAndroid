@@ -12,13 +12,9 @@ import com.henrykvdb.sttt.Util.Util;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
-public class BtService extends Service
-{
+public class BtService extends Service {
 	private static final java.util.UUID UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422");
 
 	private final IBinder mBinder = new LocalBinder();
@@ -31,38 +27,32 @@ public class BtService extends Service
 	private CloseableThread btThread;
 	private GameState requestState;
 
-	public enum State
-	{
+	public enum State {
 		NONE,
 		LISTENING,
 		CONNECTING,
 		CONNECTED
 	}
 
-	public enum Message
-	{
+	public enum Message {
 		RECEIVE_UNDO,
 		RECEIVE_SETUP,
 		SEND_BOARD_UPDATE
 	}
 
-	public class LocalBinder extends Binder
-	{
-		BtService getService()
-		{
+	public class LocalBinder extends Binder {
+		BtService getService() {
 			return BtService.this;
 		}
 	}
 
 	@Override
-	public IBinder onBind(Intent intent)
-	{
+	public IBinder onBind(Intent intent) {
 		return mBinder;
 	}
 
 	@Override
-	public void onCreate()
-	{
+	public void onCreate() {
 		super.onCreate();
 
 		Log.e(Constants.LOG_TAG, "BTSERVICE CREATED");
@@ -70,13 +60,11 @@ public class BtService extends Service
 	}
 
 	@Override
-	public void onDestroy()
-	{
+	public void onDestroy() {
 		super.onDestroy();
 	}
 
-	public void listen()
-	{
+	public void listen() {
 		setRequestState(GameState.builder().bt().build());
 
 		closeThread();
@@ -84,8 +72,7 @@ public class BtService extends Service
 		btThread.start();
 	}
 
-	public void connect(String address)
-	{
+	public void connect(String address) {
 		closeThread();
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
@@ -95,16 +82,12 @@ public class BtService extends Service
 		btThread.start();
 	}
 
-	public void closeThread()
-	{
-		if (btThread != null)
-		{
-			try
-			{
+	public void closeThread() {
+		if (btThread != null) {
+			try {
 				btThread.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -112,44 +95,35 @@ public class BtService extends Service
 		IntentUtil.sendTurnLocal(this);
 	}
 
-	public static abstract class CloseableThread extends Thread implements Closeable
-	{
+	public static abstract class CloseableThread extends Thread implements Closeable {
 	}
 
-	private class ListenThread extends CloseableThread
-	{
+	private class ListenThread extends CloseableThread {
 		private BluetoothServerSocket serverSocket;
 		private BluetoothSocket socket;
 
-		public ListenThread()
-		{
+		public ListenThread() {
 			state = BtService.State.LISTENING;
 
-			try
-			{
+			try {
 				serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("SuperTTT", UUID);
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				Log.e(Constants.LOG_TAG, "listen() failed", e);
 			}
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			Log.e(Constants.LOG_TAG, "BEGIN ListenThread " + this);
 
 			// Listen to the server socket if we're not connected
-			while (state != BtService.State.CONNECTED && !isInterrupted())
-			{
-				try
-				{
+			while (state != BtService.State.CONNECTED && !isInterrupted()) {
+				try {
 					// This is a blocking call and will only return on a successful connection or an exception
 					socket = serverSocket.accept();
 				}
-				catch (IOException e)
-				{
+				catch (IOException e) {
 					Log.e(Constants.LOG_TAG, "accept() failed", e);
 					break;
 				}
@@ -162,10 +136,8 @@ public class BtService extends Service
 			Log.e(Constants.LOG_TAG, "END ListenThread");
 		}
 
-
 		@Override
-		public void close() throws IOException
-		{
+		public void close() throws IOException {
 			if (serverSocket != null)
 				serverSocket.close();
 			if (socket != null)
@@ -173,33 +145,27 @@ public class BtService extends Service
 		}
 	}
 
-	private class ConnectingThread extends CloseableThread
-	{
+	private class ConnectingThread extends CloseableThread {
 		private BluetoothSocket socket;
 
-		public ConnectingThread(BluetoothDevice device)
-		{
+		public ConnectingThread(BluetoothDevice device) {
 			state = BtService.State.CONNECTING;
 
-			try
-			{
+			try {
 				socket = device.createRfcommSocketToServiceRecord(UUID);
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			Log.e(Constants.LOG_TAG, "BEGIN connectingThread" + this);
 
 			btAdapter.cancelDiscovery();
 
-			try
-			{
+			try {
 				// This is a blocking call and will only return on a successful connection or an exception
 				socket.connect();
 
@@ -209,18 +175,15 @@ public class BtService extends Service
 				// No longer connected, close the socket
 				socket.close();
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				state = BtService.State.NONE;
-				IntentUtil.sendToast(BtService.this,"Unable to connect to device");
+				IntentUtil.sendToast(BtService.this, "Unable to connect to device");
 				Log.e(Constants.LOG_TAG, "Unable to connect to device", e);
 
-				try
-				{
+				try {
 					socket.close();
 				}
-				catch (IOException e2)
-				{
+				catch (IOException e2) {
 					Log.e(Constants.LOG_TAG, "unable to interrupt() socket during connection failure", e2);
 				}
 			}
@@ -229,15 +192,13 @@ public class BtService extends Service
 		}
 
 		@Override
-		public void close() throws IOException
-		{
+		public void close() throws IOException {
 			if (socket != null)
 				socket.close();
 		}
 	}
 
-	private void connected(BluetoothSocket socket, boolean isHost)
-	{
+	private void connected(BluetoothSocket socket, boolean isHost) {
 		Log.e(Constants.LOG_TAG, "BEGIN connected thread");
 
 		if (Thread.interrupted())
@@ -246,15 +207,13 @@ public class BtService extends Service
 		InputStream inStream;
 		outStream = null;
 
-		try
-		{
+		try {
 			inStream = socket.getInputStream();
 			outStream = socket.getOutputStream();
 
 			state = State.CONNECTED;
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			Log.e(Constants.LOG_TAG, "connected sockets not created", e);
 			state = State.NONE;
 			return;
@@ -262,7 +221,7 @@ public class BtService extends Service
 
 		connectedDeviceName = socket.getRemoteDevice().getName();
 		Log.e(Constants.LOG_TAG, "CONNECTED to " + socket.getRemoteDevice().getName());
-		IntentUtil.sendToast(this,"Connected to " + socket.getRemoteDevice().getName());
+		IntentUtil.sendToast(this, "Connected to " + socket.getRemoteDevice().getName());
 
 		byte[] buffer = new byte[1024];
 
@@ -270,10 +229,8 @@ public class BtService extends Service
 			sendSetup();
 
 		// Keep listening to the InputStream while connected
-		while (state == State.CONNECTED && !Thread.interrupted())
-		{
-			try
-			{
+		while (state == State.CONNECTED && !Thread.interrupted()) {
+			try {
 				// Read from the InputStream
 				inStream.read(buffer); //TODO improve
 
@@ -282,43 +239,36 @@ public class BtService extends Service
 				int message = json.getInt("message");
 
 				Log.e(Constants.LOG_TAG, "RECEIVED BTMESSAGE: " + message);
-				if (message == Message.SEND_BOARD_UPDATE.ordinal())
-				{
+				if (message == Message.SEND_BOARD_UPDATE.ordinal()) {
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (Util.isValidBoard(localBoard, newBoard))
-					{
+					if (Util.isValidBoard(localBoard, newBoard)) {
 						Log.e(Constants.LOG_TAG, "We received a valid board");
 						localBoard = newBoard;
-						IntentUtil.sendMove(this,MainActivity.Source.Bluetooth, newMove);
+						IntentUtil.sendMove(this, MainActivity.Source.Bluetooth, newMove);
 					}
-					else
-					{
-						IntentUtil.sendToast(this,"Games got desynchronized");
+					else {
+						IntentUtil.sendToast(this, "Games got desynchronized");
 						break;
 					}
 				}
-				else if (message == Message.RECEIVE_SETUP.ordinal())
-				{
+				else if (message == Message.RECEIVE_SETUP.ordinal()) {
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					localBoard = board;
 
 					IntentUtil.sendNewGame(this, GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build());
 				}
-				else if (message == Message.RECEIVE_UNDO.ordinal())
-				{
-					IntentUtil.sendUndo(this,json.getBoolean("force"));
+				else if (message == Message.RECEIVE_UNDO.ordinal()) {
+					IntentUtil.sendUndo(this, json.getBoolean("force"));
 				}
 			}
-			catch (IOException e)
-			{
+			catch (IOException e) {
 				Log.e(Constants.LOG_TAG, "disconnected", e);
-				IntentUtil.sendToast(this,"Connection lost");
+				IntentUtil.sendToast(this, "Connection lost");
 				break;
 			}
-			catch (JSONException e)
-			{
+			catch (JSONException e) {
 				Log.e(Constants.LOG_TAG, "JSON read parsing failed");
 				break;
 			}
@@ -327,45 +277,38 @@ public class BtService extends Service
 		state = State.NONE;
 		IntentUtil.sendTurnLocal(this);
 
-		try
-		{
+		try {
 			inStream.close();
 			outStream.close();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 		Log.e(Constants.LOG_TAG, "END connected thread");
 	}
 
-	public String getConnectedDeviceName()
-	{
+	public String getConnectedDeviceName() {
 		if (state != State.CONNECTED)
 			return null;
 
 		return connectedDeviceName;
 	}
 
-	public State getState()
-	{
+	public State getState() {
 		return state;
 	}
 
-	public void setLocalBoard(Board localBoard)
-	{
+	public void setLocalBoard(Board localBoard) {
 		this.localBoard = localBoard;
 	}
 
-	public void sendUndo(boolean force)
-	{
+	public void sendUndo(boolean force) {
 		Log.e(Constants.LOG_TAG, "Sending undo");
 
 		if (state != State.CONNECTED)
 			return;
 
-		try
-		{
+		try {
 			JSONObject json = new JSONObject();
 			json.put("message", Message.RECEIVE_UNDO.ordinal());
 			json.put("force", force);
@@ -373,25 +316,21 @@ public class BtService extends Service
 
 			outStream.write(data);
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			Log.e(Constants.LOG_TAG, "Exception during undo", e);
 		}
-		catch (JSONException e)
-		{
+		catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void sendSetup()
-	{
-		IntentUtil.sendNewGame(this,requestState);
+	private void sendSetup() {
+		IntentUtil.sendNewGame(this, requestState);
 		Log.e(Constants.LOG_TAG, "Sending setup, starting: " + requestState.players().first);
 
 		localBoard = requestState.board();
 
-		try
-		{
+		try {
 			JSONObject json = new JSONObject();
 
 			json.put("message", Message.RECEIVE_SETUP.ordinal());
@@ -402,24 +341,20 @@ public class BtService extends Service
 
 			outStream.write(data);
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			Log.e(Constants.LOG_TAG, "Exception during boardUpdate", e);
 		}
-		catch (JSONException e)
-		{
+		catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void sendBoard(Board board)
-	{
+	public void sendBoard(Board board) {
 		Log.e(Constants.LOG_TAG, "Sending board");
 
 		localBoard = board;
 
-		try
-		{
+		try {
 			JSONObject json = new JSONObject();
 
 			json.put("message", Message.SEND_BOARD_UPDATE.ordinal());
@@ -429,28 +364,23 @@ public class BtService extends Service
 
 			outStream.write(data);
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			Log.e(Constants.LOG_TAG, "Exception during boardUpdate", e);
 		}
-		catch (JSONException e)
-		{
+		catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void setRequestState(GameState requestState)
-	{
+	public void setRequestState(GameState requestState) {
 		this.requestState = requestState;
 	}
 
-	public String getLocalBluetoothName()
-	{
+	public String getLocalBluetoothName() {
 		return btAdapter.getName() != null ? btAdapter.getName() : btAdapter.getAddress();
 	}
 
-	public Board getLocalBoard()
-	{
+	public Board getLocalBoard() {
 		return localBoard;
 	}
 }

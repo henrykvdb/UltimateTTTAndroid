@@ -5,100 +5,83 @@ import com.flaghacker.uttt.common.Board;
 import com.flaghacker.uttt.common.Bot;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static com.henrykvdb.sttt.MainActivity.Source.AI;
 import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
 import static com.henrykvdb.sttt.MainActivity.Source.Local;
 
-public class GameState implements Serializable
-{
+public class GameState implements Serializable {
 	private static final long serialVersionUID = -3051602110955747927L;
 
 	private final Players players;
 	private final LinkedList<Board> boards;
 	private final Bot extraBot;
 
-	private GameState(Players players, LinkedList<Board> boards, Bot extraBot)
-	{
+	private GameState(Players players, LinkedList<Board> boards, Bot extraBot) {
 		this.players = players;
 		this.boards = boards;
 		this.extraBot = extraBot;
 	}
 
-	static class Players implements Serializable
-	{
+	static class Players implements Serializable {
 		public final MainActivity.Source first;
 		public final MainActivity.Source second;
 
-		public Players(MainActivity.Source first, MainActivity.Source second)
-		{
+		public Players(MainActivity.Source first, MainActivity.Source second) {
 			this.first = first;
 			this.second = second;
 		}
 
-		public Players swap()
-		{
+		public Players swap() {
 			return new Players(second, first);
 		}
 
-		public boolean contains(MainActivity.Source source)
-		{
+		public boolean contains(MainActivity.Source source) {
 			return first == source || second == source;
 		}
 	}
 
-	public static Builder builder()
-	{
+	public static Builder builder() {
 		return new Builder();
 	}
 
-	public static class Builder
-	{
+	public static class Builder {
 		private Players players = new Players(Local, Local);
 		private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
 		private boolean swapped = false;
 		private Bot extraBot = new RandomBot();
 
-		public GameState build()
-		{
+		public GameState build() {
 			return new GameState(swapped ? players.swap() : players, boards, extraBot);
 		}
 
-		public Builder boards(List<Board> boards)
-		{
+		public Builder boards(List<Board> boards) {
 			this.boards = new LinkedList<>(boards);
 			return this;
 		}
 
-		public Builder board(Board board)
-		{
+		public Builder board(Board board) {
 			return this.boards(Collections.singletonList(board));
 		}
 
-		public Builder swapped(boolean swapped)
-		{
+		public Builder swapped(boolean swapped) {
 			this.swapped = swapped;
 			return this;
 		}
 
-		public Builder ai(Bot extraBot)
-		{
+		public Builder ai(Bot extraBot) {
 			this.extraBot = extraBot;
 			players = new Players(Local, AI);
 			return this;
 		}
 
-		public Builder bt()
-		{
+		public Builder bt() {
 			players = new Players(Local, Bluetooth);
 			return this;
 		}
 
-		public Builder gs(GameState gs)
-		{
+		public Builder gs(GameState gs) {
 			this.players = gs.players();
 			this.boards = gs.boards();
 			this.extraBot = gs.extraBot();
@@ -106,48 +89,39 @@ public class GameState implements Serializable
 		}
 	}
 
-	public Players players()
-	{
+	public Players players() {
 		return players;
 	}
 
-	public LinkedList<Board> boards()
-	{
+	public LinkedList<Board> boards() {
 		return boards;
 	}
 
-	public void pushBoard(Board board)
-	{
+	public void pushBoard(Board board) {
 		this.boards.push(board);
 	}
 
-	public void popBoard()
-	{
+	public void popBoard() {
 		this.boards.pop();
 	}
 
-	public Board board()
-	{
+	public Board board() {
 		return boards.peek();
 	}
 
-	public Bot extraBot()
-	{
+	public Bot extraBot() {
 		return extraBot;
 	}
 
-	public boolean isBluetooth()
-	{
+	public boolean isBluetooth() {
 		return players.contains(Bluetooth);
 	}
 
-	public boolean isAi()
-	{
+	public boolean isAi() {
 		return players.contains(AI);
 	}
 
-	public boolean isHuman()
-	{
+	public boolean isHuman() {
 		return players.first == Local && players.second == Local;
 	}
 }

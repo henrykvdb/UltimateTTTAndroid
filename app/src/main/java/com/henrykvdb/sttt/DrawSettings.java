@@ -2,8 +2,7 @@ package com.henrykvdb.sttt;
 
 import android.graphics.Color;
 
-public class DrawSettings
-{
+public class DrawSettings {
 	//PLAYER settings (X)
 	private int xColor = Color.BLUE;
 	private int xColorDarker = Color.rgb(0, 0, 230);
@@ -36,203 +35,163 @@ public class DrawSettings
 	private float borderX = 0.10f / 9;
 	private float borderO = 0.15f / 9;
 
-	public int xColor()
-	{
+	public int xColor() {
 		return xColor;
 	}
 
-	public void setxColor(int xColor)
-	{
+	public void setxColor(int xColor) {
 		this.xColor = xColor;
 	}
 
-	public int xColorDarker()
-	{
+	public int xColorDarker() {
 		return xColorDarker;
 	}
 
-	public void setxColorDarker(int xColorDarker)
-	{
+	public void setxColorDarker(int xColorDarker) {
 		this.xColorDarker = xColorDarker;
 	}
 
-	public int xColorDarkest()
-	{
+	public int xColorDarkest() {
 		return xColorDarkest;
 	}
 
-	public void setxColorDarkest(int xColorDarkest)
-	{
+	public void setxColorDarkest(int xColorDarkest) {
 		this.xColorDarkest = xColorDarkest;
 	}
 
-	public int xColorLight()
-	{
+	public int xColorLight() {
 		return xColorLight;
 	}
 
-	public void setxColorLight(int xColorLight)
-	{
+	public void setxColorLight(int xColorLight) {
 		this.xColorLight = xColorLight;
 	}
 
-	public int oColor()
-	{
+	public int oColor() {
 		return oColor;
 	}
 
-	public void setoColor(int oColor)
-	{
+	public void setoColor(int oColor) {
 		this.oColor = oColor;
 	}
 
-	public int oColorDarker()
-	{
+	public int oColorDarker() {
 		return oColorDarker;
 	}
 
-	public void setoColorDarker(int oColorDarker)
-	{
+	public void setoColorDarker(int oColorDarker) {
 		this.oColorDarker = oColorDarker;
 	}
 
-	public int oColorDarkest()
-	{
+	public int oColorDarkest() {
 		return oColorDarkest;
 	}
 
-	public void setoColorDarkest(int oColorDarkest)
-	{
+	public void setoColorDarkest(int oColorDarkest) {
 		this.oColorDarkest = oColorDarkest;
 	}
 
-	public int oColorLight()
-	{
+	public int oColorLight() {
 		return oColorLight;
 	}
 
-	public void setoColorLight(int oColorLight)
-	{
+	public void setoColorLight(int oColorLight) {
 		this.oColorLight = oColorLight;
 	}
 
-	public float tileSymbolStroke()
-	{
+	public float tileSymbolStroke() {
 		return tileSymbolStroke;
 	}
 
-	public void setTileSymbolStroke(float tileSymbolStroke)
-	{
+	public void setTileSymbolStroke(float tileSymbolStroke) {
 		this.tileSymbolStroke = tileSymbolStroke;
 	}
 
-	public float macroSymbolStroke()
-	{
+	public float macroSymbolStroke() {
 		return macroSymbolStroke;
 	}
 
-	public void setMacroSymbolStroke(float macroSymbolStroke)
-	{
+	public void setMacroSymbolStroke(float macroSymbolStroke) {
 		this.macroSymbolStroke = macroSymbolStroke;
 	}
 
-	public float wonSymbolStroke()
-	{
+	public float wonSymbolStroke() {
 		return wonSymbolStroke;
 	}
 
-	public void setWonSymbolStroke(float wonSymbolStroke)
-	{
+	public void setWonSymbolStroke(float wonSymbolStroke) {
 		this.wonSymbolStroke = wonSymbolStroke;
 	}
 
-	public int availableColor()
-	{
+	public int availableColor() {
 		return availableColor;
 	}
 
-	public void setAvailableColor(int availableColor)
-	{
+	public void setAvailableColor(int availableColor) {
 		this.availableColor = availableColor;
 	}
 
-	public int unavailableColor()
-	{
+	public int unavailableColor() {
 		return unavailableColor;
 	}
 
-	public void setUnavailableColor(int unavailableColor)
-	{
+	public void setUnavailableColor(int unavailableColor) {
 		this.unavailableColor = unavailableColor;
 	}
 
-	public int symbolTransparency()
-	{
+	public int symbolTransparency() {
 		return symbolTransparency;
 	}
 
-	public void setSymbolTransparency(int symbolTransparency)
-	{
+	public void setSymbolTransparency(int symbolTransparency) {
 		this.symbolTransparency = symbolTransparency;
 	}
 
-	public int gridColor()
-	{
+	public int gridColor() {
 		return gridColor;
 	}
 
-	public void setGridColor(int gridColor)
-	{
+	public void setGridColor(int gridColor) {
 		this.gridColor = gridColor;
 	}
 
-	public float bigGridStroke()
-	{
+	public float bigGridStroke() {
 		return bigGridStroke;
 	}
 
-	public void setBigGridStroke(float bigGridStroke)
-	{
+	public void setBigGridStroke(float bigGridStroke) {
 		this.bigGridStroke = bigGridStroke;
 	}
 
-	public float smallGridStroke()
-	{
+	public float smallGridStroke() {
 		return smallGridStroke;
 	}
 
-	public void setSmallGridStroke(float smallGridStroke)
-	{
+	public void setSmallGridStroke(float smallGridStroke) {
 		this.smallGridStroke = smallGridStroke;
 	}
 
-	public float whiteSpace()
-	{
+	public float whiteSpace() {
 		return whiteSpace;
 	}
 
-	public void setWhiteSpace(float whiteSpace)
-	{
+	public void setWhiteSpace(float whiteSpace) {
 		this.whiteSpace = whiteSpace;
 	}
 
-	public float borderX()
-	{
+	public float borderX() {
 		return borderX;
 	}
 
-	public void setBorderX(float borderX)
-	{
+	public void setBorderX(float borderX) {
 		this.borderX = borderX;
 	}
 
-	public float borderO()
-	{
+	public float borderO() {
 		return borderO;
 	}
 
-	public void setBorderO(float borderO)
-	{
+	public void setBorderO(float borderO) {
 		this.borderO = borderO;
 	}
 }

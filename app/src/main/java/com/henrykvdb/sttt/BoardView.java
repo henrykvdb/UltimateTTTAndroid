@@ -15,8 +15,7 @@ import static com.flaghacker.uttt.common.Player.ENEMY;
 import static com.flaghacker.uttt.common.Player.NEUTRAL;
 import static com.flaghacker.uttt.common.Player.PLAYER;
 
-public class BoardView extends View implements Serializable
-{
+public class BoardView extends View implements Serializable {
 	private static final long serialVersionUID = -6067519139638476047L;
 
 	private final Path path;
@@ -41,8 +40,7 @@ public class BoardView extends View implements Serializable
 	private int macroSymbolStroke;
 	private int wonSymbolStroke;
 
-	public BoardView(Context context, AttributeSet attrs)
-	{
+	public BoardView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
 		ds = new DrawSettings();
@@ -55,8 +53,7 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	private void setVars()
-	{
+	private void setVars() {
 		fieldSize = Math.min(getWidth(), getHeight());
 
 		macroSizeFull = fieldSize / 3;
@@ -75,33 +72,27 @@ public class BoardView extends View implements Serializable
 		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke());
 	}
 
-	public void setMoveCallback(Callback<Coord> moveCallback)
-	{
+	public void setMoveCallback(Callback<Coord> moveCallback) {
 		callback = moveCallback;
 	}
 
-	public void drawState(GameState gameState)
-	{
+	public void drawState(GameState gameState) {
 		this.gameState = gameState;
 		postInvalidate();
 	}
 
-	public void setNextPlayerView(TextView nextPlayerView)
-	{
+	public void setNextPlayerView(TextView nextPlayerView) {
 		this.nextPlayerView = nextPlayerView;
 	}
 
-	public void setDrawSettings(DrawSettings drawSettings)
-	{
+	public void setDrawSettings(DrawSettings drawSettings) {
 		this.ds = drawSettings;
 		setVars();
 		postInvalidate();
 	}
 
-	protected void onDraw(Canvas canvas)
-	{
-		if (gameState != null)
-		{
+	protected void onDraw(Canvas canvas) {
+		if (gameState != null) {
 			board = gameState.board();
 
 			//Some helper vars
@@ -117,35 +108,27 @@ public class BoardView extends View implements Serializable
 			nextPlayerView.setText(null);
 
 			//TODO cleanup
-			if (!board.isDone())
-			{
+			if (!board.isDone()) {
 				if (!gameState.isHuman())
 					nextPlayerView.setText(yourTurn ? "It is your turn!" : "The enemy is playing!");
 			}
-			else
-			{
-				if (board.wonBy() == NEUTRAL)
-				{
-					try
-					{
+			else {
+				if (board.wonBy() == NEUTRAL) {
+					try {
 						nextPlayerView.setTextColor(getResources().getColor(android.R.color.primary_text_dark));
 					}
-					catch (Exception e)
-					{
+					catch (Exception e) {
 						nextPlayerView.setTextColor(Color.BLACK);
 					}
 
 					nextPlayerView.setText("It is a tie!");
 				}
-				else
-				{
-					if (gameState.isHuman())
-					{
+				else {
+					if (gameState.isHuman()) {
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
 						nextPlayerView.setText((board.wonBy() == PLAYER ? "X" : "O") + " won the game!");
 					}
-					else
-					{
+					else {
 						boolean youWon = board.wonBy() == PLAYER
 								? players.first == MainActivity.Source.Local
 								: players.second == MainActivity.Source.Local;
@@ -160,8 +143,7 @@ public class BoardView extends View implements Serializable
 		paint.setStyle(Paint.Style.FILL);
 		paint.setColor(board.nextPlayer() == PLAYER ? ds.xColor() : ds.oColor());
 		paint.setAlpha(50);
-		for (Coord coord : board.availableMoves())
-		{
+		for (Coord coord : board.availableMoves()) {
 			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
 			float y = coord.ym() * macroSizeFull + coord.ys() * tileSize + whiteSpace;
 
@@ -176,10 +158,8 @@ public class BoardView extends View implements Serializable
 		//Bigger macro separate lines
 		drawGridBarriers(canvas, fieldSize, ds.gridColor(), bigGridStroke);
 
-		if (board.isDone())
-		{
-			switch (board.wonBy())
-			{
+		if (board.isDone()) {
+			switch (board.wonBy()) {
 				case PLAYER:
 					drawTile(canvas, true, true, fieldSize, ds.xColor() - ds.symbolTransparency(), wonSymbolStroke, tileSize);
 					break;
@@ -193,8 +173,7 @@ public class BoardView extends View implements Serializable
 		}
 	}
 
-	private void drawMacro(Canvas canvas, int om)
-	{
+	private void drawMacro(Canvas canvas, int om) {
 		int xm = om % 3;
 		int ym = om / 3;
 
@@ -212,8 +191,7 @@ public class BoardView extends View implements Serializable
 		drawGridBarriers(canvas, macroSizeSmall, ds.gridColor(), smallGridStroke);
 
 		//Loop through tiles of the macro
-		for (Coord tile : Coord.macro(xm, ym))
-		{
+		for (Coord tile : Coord.macro(xm, ym)) {
 			Player player = board.tile(tile);
 
 			//Translate to tile
@@ -246,15 +224,12 @@ public class BoardView extends View implements Serializable
 		canvas.translate(-xmt, -ymt);
 	}
 
-	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border)
-	{
-		if (grayBack)
-		{
+	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border) {
+		if (grayBack) {
 			paint.setStyle(Paint.Style.FILL);
 			paint.setColor(ds.unavailableColor());
 			canvas.drawRect(0, 0, size, size, paint);
 		}
-
 
 		float realSize = size - 2 * border;
 		canvas.translate(border, border);
@@ -262,8 +237,7 @@ public class BoardView extends View implements Serializable
 		paint.setStyle(Paint.Style.STROKE);
 		paint.setStrokeWidth(strokeWidth);
 		paint.setColor(color);
-		if (isX)
-		{
+		if (isX) {
 			path.moveTo(0, 0);
 			path.lineTo(realSize, realSize);
 			path.moveTo(0, realSize);
@@ -272,42 +246,35 @@ public class BoardView extends View implements Serializable
 			canvas.drawPath(path, paint);
 			path.reset();
 		}
-		else
-		{
+		else {
 			canvas.drawOval(new RectF(0, 0, realSize, realSize), paint);
 		}
 
 		canvas.translate(-border, -border);
 	}
 
-	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth)
-	{
+	private void drawGridBarriers(Canvas canvas, float size, int color, int strokeWidth) {
 		paint.setColor(color);
 		paint.setStrokeWidth(strokeWidth);
 
-		for (int i = 1; i < 3; i++)
-		{
+		for (int i = 1; i < 3; i++) {
 			canvas.drawLine(i * size / 3, 0, i * size / 3, size, paint);
 			canvas.drawLine(0, i * size / 3, size, i * size / 3, paint);
 		}
 	}
 
 	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh)
-	{
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		setVars();
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent e)
-	{
+	public boolean onTouchEvent(MotionEvent e) {
 		float x = e.getX();
 		float y = e.getY();
 
-		if (e.getAction() == MotionEvent.ACTION_UP)
-		{
-			if (x > (float) 0 && y > (float) 0 && x < (float) 0 + fieldSize && y < (float) 0 + fieldSize)
-			{
+		if (e.getAction() == MotionEvent.ACTION_UP) {
+			if (x > (float) 0 && y > (float) 0 && x < (float) 0 + fieldSize && y < (float) 0 + fieldSize) {
 				//Get event's macro
 				int xm = (int) (x / macroSizeFull);
 				int ym = (int) (y / macroSizeFull);
@@ -320,12 +287,11 @@ public class BoardView extends View implements Serializable
 				xs = xs > 2 ? --xs : xs;
 				ys = ys > 2 ? --ys : ys;
 
-				if (callback!=null)
+				if (callback != null)
 					callback.callback(Coord.coord(xm, ym, xs, ys));
 				Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 			}
-			else
-			{
+			else {
 				Log.d("ClickEvent", "Clicked outside of board");
 			}
 		}
@@ -334,8 +300,7 @@ public class BoardView extends View implements Serializable
 	}
 
 	@Override
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-	{
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
 		int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
 		int fieldSize = Math.min(parentWidth, parentHeight);

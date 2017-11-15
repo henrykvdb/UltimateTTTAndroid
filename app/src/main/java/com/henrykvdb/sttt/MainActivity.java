@@ -33,8 +33,7 @@ import java.lang.reflect.Field;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener
-{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 	//Fields that get saved to bundle
 	private GameState gs;
 	private boolean keepBtOn;
@@ -55,16 +54,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private AlertDialog askDialog;
 	private AlertDialog btDialog;
 
-	public enum Source
-	{
+	public enum Source {
 		Local,
 		AI,
 		Bluetooth
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -74,8 +71,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
 		//Make it easier to open the drawer
-		try
-		{
+		try {
 			Field mDragger = drawer.getClass().getDeclaredField("mLeftDragger");
 			mDragger.setAccessible(true);
 			ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(drawer);
@@ -83,8 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			mEdgeSize.setAccessible(true);
 			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -99,8 +94,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		navigationView.setNavigationItemSelectedListener(this);
 
 		//Add ads in portrait
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
-		{
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 			MobileAds.initialize(getApplicationContext(), getString(R.string.banner_ad_unit_id));
 			((AdView) findViewById(R.id.adView)).loadAd(new AdRequest.Builder().build());
 		}
@@ -121,14 +115,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
 		boardView.setMoveCallback(coord -> play(Source.Local, coord));
 
-		if (savedInstanceState == null)
-		{
+		if (savedInstanceState == null) {
 			//New game
 			keepBtOn = btAdapter != null && btAdapter.isEnabled();
 			newLocal();
 		}
-		else
-		{
+		else {
 			//Restore game
 			keepBtOn = savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY, false);
 			newGame((GameState) savedInstanceState.getSerializable(Constants.GAMESTATE_KEY));
@@ -140,16 +132,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState)
-	{
+	protected void onSaveInstanceState(Bundle outState) {
 		outState.putBoolean(Constants.STARTED_WITH_BT_KEY, keepBtOn);
 		outState.putSerializable(Constants.GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
 	@Override
-	protected void onStart()
-	{
+	protected void onStart() {
 		super.onStart();
 
 		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
@@ -162,8 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	protected void onStop()
-	{
+	protected void onStop() {
 		super.onStop();
 
 		unregisterReceiver(btStateReceiver);
@@ -176,8 +165,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		unbindBtService(kill);
 	}
 
-	public void btRunningNotification()
-	{
+	public void btRunningNotification() {
 		//This intent reopens the app
 		Intent reopenIntent = new Intent(this, MainActivity.class);
 		reopenIntent.setAction(Intent.ACTION_MAIN);
@@ -201,17 +189,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		notificationManager.notify(Constants.BT_STILL_RUNNING, notification);
 	}
 
-	private BroadcastReceiver intentReceiver = new BroadcastReceiver()
-	{
+	private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
 		@Override
-		public void onReceive(Context context, Intent intent)
-		{
+		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			Log.e("INTENT", "RECEIVED INTENT: " + action);
 
-
-			switch (action)
-			{
+			switch (action) {
 				case Constants.INTENT_MOVE:
 					Source src = (Source) intent.getSerializableExtra(Constants.INTENT_DATA_FIRST);
 					Coord move = (Coord) intent.getSerializableExtra(Constants.INTENT_DATA_SECOND);
@@ -238,8 +222,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	};
 
 	@Override
-	protected void onDestroy()
-	{
+	protected void onDestroy() {
 		unregisterReceiver(intentReceiver);
 
 		if (!keepBtOn)
@@ -251,8 +234,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		super.onDestroy();
 	}
 
-	private void bindBtService()
-	{
+	private void bindBtService() {
 		if (btServiceBound)
 			throw new RuntimeException("BtService already bound");
 
@@ -262,36 +244,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
 	}
 
-	private void unbindBtService(boolean stop)
-	{
-		if (btServiceBound)
-		{
+	private void unbindBtService(boolean stop) {
+		if (btServiceBound) {
 			dismissBtDialog();
 			unbindService(btServerConn);
 			btServiceBound = false;
 		}
 
-		if (stop)
-		{
+		if (stop) {
 			stopService(new Intent(this, BtService.class));
 			turnLocal();
 		}
 	}
 
-	private ServiceConnection btServerConn = new ServiceConnection()
-	{
+	private ServiceConnection btServerConn = new ServiceConnection() {
 		@Override
-		public void onServiceConnected(ComponentName name, IBinder service)
-		{
+		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.e("BTS", "btService Connected");
 
 			btService = ((BtService.LocalBinder) service).getService();
 			btServiceBound = true;
 
-			if (gs.isBluetooth())
-			{
-				if (btService.getState() == BtService.State.CONNECTED)
-				{
+			if (gs.isBluetooth()) {
+				if (btService.getState() == BtService.State.CONNECTED) {
 					//Fetch latest board
 					Board newBoard = btService.getLocalBoard();
 					if (newBoard != gs.board())
@@ -305,21 +280,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 
 		@Override
-		public void onServiceDisconnected(ComponentName name)
-		{
+		public void onServiceDisconnected(ComponentName name) {
 			Log.e("BTS", "btService Disconnected");
 			btServiceBound = false;
 		}
 	};
 
-	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver()
-	{
+	private final BroadcastReceiver btStateReceiver = new BroadcastReceiver() {
 		@Override
-		public void onReceive(Context context, Intent intent)
-		{
+		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)
-					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF)
-			{
+					&& btAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
 				dismissBtDialog();
 				btService.closeThread();
 				keepBtOn = false;
@@ -328,18 +299,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	};
 
-	private void dismissBtDialog()
-	{
-		if (btDialog != null)
-		{
+	private void dismissBtDialog() {
+		if (btDialog != null) {
 			Log.e(Constants.LOG_TAG, "Closing bt dialog");
 			btDialog.dismiss();
 			btDialog = null;
 		}
 	}
 
-	private void newGame(GameState gs)
-	{
+	private void newGame(GameState gs) {
 		Log.e("NEWGAME", "NEWGAME");
 		closeGame();
 
@@ -354,8 +322,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			setTitle("Human Game");
 		else throw new IllegalStateException();
 
-		if (!gs.isBluetooth())
-		{
+		if (!gs.isBluetooth()) {
 			setSubTitle(null);
 
 			if (btService != null)
@@ -370,25 +337,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		gameThread.start();
 	}
 
-	private void turnLocal()
-	{
+	private void turnLocal() {
 		if (!gs.isAi() && !gs.isHuman())
 			newGame(GameState.builder().boards(gs.boards()).build());
 	}
 
-	private void newLocal()
-	{
+	private void newLocal() {
 		newGame(GameState.builder().swapped(false).build());
 	}
 
-	private class GameThread extends Thread implements Closeable
-	{
+	private class GameThread extends Thread implements Closeable {
 		private volatile boolean running;
 		private Timer timer;
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			Log.e("GAMETHREAD RAN", "yea");
 			setName("GameThread");
 			running = true;
@@ -396,8 +359,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Source p1 = gs.players().first;
 			Source p2 = gs.players().second;
 
-			while (!gs.board().isDone() && running)
-			{
+			while (!gs.board().isDone() && running) {
 				timer = new Timer(5000);
 
 				if (gs.board().nextPlayer() == Player.PLAYER && running)
@@ -412,8 +374,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 
 		@Override
-		public void close() throws IOException
-		{
+		public void close() throws IOException {
 			running = false;
 
 			if (timer != null)
@@ -423,10 +384,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	}
 
-	private void playAndUpdateBoard(Coord move)
-	{
-		if (move != null)
-		{
+	private void playAndUpdateBoard(Coord move) {
+		if (move != null) {
 			Board newBoard = gs.board().copy();
 			newBoard.play(move);
 
@@ -440,17 +399,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 	}
 
-	private void play(Source source, Coord move)
-	{
-		synchronized (playerLock)
-		{
+	private void play(Source source, Coord move) {
+		synchronized (playerLock) {
 			playerMove.set(new Pair<>(move, source));
 			playerLock.notify();
 		}
 	}
 
-	private Coord getMove(Source player)
-	{
+	private Coord getMove(Source player) {
 		playerMove.set(new Pair<>(null, null));
 		while (!gs.board().availableMoves().contains(playerMove.get().first)    //Impossible move
 				|| !player.equals(playerMove.get().second)                      //Wrong player
@@ -458,14 +414,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				|| playerMove.get().first == null                               //No move
 				|| playerMove.get().second == null)                             //No source
 		{
-			synchronized (playerLock)
-			{
-				try
-				{
+			synchronized (playerLock) {
+				try {
 					playerLock.wait();
 				}
-				catch (InterruptedException e)
-				{
+				catch (InterruptedException e) {
 					return null;
 				}
 			}
@@ -474,37 +427,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return playerMove.getAndSet(null).first;
 	}
 
-	private void closeGame()
-	{
-		try
-		{
+	private void closeGame() {
+		try {
 			if (gameThread != null)
 				gameThread.close();
 		}
-		catch (IOException e)
-		{
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void setTitle(String title)
-	{
+	private void setTitle(String title) {
 		final ActionBar actionBar = getSupportActionBar();
 
 		if (actionBar != null)
 			actionBar.setTitle(title);
 	}
 
-	private void setSubTitle(String subTitle)
-	{
+	private void setSubTitle(String subTitle) {
 		final ActionBar actionBar = getSupportActionBar();
 
 		if (actionBar != null)
 			actionBar.setSubtitle(subTitle);
 	}
 
-	private void toast(String text)
-	{
+	private void toast(String text) {
 		if (toast == null)
 			toast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
 
@@ -513,20 +460,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
+	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.menu, menu);
 		return true;
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
+	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() != R.id.action_undo)
 			return false;
 
-		if (gs.boards().size() == 1)
-		{
+		if (gs.boards().size() == 1) {
 			toast("No previous moves");
 			return true;
 		}
@@ -537,10 +481,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
-	public void undo(boolean force)
-	{
-		if (!force && btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth())
-		{
+	public void undo(boolean force) {
+		if (!force && btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth()) {
 			askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
 			{
 				if (!allow)
@@ -550,8 +492,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				btService.sendUndo(true);
 			});
 		}
-		else
-		{
+		else {
 			GameState newState = GameState.builder().gs(gs).build();
 			newState.popBoard();
 			if (Source.AI == (gs.board().nextPlayer() == Player.PLAYER ? gs.players().first : gs.players().second)
@@ -566,8 +507,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	public boolean onNavigationItemSelected(@NonNull MenuItem item)
-	{
+	public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 		int id = item.getItemId();
 
 		if (id == R.id.nav_local_human)
@@ -590,18 +530,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		return true;
 	}
 
-	private void hostBt()
-	{
-		if (btAdapter == null)
-		{
+	private void hostBt() {
+		if (btAdapter == null) {
 			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
 			return;
 		}
 
 		boolean discoverable = btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
 
-		if (discoverable)
-		{
+		if (discoverable) {
 			btService.listen();
 
 			View layout = View.inflate(this, R.layout.dialog_bt_host, null);
@@ -640,31 +577,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 						btService.closeThread();
 					}).show());
 		}
-		else
-		{
+		else {
 			Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 			discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
 			startActivityForResult(discoverableIntent, Constants.REQUEST_ENABLE_DSC);
 		}
 	}
 
-	private void joinBt()
-	{
+	private void joinBt() {
 		// If the adapter is null, then Bluetooth is not supported
-		if (btAdapter == null)
-		{
+		if (btAdapter == null) {
 			Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
 			return;
 		}
 
 		// If BT is not on, request that it be enabled first.
-		if (!btAdapter.isEnabled())
-		{
+		if (!btAdapter.isEnabled()) {
 			Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BT);
 		}
-		else
-		{
+		else {
 			//If we don't have the COARSE LOCATION permission, request it
 			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
 				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_COARSE_LOCATION);
@@ -673,8 +605,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == Constants.REQUEST_ENABLE_BT && resultCode == RESULT_OK)
 			joinBt();
 		else if (requestCode == Constants.REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
@@ -684,16 +615,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
-	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-	{
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		if (requestCode == Constants.REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			joinBt();
 
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
-	private void askUser(String message, Callback<Boolean> callBack)
-	{
+	private void askUser(String message, Callback<Boolean> callBack) {
 		if (askDialog != null && askDialog.isShowing())
 			askDialog.dismiss();
 

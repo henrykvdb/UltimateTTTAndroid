@@ -1,9 +1,6 @@
 package com.henrykvdb.sttt.Util;
 
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -11,63 +8,52 @@ import android.os.Build;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.RadioGroup;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.*;
 import com.henrykvdb.sttt.*;
 
 import java.util.Random;
 
-public class DialogUtil
-{
+public class DialogUtil {
 	//Rate dialog
 	private final static int DAYS_UNTIL_PROMPT = 3;      //Min number of days
 	private final static int LAUNCHES_UNTIL_PROMPT = 3;  //Min number of launches
 
 	// Prevent dialog destroy when orientation changes
-	public static AlertDialog keepDialog(AlertDialog dialog)
-	{
-		try
-		{
+	public static AlertDialog keepDialog(AlertDialog dialog) {
+		try {
 			WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
 			lp.copyFrom(dialog.getWindow().getAttributes());
 			lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
 			lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 			dialog.getWindow().setAttributes(lp);
 		}
-		catch (Throwable t)
-		{
+		catch (Throwable t) {
 			//NOP
 		}
 		return dialog;
 	}
 
-	public static View newTitle(Context context, String title)
-	{
-		View v = View.inflate(context,R.layout.dialog_title,null);
+	public static View newTitle(Context context, String title) {
+		View v = View.inflate(context, R.layout.dialog_title, null);
 		((TextView) v.findViewById(R.id.action_bar_title)).setText(title);
 		return v;
 	}
 
-	public static View newLoadTitle(Context context, String title)
-	{
-		View v = View.inflate(context,R.layout.dialog_title_load,null);
+	public static View newLoadTitle(Context context, String title) {
+		View v = View.inflate(context, R.layout.dialog_title_load, null);
 		((TextView) v.findViewById(R.id.action_bar_title)).setText(title);
 		return v;
 	}
 
-	public static void feedbackSender(Context context)
-	{
+	public static void feedbackSender(Context context) {
 		String deviceInfo = "\n /** please do not remove this block, technical info: "
 				+ "os version: " + System.getProperty("os.version")
 				+ "(" + android.os.Build.VERSION.INCREMENTAL + "), API: " + android.os.Build.VERSION.SDK_INT;
-		try
-		{
+		try {
 			PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 			deviceInfo += ", app version: " + pInfo.versionName;
 		}
-		catch (PackageManager.NameNotFoundException e)
-		{
+		catch (PackageManager.NameNotFoundException e) {
 			e.printStackTrace();
 		}
 		deviceInfo += "**/";
@@ -81,8 +67,7 @@ public class DialogUtil
 		context.startActivity(Intent.createChooser(send, "Send feedback"));
 	}
 
-	public static void shareDialog(Context context)
-	{
+	public static void shareDialog(Context context) {
 		Intent i = new Intent(Intent.ACTION_SEND);
 		i.setType("text/plain");
 		i.putExtra(Intent.EXTRA_SUBJECT, context.getResources().getString(R.string.app_name_long));
@@ -91,31 +76,27 @@ public class DialogUtil
 		context.startActivity(Intent.createChooser(i, "Choose one"));
 	}
 
-	public static void aboutDialog(Context context)
-	{
-		View layout = View.inflate(context,R.layout.dialog_about,null);
+	public static void aboutDialog(Context context) {
+		View layout = View.inflate(context, R.layout.dialog_about, null);
 
-		try
-		{
+		try {
 			PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 			((TextView) layout.findViewById(R.id.versionName_view))
 					.setText(context.getResources().getText(R.string.app_name_long) + "\nVersion " + pInfo.versionName);
 		}
-		catch (PackageManager.NameNotFoundException e)
-		{
+		catch (PackageManager.NameNotFoundException e) {
 			((TextView) layout.findViewById(R.id.versionName_view))
 					.setText(context.getResources().getText(R.string.app_name_long));
 		}
 
 		keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(newTitle(context,"About"))
+				.setCustomTitle(newTitle(context, "About"))
 				.setView(layout)
 				.setPositiveButton("Close", (dialog1, which) -> dialog1.dismiss())
 				.show());
 	}
 
-	public static void rateDialog(Context context)
-	{
+	public static void rateDialog(Context context) {
 		SharedPreferences prefs = context.getSharedPreferences("APP_RATER", 0);
 
 		if (prefs.getBoolean("dontshowagain", false))
@@ -129,20 +110,17 @@ public class DialogUtil
 
 		// Get date of first launch
 		Long date_firstLaunch = prefs.getLong("date_firstlaunch", 0);
-		if (date_firstLaunch == 0)
-		{
+		if (date_firstLaunch == 0) {
 			date_firstLaunch = System.currentTimeMillis();
 			editor.putLong("date_firstlaunch", date_firstLaunch);
 		}
 
 		// Wait at least n days before opening
 		if (launch_count >= LAUNCHES_UNTIL_PROMPT
-				&& System.currentTimeMillis() >= date_firstLaunch + (DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000))
-		{
+				&& System.currentTimeMillis() >= date_firstLaunch + (DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000)) {
 			DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 			{
-				switch (which)
-				{
+				switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						editor.putBoolean("dontshowagain", true);
 						editor.apply();
@@ -166,7 +144,7 @@ public class DialogUtil
 			keepDialog(new AlertDialog.Builder(context)
 					.setMessage("If you enjoy using " + context.getResources().getString(R.string.app_name_long)
 							+ ", please take a moment to rateDialog it. Thanks for your support!")
-					.setCustomTitle(newTitle(context,"Rate app"))
+					.setCustomTitle(newTitle(context, "Rate app"))
 					.setPositiveButton("Rate", dialogClickListener)
 					.setNeutralButton("Later", dialogClickListener)
 					.setNegativeButton("No, thanks", dialogClickListener)
@@ -175,12 +153,11 @@ public class DialogUtil
 
 		editor.apply();
 	}
-	public static void newLocal(Callback<Boolean> callback, Context context)
-	{
+
+	public static void newLocal(Callback<Boolean> callback, Context context) {
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 		{
-			switch (which)
-			{
+			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
 					callback.callback(true);
 					break;
@@ -192,26 +169,24 @@ public class DialogUtil
 		};
 
 		DialogUtil.keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(newTitle(context,"Start a new game?"))
+				.setCustomTitle(newTitle(context, "Start a new game?"))
 				.setMessage("This wil create a new local two player game.")
 				.setPositiveButton("start", dialogClickListener)
 				.setNegativeButton("close", dialogClickListener)
 				.show());
 	}
 
-	public static void newAi(Callback<GameState> callback, Context activity)
-	{
+	public static void newAi(Callback<GameState> callback, Context activity) {
 		final boolean[] swapped = new boolean[1];
 
-		View layout = View.inflate(activity,R.layout.dialog_ai,null);
+		View layout = View.inflate(activity, R.layout.dialog_ai, null);
 		RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
 		beginner.setOnCheckedChangeListener((group, checkedId) ->
 				swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
 
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 		{
-			switch (which)
-			{
+			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
 					callback.callback(GameState.builder()
 							.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
@@ -226,7 +201,7 @@ public class DialogUtil
 
 		DialogUtil.keepDialog(new AlertDialog.Builder(activity)
 				.setView(layout)
-				.setCustomTitle(newTitle(activity,"Start a new ai game?"))
+				.setCustomTitle(newTitle(activity, "Start a new ai game?"))
 				.setPositiveButton("start", dialogClickListener)
 				.setNegativeButton("close", dialogClickListener)
 				.show());
