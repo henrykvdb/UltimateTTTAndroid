@@ -108,12 +108,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		//Register receiver to close bt service intent
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
-		filter.addAction(Constants.INTENT_TOAST);
+		filter.addAction(Constants.INTENT_TURNLOCAL);
 		filter.addAction(Constants.INTENT_NEWGAME);
+		filter.addAction(Constants.INTENT_TOAST);
 		filter.addAction(Constants.INTENT_MOVE);
 		filter.addAction(Constants.INTENT_UNDO);
-		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
-		filter.addAction(Constants.INTENT_TURNLOCAL);
 		registerReceiver(intentReceiver, filter);
 
 		//Prepare fields
@@ -233,22 +232,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					turnLocal();
 					break;
 				case Constants.INTENT_UNDO:
-					Boolean forced = intent.getBooleanExtra(Constants.INTENT_DATA_FIRST, false);
-
-					if (forced)
-						undo();
-					else
-					{
-						runOnUiThread(() -> askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
-						{
-							if (allow)
-							{
-								undo();
-								btService.sendUndo(true);
-							}
-						}));
-					}
-					break;
+					undo(intent.getBooleanExtra(Constants.INTENT_DATA_FIRST, false));
 			}
 		}
 	};
@@ -541,13 +525,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (item.getItemId() != R.id.action_undo)
 			return false;
 
-		undo();
+		if (gs.boards().size() == 1)
+		{
+			toast("No previous moves");
+			return true;
+		}
+
+		if (btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth())
+			btService.sendUndo(false);
+		else undo(false);
 		return true;
 	}
 
-	public void undo()
+	public void undo(boolean force)
 	{
-		if (gs.boards().size() > 1)
+		if (!force && btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth())
+		{
+			askUser(btService.getConnectedDeviceName() + " requests to undo the last move, do you accept?", allow ->
+			{
+				if (!allow)
+					return;
+
+				undo(true);
+				btService.sendUndo(true);
+			});
+		}
+		else
 		{
 			GameState newState = GameState.builder().gs(gs).build();
 			newState.popBoard();
@@ -560,7 +563,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			if (btService != null && btService.getState() == BtService.State.CONNECTED)
 				btService.setLocalBoard(gs.board());
 		}
-		else toast("No previous moves");
 	}
 
 	@Override
