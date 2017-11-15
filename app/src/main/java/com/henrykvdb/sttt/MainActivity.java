@@ -178,11 +178,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		Notification notification = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_icon)
-				.setContentTitle(Util.getString(this, R.string.app_name_long))
+				.setContentTitle(getString(R.string.app_name_long))
 				.setContentIntent(reopenPendingIntent)
-				.setContentText(Util.getString(this, R.string.bt_running_notification))
-				.setStyle(new NotificationCompat.BigTextStyle().bigText(Util.getString(this, R.string.bt_running_notification)))
-				.addAction(R.drawable.ic_menu_bluetooth, Util.getString(this, R.string.close), pendingCloseIntent)
+				.setContentText(getString(R.string.bt_running_notification))
+				.setStyle(new NotificationCompat.BigTextStyle().bigText(getString(R.string.bt_running_notification)))
+				.addAction(R.drawable.ic_menu_bluetooth, getString(R.string.close), pendingCloseIntent)
 				.setOngoing(true).build();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -315,11 +315,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		boardView.drawState(gs);
 
 		if (this.gs.isBluetooth())
-			setTitle(Util.getString(this, R.string.bt_game));
+			setTitle(getString(R.string.bt_game));
 		else if (this.gs.isAi())
-			setTitle(Util.getString(this, R.string.ai_game));
+			setTitle(getString(R.string.ai_game));
 		else if (this.gs.isHuman())
-			setTitle(Util.getString(this, R.string.human_game));
+			setTitle(getString(R.string.human_game));
 		else throw new IllegalStateException();
 
 		if (!gs.isBluetooth()) {
@@ -471,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			return false;
 
 		if (gs.boards().size() == 1) {
-			toast(Util.getString(this, R.string.no_prev_moves));
+			toast(getString(R.string.no_prev_moves));
 			return true;
 		}
 
@@ -566,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 			btDialog = DialogUtil.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
-					.setCustomTitle(DialogUtil.newTitle(this, Util.getString(this, R.string.host_bluetooth_game)))
+					.setCustomTitle(DialogUtil.newTitle(this, getString(R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton(getString(R.string.close), (dialog, which) -> {
 						dismissBtDialog();

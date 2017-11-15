@@ -26,19 +26,19 @@ public class BoardView extends View implements Serializable {
 	private TextView nextPlayerView;
 	private final Paint paint;
 
+	private float macroSizeSmall;
 	private float macroSizeFull;
 	private float whiteSpace;
-	private float macroSizeSmall;
+	private float fieldSize;
 	private float tileSize;
 	private float xBorder;
 	private float oBorder;
-	private float fieldSize;
 
-	private int bigGridStroke;
-	private int smallGridStroke;
-	private int tileSymbolStroke;
 	private int macroSymbolStroke;
+	private int tileSymbolStroke;
+	private int smallGridStroke;
 	private int wonSymbolStroke;
+	private int bigGridStroke;
 
 	public BoardView(Context context, AttributeSet attrs) {
 		super(context, attrs);

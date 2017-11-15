@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.henrykvdb.sttt.Util.DialogUtil;
-import com.henrykvdb.sttt.Util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +32,9 @@ public class BtPicker {
 		devicesLayout = (LinearLayout) view.findViewById(R.id.devices);
 
 		alertDialog = DialogUtil.keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(DialogUtil.newLoadTitle(context, Util.getString(context, R.string.join_bluetooth_game)))
+				.setCustomTitle(DialogUtil.newLoadTitle(context, context.getString(R.string.join_bluetooth_game)))
 				.setView(view)
-				.setNegativeButton(Util.getString(context,R.string.close), (dialog, which) -> dialog.dismiss())
+				.setNegativeButton(context.getString(R.string.close), (dialog, which) -> dialog.dismiss())
 				.setOnDismissListener(dialog -> destroy())
 				.show());
 

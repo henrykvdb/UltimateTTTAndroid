@@ -67,15 +67,15 @@ public class DialogUtil {
 				"&body=" + Uri.encode(deviceInfo));
 
 		send.setData(uri);
-		context.startActivity(Intent.createChooser(send, Util.getString(context, R.string.send_feedback)));
+		context.startActivity(Intent.createChooser(send, context.getString(R.string.send_feedback)));
 	}
 
 	public static void shareDialog(Context context) {
 		Intent i = new Intent(Intent.ACTION_SEND);
 		i.setType("text/plain");
 		i.putExtra(Intent.EXTRA_SUBJECT, context.getResources().getString(R.string.app_name_long));
-		i.putExtra(Intent.EXTRA_TEXT, Util.getString(context, R.string.lets_play_together) + " " + Util.getString(context, R.string.market_url));
-		context.startActivity(Intent.createChooser(i, Util.getString(context, R.string.choose_one)));
+		i.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.lets_play_together) + " " + context.getString(R.string.market_url));
+		context.startActivity(Intent.createChooser(i, context.getString(R.string.choose_one)));
 	}
 
 	public static void aboutDialog(Context context) {
@@ -84,7 +84,7 @@ public class DialogUtil {
 		try {
 			PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
 			((TextView) layout.findViewById(R.id.versionName_view))
-					.setText(context.getResources().getText(R.string.app_name_long) + "\n" + Util.getString(context,R.string.version) + " " + pInfo.versionName);
+					.setText(context.getResources().getText(R.string.app_name_long) + "\n" + context.getString(R.string.version) + " " + pInfo.versionName);
 		}
 		catch (PackageManager.NameNotFoundException e) {
 			((TextView) layout.findViewById(R.id.versionName_view))
@@ -92,9 +92,9 @@ public class DialogUtil {
 		}
 
 		keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(newTitle(context, Util.getString(context,R.string.about)))
+				.setCustomTitle(newTitle(context, context.getString(R.string.about)))
 				.setView(layout)
-				.setPositiveButton(Util.getString(context,R.string.close), (dialog1, which) -> dialog1.dismiss())
+				.setPositiveButton(context.getString(R.string.close), (dialog1, which) -> dialog1.dismiss())
 				.show());
 	}
 
@@ -143,11 +143,11 @@ public class DialogUtil {
 			};
 
 			keepDialog(new AlertDialog.Builder(context)
-					.setMessage(Util.getString(context,R.string.rate_message))
-					.setCustomTitle(newTitle(context, Util.getString(context,R.string.rate_app)))
-					.setPositiveButton(Util.getString(context,R.string.rate), dialogClickListener)
-					.setNeutralButton(Util.getString(context,R.string.later), dialogClickListener)
-					.setNegativeButton(Util.getString(context,R.string.no_thanks), dialogClickListener)
+					.setMessage(context.getString(R.string.rate_message))
+					.setCustomTitle(newTitle(context, context.getString(R.string.rate_app)))
+					.setPositiveButton(context.getString(R.string.rate), dialogClickListener)
+					.setNeutralButton(context.getString(R.string.later), dialogClickListener)
+					.setNegativeButton(context.getString(R.string.no_thanks), dialogClickListener)
 					.show());
 		}
 
@@ -168,10 +168,10 @@ public class DialogUtil {
 		};
 
 		DialogUtil.keepDialog(new AlertDialog.Builder(context)
-				.setCustomTitle(newTitle(context, Util.getString(context,R.string.new_local_title)))
-				.setMessage(Util.getString(context,R.string.new_local_desc))
-				.setPositiveButton(Util.getString(context,R.string.start), dialogClickListener)
-				.setNegativeButton(Util.getString(context,R.string.close), dialogClickListener).show());
+				.setCustomTitle(newTitle(context, context.getString(R.string.new_local_title)))
+				.setMessage(context.getString(R.string.new_local_desc))
+				.setPositiveButton(context.getString(R.string.start), dialogClickListener)
+				.setNegativeButton(context.getString(R.string.close), dialogClickListener).show());
 	}
 
 	public static void newAi(Callback<GameState> callback, Context context) {
@@ -196,8 +196,8 @@ public class DialogUtil {
 		};
 
 		DialogUtil.keepDialog(new AlertDialog.Builder(context)
-				.setView(layout).setCustomTitle(newTitle(context, Util.getString(context,R.string.new_ai_title)))
-				.setPositiveButton(Util.getString(context,R.string.start), dialogClickListener)
-				.setNegativeButton(Util.getString(context,R.string.close), dialogClickListener).show());
+				.setView(layout).setCustomTitle(newTitle(context, context.getString(R.string.new_ai_title)))
+				.setPositiveButton(context.getString(R.string.start), dialogClickListener)
+				.setNegativeButton(context.getString(R.string.close), dialogClickListener).show());
 	}
 }

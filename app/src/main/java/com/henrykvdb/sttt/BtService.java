@@ -177,7 +177,7 @@ public class BtService extends Service {
 			}
 			catch (IOException e) {
 				state = BtService.State.NONE;
-				IntentUtil.sendToast(BtService.this, Util.getString(BtService.this, R.string.unable_to_connect));
+				IntentUtil.sendToast(BtService.this, getString(R.string.unable_to_connect));
 				Log.e(Constants.LOG_TAG, "Unable to connect to device", e);
 
 				try {
