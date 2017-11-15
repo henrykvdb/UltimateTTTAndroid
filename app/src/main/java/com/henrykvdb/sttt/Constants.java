@@ -2,29 +2,30 @@ package com.henrykvdb.sttt;
 
 public class Constants
 {
-	//MainActivity UI broadcast receiver name and type
-	public static final String EVENT_UI = "EVENT_UI";
-	public static final String EVENT_TYPE = "EVENT_TYPE";
+	//Intents
+	public static final String INTENT_TOAST = "INTENT_TOAST";       //String text
+	public static final String INTENT_NEWGAME = "INTENT_NEWGAME";   //GameState requeststate
+	public static final String INTENT_MOVE = "INTENT_MOVE";         //Source source, Coord move
+	public static final String INTENT_UNDO = "INTENT_UNDO";         //Boolean force
+	public static final String INTENT_STOP_BT_SERVICE = "INTENT_STOP_BT_SERVICE";
+	public static final String INTENT_TURNLOCAL = "INTENT_TURNLOCAL";
 
-	//Types of broadcast messages
-	public static final String TYPE_TOAST = "toast";
-	public static final String TYPE_TITLE = "title";
-	public static final String TYPE_SUBTITLE = "subtitle";
-	public static final String TYPE_ALLOW_INCOMING_BT = "allowIncomingBt";
+	//Intents data types
+	public static final String INTENT_DATA_FIRST = "INTENT_DATA_FIRST";
+	public static final String INTENT_DATA_SECOND = "INTENT_DATA_SECOND";
 
-	//Data included in the broadcasts
-	public static final String DATA_STRING = "string";
-	public static final String DATA_BOOLEAN_ALLOW = "allow";
-	public static final String DATA_BOOLEAN_SILENT = "silent";
+	//Request codes
+	public static final int REQUEST_ENABLE_BT = 100;        //Permission required to enable Bluetooth
+	public static final int REQUEST_ENABLE_DSC = 101;       //Permission required to enable discoverability
+	public static final int REQUEST_COARSE_LOCATION = 102;  //Permission required to search nearby devices
 
-	//Other request codes
-	public static final int REQUEST_START_BTPICKER = 100;
-
-	//Permission request codes
-	public static final int REQUEST_ENABLE_BT = 200;
-	public static final int REQUEST_ENABLE_DSC = 201;
-	public static final int REQUEST_COARSE_LOCATION = 202;
-
-	//Other
+	//Keys for saving to bundle
+	public static final String GAMESTATE_KEY = "GAMESTATE_KEY";
 	public static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
+
+	//Notification ID's
+	public static final int BT_STILL_RUNNING = 1;
+
+	//Misc
+	public static final String LOG_TAG = "DEBUGLOG";
 }

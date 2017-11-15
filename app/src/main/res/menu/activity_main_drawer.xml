@@ -14,15 +14,14 @@
     </item>
     <item android:title="@string/bluetooth">
         <menu>
+			<item
+					android:id="@+id/nav_bt_host"
+					android:icon="@drawable/ic_menu_bluetooth_host"
+					android:title="@string/host"/>
             <item
                     android:id="@+id/nav_bt_join"
                     android:icon="@drawable/ic_menu_bluetooth"
                     android:title="@string/join"/>
-            <item
-                    android:id="@+id/nav_bt_host_switch"
-                    android:icon="@drawable/ic_menu_bluetooth_host"
-                    android:title="@string/incoming"
-                    app:actionViewClass="android.widget.Switch"/>
         </menu>
     </item>
     <item android:title="@string/other">

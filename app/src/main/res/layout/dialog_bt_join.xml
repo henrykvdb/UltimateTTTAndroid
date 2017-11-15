@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:orientation="vertical"
+			android:id="@+id/bt_join_layout">
+	<LinearLayout android:orientation="vertical"
+				  android:layout_height="wrap_content"
+				  android:layout_width="wrap_content"
+				  android:paddingLeft="24dp"
+				  android:paddingRight="24dp"
+				  android:paddingTop="9dp"
+				  android:paddingBottom="0dp">
+		<TextView
+				android:text="@string/joinable_devices"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:textAppearance="@style/TextAppearance.AppCompat"
+				android:textStyle="normal|bold"/>
+		<LinearLayout android:layout_width="fill_parent"
+					  android:layout_height="wrap_content"
+					  android:id="@+id/devices"
+					  android:orientation="vertical"
+					  android:divider="@drawable/separator"
+					  android:showDividers="middle">
+		</LinearLayout>
+	</LinearLayout>
+</ScrollView>

@@ -8,11 +8,10 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
-import static com.henrykvdb.sttt.GameService.Source.AI;
-import static com.henrykvdb.sttt.GameService.Source.Bluetooth;
-import static com.henrykvdb.sttt.GameService.Source.Local;
+import static com.henrykvdb.sttt.MainActivity.Source.AI;
+import static com.henrykvdb.sttt.MainActivity.Source.Bluetooth;
+import static com.henrykvdb.sttt.MainActivity.Source.Local;
 
 public class GameState implements Serializable
 {
@@ -29,12 +28,12 @@ public class GameState implements Serializable
 		this.extraBot = extraBot;
 	}
 
-	static class Players
+	static class Players implements Serializable
 	{
-		public final GameService.Source first;
-		public final GameService.Source second;
+		public final MainActivity.Source first;
+		public final MainActivity.Source second;
 
-		public Players(GameService.Source first, GameService.Source second)
+		public Players(MainActivity.Source first, MainActivity.Source second)
 		{
 			this.first = first;
 			this.second = second;
@@ -45,7 +44,7 @@ public class GameState implements Serializable
 			return new Players(second, first);
 		}
 
-		public boolean contains(GameService.Source source)
+		public boolean contains(MainActivity.Source source)
 		{
 			return first == source || second == source;
 		}
@@ -60,7 +59,7 @@ public class GameState implements Serializable
 	{
 		private Players players = new Players(Local, Local);
 		private LinkedList<Board> boards = new LinkedList<>(Collections.singletonList(new Board()));
-		private boolean swapped = new Random().nextBoolean();
+		private boolean swapped = false;
 		private Bot extraBot = new RandomBot();
 
 		public GameState build()
@@ -92,12 +91,6 @@ public class GameState implements Serializable
 			return this;
 		}
 
-		public Builder players(Players players)
-		{
-			this.players = players;
-			return this;
-		}
-
 		public Builder bt()
 		{
 			players = new Players(Local, Bluetooth);
@@ -108,7 +101,6 @@ public class GameState implements Serializable
 		{
 			this.players = gs.players();
 			this.boards = gs.boards();
-			this.swapped = false;
 			this.extraBot = gs.extraBot();
 			return this;
 		}

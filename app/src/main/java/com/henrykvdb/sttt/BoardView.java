@@ -1,19 +1,13 @@
 package com.henrykvdb.sttt;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
+import android.graphics.*;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Player;
+import com.flaghacker.uttt.common.*;
 
 import java.io.Serializable;
 
@@ -24,9 +18,11 @@ import static com.flaghacker.uttt.common.Player.PLAYER;
 public class BoardView extends View implements Serializable
 {
 	private static final long serialVersionUID = -6067519139638476047L;
+
 	private final Path path;
 	private Board board;
 	private DrawSettings ds;
+	private Callback<Coord> callback;
 	private GameState gameState;
 	private TextView nextPlayerView;
 	private Paint paint;
@@ -44,7 +40,6 @@ public class BoardView extends View implements Serializable
 	private int tileSymbolStroke;
 	private int macroSymbolStroke;
 	private int wonSymbolStroke;
-	private GameService gameService;
 
 	public BoardView(Context context, AttributeSet attrs)
 	{
@@ -80,6 +75,11 @@ public class BoardView extends View implements Serializable
 		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke());
 	}
 
+	public void setMoveCallback(Callback<Coord> moveCallback)
+	{
+		callback = moveCallback;
+	}
+
 	public void drawState(GameState gameState)
 	{
 		this.gameState = gameState;
@@ -98,11 +98,6 @@ public class BoardView extends View implements Serializable
 		postInvalidate();
 	}
 
-	public void setGameService(GameService gameService)
-	{
-		this.gameService = gameService;
-	}
-
 	protected void onDraw(Canvas canvas)
 	{
 		if (gameState != null)
@@ -115,8 +110,8 @@ public class BoardView extends View implements Serializable
 
 			//Only if not local game
 			boolean yourTurn = board.nextPlayer() == PLAYER
-					? players.first == GameService.Source.Local
-					: players.second == GameService.Source.Local;
+					? players.first == MainActivity.Source.Local
+					: players.second == MainActivity.Source.Local;
 
 			nextPlayerView.setTextColor(xNext ? Color.BLUE : Color.RED);
 			nextPlayerView.setText(null);
@@ -152,8 +147,8 @@ public class BoardView extends View implements Serializable
 					else
 					{
 						boolean youWon = board.wonBy() == PLAYER
-								? players.first == GameService.Source.Local
-								: players.second == GameService.Source.Local;
+								? players.first == MainActivity.Source.Local
+								: players.second == MainActivity.Source.Local;
 						nextPlayerView.setTextColor(board.wonBy() == PLAYER ? Color.BLUE : Color.RED);
 						nextPlayerView.setText(youWon ? "You won!" : "You lost!");
 					}
@@ -325,15 +320,9 @@ public class BoardView extends View implements Serializable
 				xs = xs > 2 ? --xs : xs;
 				ys = ys > 2 ? --ys : ys;
 
-				if (gameService != null)
-				{
-					gameService.play(GameService.Source.Local, Coord.coord(xm, ym, xs, ys));
-					Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
-				}
-				else
-				{
-					Log.d("ERROR", "Clicked without gameService");
-				}
+				if (callback!=null)
+					callback.callback(Coord.coord(xm, ym, xs, ys));
+				Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")");
 			}
 			else
 			{

@@ -1,11 +1,6 @@
 package com.henrykvdb.sttt;
 
-import com.flaghacker.uttt.common.Board;
-import com.flaghacker.uttt.common.Bot;
-import com.flaghacker.uttt.common.Coord;
-import com.flaghacker.uttt.common.Player;
-import com.flaghacker.uttt.common.Timer;
-import com.flaghacker.uttt.common.Util;
+import com.flaghacker.uttt.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +22,8 @@ public class MMBot implements Bot
 	private static final double CORNER_FACTOR = 3;
 	private static final double EDGE_FACTOR = 1;
 
-	private Random random = Util.loggedRandom();
-	private Timer timer;
+	private transient Random random = Util.loggedRandom();
+	private transient Timer timer;
 	private int levels;
 
 	public MMBot(int levels)
