@@ -22,7 +22,7 @@ public class BtPicker {
 	private final Callback<String> addressCallback;
 	private final LinearLayout devicesLayout;
 
-	private List<BluetoothDevice> devices = new ArrayList<>();
+	private final List<BluetoothDevice> devices = new ArrayList<>();
 
 	private BtPicker(Context context, BluetoothAdapter btAdapter, Callback<String> addressCallback) {
 		this.addressCallback = addressCallback;
@@ -53,7 +53,7 @@ public class BtPicker {
 		return new com.henrykvdb.sttt.BtPicker(context, btAdapter, addressCallback).alertDialog;
 	}
 
-	public AlertDialog updateLayout() {
+	private void updateLayout() {
 		//Clear layout
 		devicesLayout.removeAllViews();
 
@@ -85,8 +85,6 @@ public class BtPicker {
 			view1.setText(context.getResources().getText(R.string.none_found).toString());
 			devicesLayout.addView(view1);
 		}
-
-		return alertDialog;
 	}
 
 	private void doDiscovery() {
@@ -131,7 +129,7 @@ public class BtPicker {
 		}
 	};
 
-	public void destroy() {
+	private void destroy() {
 		Log.e(Constants.LOG_TAG, "Dialog dismissed");
 
 		// Unregister broadcast listeners

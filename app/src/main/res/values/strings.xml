@@ -57,8 +57,6 @@
 	<string name="no_prev_moves">No previous moves</string>
 	<string name="game_winner">%1$s won the game!</string>
 	<string name="connected_to">Connected to %1$s</string>
-	<string name="current_player">Current Player</string>
-	<string name="button_scan">Scan for devices</string>
     <string name="none_found">No devices found</string>
 	<string name="send_feedback">Send feedback</string>
 	<string name="author_credit">by Henrykvdb</string>
@@ -74,5 +72,4 @@
 	<string name="app_icon">app icon</string>
 	<string name="you_won">You won!</string>
 	<string name="ai_game">AI Game</string>
-    <string name="won_by">Won by</string>
 </resources>

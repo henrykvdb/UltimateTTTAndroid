@@ -24,7 +24,7 @@ public class BoardView extends View implements Serializable {
 	private Callback<Coord> callback;
 	private GameState gameState;
 	private TextView nextPlayerView;
-	private Paint paint;
+	private final Paint paint;
 
 	private float macroSizeFull;
 	private float whiteSpace;
@@ -57,19 +57,19 @@ public class BoardView extends View implements Serializable {
 		fieldSize = Math.min(getWidth(), getHeight());
 
 		macroSizeFull = fieldSize / 3;
-		whiteSpace = fieldSize * ds.whiteSpace();
+		whiteSpace = fieldSize * ds.whiteSpace;
 
 		macroSizeSmall = macroSizeFull - 2 * whiteSpace;
 		tileSize = macroSizeSmall / 3;
 
-		xBorder = fieldSize * ds.borderX();
-		oBorder = fieldSize * ds.borderO();
+		xBorder = fieldSize * ds.borderX;
+		oBorder = fieldSize * ds.borderO;
 
-		bigGridStroke = (int) (fieldSize * ds.bigGridStroke());
-		smallGridStroke = (int) (fieldSize * ds.smallGridStroke());
-		tileSymbolStroke = (int) (fieldSize * ds.tileSymbolStroke());
-		macroSymbolStroke = (int) (fieldSize * ds.macroSymbolStroke());
-		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke());
+		bigGridStroke = (int) (fieldSize * ds.bigGridStroke);
+		smallGridStroke = (int) (fieldSize * ds.smallGridStroke);
+		tileSymbolStroke = (int) (fieldSize * ds.tileSymbolStroke);
+		macroSymbolStroke = (int) (fieldSize * ds.macroSymbolStroke);
+		wonSymbolStroke = (int) (fieldSize * ds.wonSymbolStroke);
 	}
 
 	public void setMoveCallback(Callback<Coord> moveCallback) {
@@ -83,12 +83,6 @@ public class BoardView extends View implements Serializable {
 
 	public void setNextPlayerView(TextView nextPlayerView) {
 		this.nextPlayerView = nextPlayerView;
-	}
-
-	public void setDrawSettings(DrawSettings drawSettings) {
-		this.ds = drawSettings;
-		setVars();
-		postInvalidate();
 	}
 
 	protected void onDraw(Canvas canvas) {
@@ -139,7 +133,7 @@ public class BoardView extends View implements Serializable {
 
 		//Make available moves the correct color
 		paint.setStyle(Paint.Style.FILL);
-		paint.setColor(board.nextPlayer() == PLAYER ? ds.xColor() : ds.oColor());
+		paint.setColor(board.nextPlayer() == PLAYER ? ds.xColor : ds.oColor);
 		paint.setAlpha(50);
 		for (Coord coord : board.availableMoves()) {
 			float x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace;
@@ -154,15 +148,15 @@ public class BoardView extends View implements Serializable {
 			drawMacro(canvas, om);
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, ds.gridColor(), bigGridStroke);
+		drawGridBarriers(canvas, fieldSize, ds.gridColor, bigGridStroke);
 
 		if (board.isDone()) {
 			switch (board.wonBy()) {
 				case PLAYER:
-					drawTile(canvas, true, true, fieldSize, ds.xColor() - ds.symbolTransparency(), wonSymbolStroke, tileSize);
+					drawTile(canvas, true, true, fieldSize, ds.xColor - ds.symbolTransparency, wonSymbolStroke, tileSize);
 					break;
 				case ENEMY:
-					drawTile(canvas, false, true, fieldSize, ds.oColor() - ds.symbolTransparency(), wonSymbolStroke, tileSize * oBorder / xBorder);
+					drawTile(canvas, false, true, fieldSize, ds.oColor - ds.symbolTransparency, wonSymbolStroke, tileSize * oBorder / xBorder);
 					break;
 				default:
 					//Nobody won, so no need to draw anything
@@ -186,7 +180,7 @@ public class BoardView extends View implements Serializable {
 		canvas.translate(xmt, ymt);
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, ds.gridColor(), smallGridStroke);
+		drawGridBarriers(canvas, macroSizeSmall, ds.gridColor, smallGridStroke);
 
 		//Loop through tiles of the macro
 		for (Coord tile : Coord.macro(xm, ym)) {
@@ -198,12 +192,12 @@ public class BoardView extends View implements Serializable {
 			canvas.translate(xt, yt);
 
 			if (player == PLAYER) //x
-				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.xColorLight()
-								: (finished ? ds.xColorDarkest() : (mNeutral ? ds.xColor() : ds.xColorDarker())),
+				drawTile(canvas, true, false, tileSize, (tile == lastMove) ? ds.xColorLight
+								: (finished ? ds.xColorDarkest : (mNeutral ? ds.xColor : ds.xColorDarker)),
 						tileSymbolStroke, xBorder);
 			else if (player == ENEMY) //o
-				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.oColorLight()
-								: (finished ? ds.oColorDarkest() : (mNeutral ? ds.oColor() : ds.oColorDarker())),
+				drawTile(canvas, false, false, tileSize, (tile == lastMove) ? ds.oColorLight
+								: (finished ? ds.oColorDarkest : (mNeutral ? ds.oColor : ds.oColorDarker)),
 						tileSymbolStroke, oBorder);
 
 			canvas.translate(-xt, -yt);
@@ -212,11 +206,11 @@ public class BoardView extends View implements Serializable {
 		//Draw x and y over macros
 		if (mPlayer == PLAYER) //X
 			drawTile(canvas, true, !finished, macroSizeSmall,
-					finished ? (ds.xColorDarker() - ds.symbolTransparency()) : (ds.xColor() - ds.symbolTransparency()),
+					finished ? (ds.xColorDarker - ds.symbolTransparency) : (ds.xColor - ds.symbolTransparency),
 					macroSymbolStroke, xBorder);
 		else if (mPlayer == ENEMY) //O
 			drawTile(canvas, false, !finished, macroSizeSmall,
-					finished ? (ds.oColorDarker() - ds.symbolTransparency()) : (ds.oColor() - ds.symbolTransparency()),
+					finished ? (ds.oColorDarker - ds.symbolTransparency) : (ds.oColor - ds.symbolTransparency),
 					macroSymbolStroke, oBorder);
 
 		canvas.translate(-xmt, -ymt);
@@ -225,7 +219,7 @@ public class BoardView extends View implements Serializable {
 	private void drawTile(Canvas canvas, boolean isX, boolean grayBack, float size, int color, int strokeWidth, float border) {
 		if (grayBack) {
 			paint.setStyle(Paint.Style.FILL);
-			paint.setColor(ds.unavailableColor());
+			paint.setColor(ds.unavailableColor);
 			canvas.drawRect(0, 0, size, size, paint);
 		}
 

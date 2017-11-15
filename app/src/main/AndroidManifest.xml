@@ -12,7 +12,8 @@
 			android:icon="@mipmap/ic_launcher"
 			android:label="@string/app_name_long"
 			android:supportsRtl="true"
-			android:theme="@style/AppTheme.NoActionBar">
+			android:theme="@style/AppTheme.NoActionBar"
+			android:fullBackupContent="@xml/backup_descriptor">
 		<activity
 				android:name="com.henrykvdb.sttt.MainActivity">
 			<intent-filter android:label="@string/app_name">

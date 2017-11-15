@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private boolean keepBtOn;
 
 	//Game fields
-	private AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
+	private final AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
 	private final Object playerLock = new Object[0];
 	private BoardView boardView;
 	private GameThread gameThread;
@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		notificationManager.notify(Constants.BT_STILL_RUNNING, notification);
 	}
 
-	private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
+	private final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	}
 
-	private ServiceConnection btServerConn = new ServiceConnection() {
+	private final ServiceConnection btServerConn = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			Log.e("BTS", "btService Connected");

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+	<!-- Exclude the shared preferences file that contains the GCM registrationId -->
+	<exclude domain="sharedpref" path="APP_RATER.xml"/>
+</full-backup-content>

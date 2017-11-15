@@ -25,6 +25,7 @@ public class GameState implements Serializable {
 	}
 
 	static class Players implements Serializable {
+		private static final long serialVersionUID = 5619757295352382870L;
 		public final MainActivity.Source first;
 		public final MainActivity.Source second;
 

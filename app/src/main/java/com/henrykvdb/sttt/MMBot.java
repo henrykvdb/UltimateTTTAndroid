@@ -20,9 +20,9 @@ public class MMBot implements Bot {
 	private static final double CORNER_FACTOR = 3;
 	private static final double EDGE_FACTOR = 1;
 
-	private transient Random random = Util.loggedRandom();
+	private final transient Random random = Util.loggedRandom();
 	private transient Timer timer;
-	private int levels;
+	private final int levels;
 
 	public MMBot(int levels) {
 		this.levels = levels;
@@ -72,8 +72,8 @@ public class MMBot implements Bot {
 	}
 
 	private class ScoreMove {
-		private Coord move;
-		private double score;
+		private final Coord move;
+		private final double score;
 
 		public ScoreMove(Coord move, double score) {
 			this.move = move;
