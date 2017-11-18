@@ -66,9 +66,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		setContentView(R.layout.activity_main);
 
 		//Create some variables used later
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
-		DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+		DrawerLayout drawer = findViewById(R.id.drawer_layout);
 
 		//Make it easier to open the drawer
 		try {
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		toggle.syncState();
 
 		//Add listener to the items
-		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		NavigationView navigationView = findViewById(R.id.nav_view);
 		navigationView.setNavigationItemSelectedListener(this);
 
 		//Add ads in portrait
@@ -111,9 +111,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Prepare fields
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-		boardView = (BoardView) findViewById(R.id.boardView);
-		boardView.setNextPlayerView((TextView) findViewById(R.id.next_move_view));
-		boardView.setMoveCallback(coord -> play(Source.Local, coord));
+		boardView = findViewById(R.id.boardView);
+		boardView.setup(coord -> play(Source.Local,coord), findViewById(R.id.next_move_view));
 
 		if (savedInstanceState == null) {
 			//New game
