@@ -598,7 +598,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			//If we don't have the COARSE LOCATION permission, request it
 			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
 				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_COARSE_LOCATION);
-			else btDialog = BtPicker.createDialog(this, btAdapter, adr -> btService.connect(adr));
+			else btDialog = new BtPicker(this, btAdapter, adr -> btService.connect(adr)).getAlertDialog();
 		}
 	}
 
