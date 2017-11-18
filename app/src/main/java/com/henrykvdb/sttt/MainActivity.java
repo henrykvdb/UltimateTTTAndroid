@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		//Prepare fields
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 		boardView = findViewById(R.id.boardView);
-		boardView.setup(coord -> play(Source.Local,coord), findViewById(R.id.next_move_view));
+		boardView.setup(coord -> play(Source.Local, coord), findViewById(R.id.next_move_view));
 
 		if (savedInstanceState == null) {
 			//New game
@@ -338,11 +338,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void turnLocal() {
 		if (!gs.isAi() && !gs.isHuman())
-			newGame(GameState.builder().boards(gs.boards()).build());
+			newGame(new GameState.Builder().boards(gs.getBoards()).build());
 	}
 
 	private void newLocal() {
-		newGame(GameState.builder().swapped(false).build());
+		newGame(new GameState.Builder().swapped(false).build());
 	}
 
 	private class GameThread extends Thread implements Closeable {
@@ -355,20 +355,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			setName("GameThread");
 			running = true;
 
-			Source p1 = gs.players().first;
-			Source p2 = gs.players().second;
+			Source p1 = gs.getPlayers().getFirst();
+			Source p2 = gs.getPlayers().getSecond();
 
 			while (!gs.board().isDone() && running) {
 				timer = new Timer(5000);
 
 				if (gs.board().nextPlayer() == Player.PLAYER && running)
-					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.extraBot().move(gs.board(), timer));
+					playAndUpdateBoard((p1 != Source.AI) ? getMove(p1) : gs.getExtraBot().move(gs.board(), timer));
 
 				if (gs.board().isDone() || !running)
 					continue;
 
 				if (gs.board().nextPlayer() == Player.ENEMY && running)
-					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.extraBot().move(gs.board(), timer));
+					playAndUpdateBoard((p2 != Source.AI) ? getMove(p2) : gs.getExtraBot().move(gs.board(), timer));
 			}
 		}
 
@@ -388,8 +388,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Board newBoard = gs.board().copy();
 			newBoard.play(move);
 
-			if (gs.players().contains(Source.Bluetooth)
-					&& ((gs.board().nextPlayer() == Player.PLAYER) == (gs.players().first == Source.Local)))
+			if (gs.getPlayers().contains(Source.Bluetooth)
+					&& ((gs.board().nextPlayer() == Player.PLAYER) == (gs.getPlayers().getFirst() == Source.Local)))
 				btService.sendBoard(newBoard);
 
 			gs.pushBoard(newBoard);
@@ -469,7 +469,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (item.getItemId() != R.id.action_undo)
 			return false;
 
-		if (gs.boards().size() == 1) {
+		if (gs.getBoards().size() == 1) {
 			toast(getString(R.string.no_prev_moves));
 			return true;
 		}
@@ -482,7 +482,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	public void undo(boolean force) {
 		if (!force && btService != null && btService.getState() == BtService.State.CONNECTED && gs.isBluetooth()) {
-			askUser(getString(R.string.undo_request, btService.getConnectedDeviceName()), allow -> {
+			askUser(getString(R.string.undo_request, btService.getConnectedDeviceName()), allow ->
+			{
 				if (!allow)
 					return;
 				undo(true);
@@ -490,10 +491,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			});
 		}
 		else {
-			GameState newState = GameState.builder().gs(gs).build();
+			GameState newState = new GameState.Builder().gs(gs).build();
 			newState.popBoard();
-			if (Source.AI == (gs.board().nextPlayer() == Player.PLAYER ? gs.players().first : gs.players().second)
-					&& newState.boards().size() > 1)
+			if (Source.AI == (gs.board().nextPlayer() == Player.PLAYER ? gs.getPlayers().getFirst() : gs.getPlayers().getSecond())
+					&& newState.getBoards().size() > 1)
 				newState.popBoard();
 
 			newGame(newState);
@@ -541,7 +542,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			View layout = View.inflate(this, R.layout.dialog_bt_host, null);
 			((TextView) layout.findViewById(R.id.bt_host_desc)).setText(getString(R.string.host_desc, btService.getLocalBluetoothName()));
 
-			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) -> {
+			RadioGroup.OnCheckedChangeListener onCheckedChangeListener = (group, checkedId) ->
+			{
 				//Get board type
 				boolean newBoard = ((RadioButton) layout.findViewById(R.id.board_new)).isChecked();
 
@@ -553,7 +555,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 				//Create the actual requested gamestate
 				boolean swapped = newBoard ? (!start) : (start ^ (gs.board().nextPlayer() == Player.PLAYER));
-				GameState.Builder gsBuilder = GameState.builder().bt().swapped(swapped);
+				GameState.Builder gsBuilder = new GameState.Builder().bt().swapped(swapped);
 				if (!newBoard)
 					gsBuilder.board(gs.board());
 
@@ -567,7 +569,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 					.setView(layout)
 					.setCustomTitle(DialogUtil.newTitle(this, getString(R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
-					.setNegativeButton(getString(R.string.close), (dialog, which) -> {
+					.setNegativeButton(getString(R.string.close), (dialog, which) ->
+					{
 						dismissBtDialog();
 						btService.closeThread();
 					}).show());
@@ -621,7 +624,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		if (askDialog != null && askDialog.isShowing())
 			askDialog.dismiss();
 
-		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
+		{
 			if (which == DialogInterface.BUTTON_POSITIVE)
 				callBack.callback(true);
 			else if (which == DialogInterface.BUTTON_NEGATIVE)

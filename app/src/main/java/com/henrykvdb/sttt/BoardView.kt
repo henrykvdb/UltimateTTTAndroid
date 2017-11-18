@@ -16,23 +16,23 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private val paint: Paint = Paint()
     private val ds: DrawSettings = DrawSettings()
 
+    private var gameState: GameState = GameState.Builder().build()
     private var moveCallback: Callback<Coord>? = null
-    private var gameState: GameState = GameState.builder().build()
     private var nextPlayerView: TextView? = null
 
-    private var macroSizeSmall: Float = 0.0F
-    private var macroSizeFull: Float = 0.0F
-    private var whiteSpace: Float = 0.0F
-    private var fieldSize: Float = 0.0F
-    private var tileSize: Float = 0.0F
-    private var xBorder: Float = 0.0F
-    private var oBorder: Float = 0.0F
+    private var macroSizeSmall = 0.0F
+    private var macroSizeFull = 0.0F
+    private var whiteSpace = 0.0F
+    private var fieldSize = 0.0F
+    private var tileSize = 0.0F
+    private var xBorder = 0.0F
+    private var oBorder = 0.0F
 
-    private var macroSymbolStroke: Int = 0
-    private var tileSymbolStroke: Int = 0
-    private var smallGridStroke: Int = 0
-    private var wonSymbolStroke: Int = 0
-    private var bigGridStroke: Int = 0
+    private var macroSymbolStroke = 0
+    private var tileSymbolStroke = 0
+    private var smallGridStroke = 0
+    private var wonSymbolStroke = 0
+    private var bigGridStroke = 0
 
     //Fields for distinguishing click and drag events
     private var pressedX: Float = 0.0f
@@ -81,22 +81,22 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         nextPlayerView?.text = null
         if (!board.isDone) {
             val yourTurn =
-                    if (board.nextPlayer() == Player.PLAYER) gameState.players().first == MainActivity.Source.Local
-                    else gameState.players().second == MainActivity.Source.Local
-            if (!gameState.isHuman)
+                    if (board.nextPlayer() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
+                    else gameState.players.second == MainActivity.Source.Local
+            if (!gameState.isHuman())
                 nextPlayerView?.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
         } else {
             if (board.wonBy() == Player.NEUTRAL) {
                 nextPlayerView?.setTextColor(Color.BLACK)
                 nextPlayerView?.text = resources.getText(R.string.tie_message)
             } else {
-                if (gameState.isHuman) {
+                if (gameState.isHuman()) {
                     nextPlayerView?.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
                     nextPlayerView?.text = resources.getString(R.string.game_winner, if (board.wonBy() == Player.PLAYER) "X" else "O")
                 } else {
                     val youWon =
-                            if (board.wonBy() == Player.PLAYER) gameState.players().first == MainActivity.Source.Local
-                            else gameState.players().second == MainActivity.Source.Local
+                            if (board.wonBy() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
+                            else gameState.players.second == MainActivity.Source.Local
                     nextPlayerView?.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
                     nextPlayerView?.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
                 }
@@ -240,7 +240,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         if (e.action == MotionEvent.ACTION_DOWN) {
             pressedX = e.x
             pressedY = e.y
-        } else if (e.action == MotionEvent.ACTION_UP && distance(pressedX, pressedY, e.x, e.y) < 15) {
+        } else if (e.action == MotionEvent.ACTION_UP && distance(pressedX, pressedY, e.x, e.y) < 30) {
             if (x < 0 || y < 0 || x > fieldSize || y > fieldSize) {
                 Log.d("ClickEvent", "Clicked outside of board")
                 return true

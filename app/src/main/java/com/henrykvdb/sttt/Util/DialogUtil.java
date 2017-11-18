@@ -185,7 +185,7 @@ public class DialogUtil {
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
 			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
-					callback.callback(GameState.builder()
+					callback.callback(new GameState.Builder()
 							.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
 							.swapped(swapped[0]).build());
 					break;

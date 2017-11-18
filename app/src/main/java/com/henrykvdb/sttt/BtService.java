@@ -65,7 +65,7 @@ public class BtService extends Service {
 	}
 
 	public void listen() {
-		setRequestState(GameState.builder().bt().build());
+		setRequestState(new GameState.Builder().bt().build());
 
 		closeThread();
 		btThread = new ListenThread();
@@ -256,7 +256,7 @@ public class BtService extends Service {
 				else if (message == Message.RECEIVE_SETUP.ordinal()) {
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					localBoard = board;
-					IntentUtil.sendNewGame(this, GameState.builder().bt().board(board).swapped(!json.getBoolean("start")).build());
+					IntentUtil.sendNewGame(this, new GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build());
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal()) {
 					IntentUtil.sendUndo(this, json.getBoolean("force"));
@@ -324,7 +324,7 @@ public class BtService extends Service {
 
 	private void sendSetup() {
 		IntentUtil.sendNewGame(this, requestState);
-		Log.e(Constants.LOG_TAG, "Sending setup, starting: " + requestState.players().first);
+		Log.e(Constants.LOG_TAG, "Sending setup, starting: " + requestState.getPlayers().getFirst());
 
 		localBoard = requestState.board();
 
@@ -332,7 +332,7 @@ public class BtService extends Service {
 			JSONObject json = new JSONObject();
 
 			json.put("message", Message.RECEIVE_SETUP.ordinal());
-			json.put("start", requestState.players().first.equals(MainActivity.Source.Bluetooth));
+			json.put("start", requestState.getPlayers().getFirst().equals(MainActivity.Source.Bluetooth));
 			json.put("board", JSONBoard.toJSON(requestState.board()).toString());
 
 			byte[] data = json.toString().getBytes();
