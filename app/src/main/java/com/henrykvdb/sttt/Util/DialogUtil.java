@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt.Util;
 
+import android.annotation.SuppressLint;
 import android.content.*;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -78,6 +79,7 @@ public class DialogUtil {
 		context.startActivity(Intent.createChooser(i, context.getString(R.string.choose_one)));
 	}
 
+	@SuppressLint("SetTextI18n")
 	public static void aboutDialog(Context context) {
 		View layout = View.inflate(context, R.layout.dialog_about, null);
 
@@ -120,7 +122,7 @@ public class DialogUtil {
 		// Wait at least n days before opening
 		if (launch_count >= LAUNCHES_UNTIL_PROMPT
 				&& System.currentTimeMillis() >= date_firstLaunch + (DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000)) {
-			DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+			@SuppressLint("InlinedApi") DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
 				switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						editor.putBoolean(DONT_SHOW_AGAIN, true);
@@ -158,7 +160,7 @@ public class DialogUtil {
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
 			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
-					callback.callback(true);
+					callback.invoke(true);
 					break;
 
 				case DialogInterface.BUTTON_NEGATIVE:
@@ -178,14 +180,14 @@ public class DialogUtil {
 		final boolean[] swapped = new boolean[1];
 
 		View layout = View.inflate(context, R.layout.dialog_ai, null);
-		RadioGroup beginner = (RadioGroup) layout.findViewById(R.id.start_radio_group);
+		RadioGroup beginner = layout.findViewById(R.id.start_radio_group);
 		beginner.setOnCheckedChangeListener((group, checkedId) ->
 				swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || new Random().nextBoolean()));
 
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
 			switch (which) {
 				case DialogInterface.BUTTON_POSITIVE:
-					callback.callback(new GameState.Builder()
+					callback.invoke(new GameState.Builder()
 							.ai(new MMBot(((SeekBar) layout.findViewById(R.id.difficulty)).getProgress()))
 							.swapped(swapped[0]).build());
 					break;

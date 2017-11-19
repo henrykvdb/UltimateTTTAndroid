@@ -627,15 +627,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		DialogInterface.OnClickListener dialogClickListener = (dialog, which) ->
 		{
 			if (which == DialogInterface.BUTTON_POSITIVE)
-				callBack.callback(true);
+				callBack.invoke(true);
 			else if (which == DialogInterface.BUTTON_NEGATIVE)
-				callBack.callback(false);
+				callBack.invoke(false);
 		};
 
 		askDialog = new AlertDialog.Builder(this).setMessage(message)
 				.setPositiveButton(getString(R.string.yes), dialogClickListener)
 				.setNegativeButton(getString(R.string.no), dialogClickListener)
-				.setOnDismissListener(dialogInterface -> callBack.callback(false)).show();
+				.setOnDismissListener(dialogInterface -> callBack.invoke(false)).show();
 
 		DialogUtil.keepDialog(askDialog);
 	}

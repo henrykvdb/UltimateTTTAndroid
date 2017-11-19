@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -11,22 +12,23 @@ import com.flaghacker.uttt.common.Board
 import com.flaghacker.uttt.common.Coord
 import com.flaghacker.uttt.common.Player
 
+@Suppress("unused") typealias ds = DrawSettings
+
 class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private val path: Path = Path()
     private val paint: Paint = Paint()
-    private val ds: DrawSettings = DrawSettings()
 
+    private lateinit var moveCallback: Callback<Coord>
     private var gameState: GameState = GameState.Builder().build()
-    private var moveCallback: Callback<Coord>? = null
     private var nextPlayerView: TextView? = null
 
-    private var macroSizeSmall = 0.0F
-    private var macroSizeFull = 0.0F
-    private var whiteSpace = 0.0F
-    private var fieldSize = 0.0F
-    private var tileSize = 0.0F
-    private var xBorder = 0.0F
-    private var oBorder = 0.0F
+    private var macroSizeSmall = 0.0f
+    private var macroSizeFull = 0.0f
+    private var whiteSpace = 0.0f
+    private var fieldSize = 0.0f
+    private var tileSize = 0.0f
+    private var xBorder = 0.0f
+    private var oBorder = 0.0f
 
     private var macroSymbolStroke = 0
     private var tileSymbolStroke = 0
@@ -76,29 +78,30 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         //Get the board
         val board = gameState.board()
 
-        //Set the helper text
-        nextPlayerView?.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
-        nextPlayerView?.text = null
-        if (!board.isDone) {
-            val yourTurn =
-                    if (board.nextPlayer() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
-                    else gameState.players.second == MainActivity.Source.Local
-            if (!gameState.isHuman())
-                nextPlayerView?.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
-        } else {
-            if (board.wonBy() == Player.NEUTRAL) {
-                nextPlayerView?.setTextColor(Color.BLACK)
-                nextPlayerView?.text = resources.getText(R.string.tie_message)
+        nextPlayerView?.let {
+            //Set the helper text
+            it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
+            it.text = null
+            if (!board.isDone) {
+                val yourTurn = (board.nextPlayer() == Player.PLAYER && gameState.players.first == MainActivity.Source.Local) //TODO improve
+                        || (board.nextPlayer() == Player.ENEMY && gameState.players.second == MainActivity.Source.Local)
+                if (!gameState.isHuman())
+                    it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
             } else {
-                if (gameState.isHuman()) {
-                    nextPlayerView?.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
-                    nextPlayerView?.text = resources.getString(R.string.game_winner, if (board.wonBy() == Player.PLAYER) "X" else "O")
+                if (board.wonBy() == Player.NEUTRAL) {
+                    it.setTextColor(Color.BLACK)
+                    it.text = resources.getText(R.string.tie_message)
                 } else {
-                    val youWon =
-                            if (board.wonBy() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
-                            else gameState.players.second == MainActivity.Source.Local
-                    nextPlayerView?.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
-                    nextPlayerView?.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+                    if (gameState.isHuman()) {
+                        it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
+                        it.text = resources.getString(R.string.game_winner, if (board.wonBy() == Player.PLAYER) "X" else "O")
+                    } else {
+                        val youWon =
+                                if (board.wonBy() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
+                                else gameState.players.second == MainActivity.Source.Local
+                        it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
+                        it.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+                    }
                 }
             }
         }
@@ -126,8 +129,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             when (board.wonBy()) {
                 Player.PLAYER -> drawTile(canvas, true, true, fieldSize, ds.xColor - ds.symbolTransparency, wonSymbolStroke, tileSize)
                 Player.ENEMY -> drawTile(canvas, false, true, fieldSize, ds.oColor - ds.symbolTransparency, wonSymbolStroke, tileSize * oBorder / xBorder)
-                Player.NEUTRAL -> {
-                }//Nobody won, so no need to draw anything
+                Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
             }
         }
     }
@@ -158,32 +160,30 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             val yt = tile.ys() * tileSize
             canvas.translate(xt, yt)
 
-            if (player == Player.PLAYER)
-            //x
-                drawTile(canvas, true, false, tileSize, if (tile === lastMove)
-                    ds.xColorLight
-                else
-                    if (finished) ds.xColorDarkest else if (mNeutral) ds.xColor else ds.xColorDarker,
-                        tileSymbolStroke, xBorder)
-            else if (player == Player.ENEMY)
-            //o
-                drawTile(canvas, false, false, tileSize, if (tile === lastMove)
-                    ds.oColorLight
-                else
-                    if (finished) ds.oColorDarkest else if (mNeutral) ds.oColor else ds.oColorDarker,
-                        tileSymbolStroke, oBorder)
+            if (player == Player.PLAYER)//x
+                drawTile(canvas, true, false, tileSize, when {
+                    tile == lastMove -> ds.xColorLight
+                    finished -> ds.xColorDarkest
+                    mNeutral -> ds.xColor
+                    else -> ds.xColorDarker
+                }, tileSymbolStroke, xBorder)
+            else if (player == Player.ENEMY)//o
+                drawTile(canvas, false, false, tileSize, when {
+                    tile == lastMove -> ds.oColorLight
+                    finished -> ds.oColorDarkest
+                    mNeutral -> ds.oColor
+                    else -> ds.oColorDarker
+                }, tileSymbolStroke, oBorder)
 
             canvas.translate(-xt, -yt)
         }
 
         //Draw x and y over macros
-        if (mPlayer == Player.PLAYER)
-        //X
+        if (mPlayer == Player.PLAYER)//X
             drawTile(canvas, true, !finished, macroSizeSmall,
                     if (finished) ds.xColorDarker - ds.symbolTransparency else ds.xColor - ds.symbolTransparency,
                     macroSymbolStroke, xBorder)
-        else if (mPlayer == Player.ENEMY)
-        //O
+        else if (mPlayer == Player.ENEMY)//O
             drawTile(canvas, false, !finished, macroSizeSmall,
                     if (finished) ds.oColorDarker - ds.symbolTransparency else ds.oColor - ds.symbolTransparency,
                     macroSymbolStroke, oBorder)
@@ -233,6 +233,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         setVars()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(e: MotionEvent): Boolean {
         val x = e.x
         val y = e.y
@@ -259,7 +260,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             ys = if (ys > 2) --ys else ys
 
             performClick()
-            moveCallback?.callback(Coord.coord(xm, ym, xs, ys))
+            moveCallback.invoke(Coord.coord(xm, ym, xs, ys))
             Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")")
         }
 

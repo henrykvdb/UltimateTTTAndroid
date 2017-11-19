@@ -2,7 +2,7 @@ package com.henrykvdb.sttt
 
 import android.graphics.Color
 
-class DrawSettings {
+object DrawSettings {
     //PLAYER color settings (X)
     val xColor = Color.BLUE
     val xColorDarker = Color.rgb(0, 0, 230)

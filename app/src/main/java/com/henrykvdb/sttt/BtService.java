@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.bluetooth.*;
 import android.content.Intent;
@@ -57,11 +58,6 @@ public class BtService extends Service {
 
 		Log.e(Constants.LOG_TAG, "BTSERVICE CREATED");
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
 	}
 
 	public void listen() {
@@ -374,6 +370,7 @@ public class BtService extends Service {
 		this.requestState = requestState;
 	}
 
+	@SuppressLint("HardwareIds")
 	public String getLocalBluetoothName() {
 		return btAdapter.getName() != null ? btAdapter.getName() : btAdapter.getAddress();
 	}
