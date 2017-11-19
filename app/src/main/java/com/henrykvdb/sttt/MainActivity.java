@@ -10,13 +10,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.*;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.*;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Pair;
@@ -40,8 +41,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	//Game fields
 	private final AtomicReference<Pair<Coord, Source>> playerMove = new AtomicReference<>();
 	private final Object playerLock = new Object[0];
-	private BoardView boardView;
 	private GameThread gameThread;
+	private BoardView boardView;
 
 	//Bluetooth
 	private boolean btServiceStarted;
@@ -52,9 +53,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
 	//Other
-	private Toast toast;
 	private AlertDialog askDialog;
 	private AlertDialog btDialog;
+	private Toast toast;
 
 	public enum Source {
 		Local,
@@ -218,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		Intent intentAction = new Intent(Constants.INTENT_STOP_BT_SERVICE);
 		PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT);
 
-		Notification notification = new NotificationCompat.Builder(this)
+		Notification notification = new NotificationCompat.Builder(this,"sttt")
 				.setSmallIcon(R.drawable.ic_icon)
 				.setContentTitle(getString(R.string.app_name_long))
 				.setContentIntent(reopenPendingIntent)
