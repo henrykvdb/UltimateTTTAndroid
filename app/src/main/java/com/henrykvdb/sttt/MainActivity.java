@@ -25,7 +25,6 @@ import android.widget.*;
 import com.flaghacker.uttt.common.*;
 import com.google.android.gms.ads.*;
 import com.henrykvdb.sttt.Util.DialogUtil;
-import com.henrykvdb.sttt.Util.Util;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -45,9 +44,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private GameThread gameThread;
 
 	//Bluetooth
-	private BtService btService;
+	private boolean btServiceStarted;
 	private boolean btServiceBound;
+	private boolean killService;
 	private BluetoothAdapter btAdapter;
+	private BtService btService;
+
 
 	//Other
 	private Toast toast;
@@ -72,9 +74,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Make it easier to open the drawer
 		try {
-			Field mDragger = drawer.getClass().getDeclaredField("mLeftDragger");
-			mDragger.setAccessible(true);
-			ViewDragHelper draggerObj = (ViewDragHelper) mDragger.get(drawer);
+			Field dragger = drawer.getClass().getDeclaredField("mLeftDragger");
+			dragger.setAccessible(true);
+			ViewDragHelper draggerObj = (ViewDragHelper) dragger.get(drawer);
 			Field mEdgeSize = draggerObj.getClass().getDeclaredField("mEdgeSize");
 			mEdgeSize.setAccessible(true);
 			mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4);
@@ -121,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else {
 			//Restore game
-			keepBtOn = savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY, false);
+			btServiceStarted = savedInstanceState.getBoolean(Constants.BTSERVICE_STARTED_KEY);
+			keepBtOn = savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY);
 			newGame((GameState) savedInstanceState.getSerializable(Constants.GAMESTATE_KEY));
 		}
 
@@ -131,37 +134,77 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	}
 
 	@Override
+	protected void onStart() {
+		super.onStart();
+
+		//Register receiver
+		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+
+		//Cancel notification
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+		notificationManager.cancel(Constants.BT_STILL_RUNNING);
+
+		if (!btServiceStarted) {
+			startService(new Intent(this, BtService.class));
+			btServiceStarted = true;
+		}
+
+		if (!btServiceBound)
+			bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
+		else throw new RuntimeException("BtService already bound"); //TODO remove
+	}
+
+	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+		killService = !isChangingConfigurations() && btService.getState() != BtService.State.CONNECTED;
+		outState.putBoolean(Constants.BTSERVICE_STARTED_KEY, btServiceStarted && !killService);
 		outState.putBoolean(Constants.STARTED_WITH_BT_KEY, keepBtOn);
 		outState.putSerializable(Constants.GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
 	@Override
-	protected void onStart() {
-		super.onStart();
+	protected void onStop() {
+		//Notification telling the user that BtService is still open
+		if (!killService && btService.getState() == BtService.State.CONNECTED)
+			btRunningNotification();
 
-		registerReceiver(btStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+		//Unbind btService and stop if needed
+		unbindBtService(killService);
 
-		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(Constants.BT_STILL_RUNNING);
-
-		if (!btServiceBound)
-			bindBtService();
+		unregisterReceiver(btStateReceiver);
+		super.onStop();
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
+	protected void onDestroy() {
+		unregisterReceiver(intentReceiver);
 
-		unregisterReceiver(btStateReceiver);
+		if (!isChangingConfigurations()) {
+			unbindBtService(true);
+			if (!keepBtOn)
+				btAdapter.disable();
+		}
 
-		//Notification telling the user that BtService is still open
-		if (btService.getState() == BtService.State.CONNECTED)
-			btRunningNotification();
+		//Close notification
+		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
+		notificationManager.cancel(Constants.BT_STILL_RUNNING);
 
-		boolean kill = !isChangingConfigurations() && btService.getState() != BtService.State.CONNECTED;
-		unbindBtService(kill);
+		super.onDestroy();
+	}
+
+	private void unbindBtService(boolean stop) {
+		if (btServiceBound) {
+			dismissBtDialog();
+			btServiceBound = false;
+			unbindService(btServerConn);
+		}
+
+		if (stop) {
+			btServiceStarted = false;
+			stopService(new Intent(this, BtService.class));
+			turnLocal();
+		}
 	}
 
 	public void btRunningNotification() {
@@ -220,46 +263,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 	};
 
-	@Override
-	protected void onDestroy() {
-		unregisterReceiver(intentReceiver);
-
-		if (!keepBtOn)
-			btAdapter.disable();
-
-		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(Constants.BT_STILL_RUNNING);
-
-		super.onDestroy();
-	}
-
-	private void bindBtService() {
-		if (btServiceBound)
-			throw new RuntimeException("BtService already bound");
-
-		if (!Util.isServiceRunning(BtService.class, this))
-			startService(new Intent(this, BtService.class));
-
-		bindService(new Intent(this, BtService.class), btServerConn, Context.BIND_AUTO_CREATE);
-	}
-
-	private void unbindBtService(boolean stop) {
-		if (btServiceBound) {
-			dismissBtDialog();
-			unbindService(btServerConn);
-			btServiceBound = false;
-		}
-
-		if (stop) {
-			stopService(new Intent(this, BtService.class));
-			turnLocal();
-		}
-	}
-
 	private final ServiceConnection btServerConn = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.e("BTS", "btService Connected");
+			Log.e(Constants.LOG_TAG, "btService Connected");
 
 			btService = ((BtService.LocalBinder) service).getService();
 			btServiceBound = true;
@@ -280,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-			Log.e("BTS", "btService Disconnected");
+			Log.e(Constants.LOG_TAG, "btService Disconnected");
 			btServiceBound = false;
 		}
 	};

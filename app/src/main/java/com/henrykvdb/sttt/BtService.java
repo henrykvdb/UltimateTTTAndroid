@@ -55,8 +55,6 @@ public class BtService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
-		Log.e(Constants.LOG_TAG, "BTSERVICE CREATED");
 		btAdapter = BluetoothAdapter.getDefaultAdapter();
 	}
 

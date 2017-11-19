@@ -19,6 +19,7 @@ public class Constants {
 	public static final int REQUEST_COARSE_LOCATION = 102;  //Permission required to search nearby devices
 
 	//Keys for saving to bundle
+	public static final String BTSERVICE_STARTED_KEY = "BTSERVICE_STARTED_KEY";
 	public static final String GAMESTATE_KEY = "GAMESTATE_KEY";
 	public static final String STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY";
 
