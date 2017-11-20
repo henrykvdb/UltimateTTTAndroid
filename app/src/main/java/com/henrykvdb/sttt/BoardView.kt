@@ -83,10 +83,10 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
             it.text = null
             if (!board.isDone) {
-                val yourTurn = (board.nextPlayer() == Player.PLAYER && gameState.players.first == MainActivity.Source.Local) //TODO improve
-                        || (board.nextPlayer() == Player.ENEMY && gameState.players.second == MainActivity.Source.Local)
-                if (!gameState.isHuman())
+                if (!gameState.isHuman()){
+                    val yourTurn = gameState.nextSource()== MainActivity.Source.Local
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
+                }
             } else {
                 if (board.wonBy() == Player.NEUTRAL) {
                     it.setTextColor(Color.BLACK)

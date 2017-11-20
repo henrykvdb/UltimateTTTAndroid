@@ -3,6 +3,7 @@ package com.henrykvdb.sttt
 import com.flaghacker.uttt.bots.RandomBot
 import com.flaghacker.uttt.common.Board
 import com.flaghacker.uttt.common.Bot
+import com.flaghacker.uttt.common.Player
 import com.henrykvdb.sttt.MainActivity.Source.*
 import java.io.Serializable
 import java.util.*
@@ -17,6 +18,9 @@ class GameState private constructor(val players: Players, val boards: LinkedList
     fun isHuman() = (players.first == Local && players.second == Local)
     fun isBluetooth() = players.contains(Bluetooth)
     fun isAi() = players.contains(AI)
+
+    fun nextSource() = if (board().nextPlayer() == Player.PLAYER) players.first else players.second
+    fun otherSource() = if (board().nextPlayer() == Player.PLAYER) players.second else players.first
 
     companion object {
         private const val serialVersionUID = -3051602110955747927L

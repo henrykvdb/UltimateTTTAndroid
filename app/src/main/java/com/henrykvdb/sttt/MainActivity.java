@@ -501,8 +501,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else {
 			GameState newState = new GameState.Builder().gs(gs).build();
 			newState.popBoard();
-			if (Source.AI == (gs.board().nextPlayer() == Player.PLAYER ? gs.getPlayers().getFirst() : gs.getPlayers().getSecond())
-					&& newState.getBoards().size() > 1)
+			if (Source.AI == gs.otherSource() && newState.getBoards().size() > 1)
 				newState.popBoard();
 
 			newGame(newState);
