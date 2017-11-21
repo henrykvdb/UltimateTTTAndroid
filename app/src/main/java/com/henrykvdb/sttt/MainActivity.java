@@ -25,7 +25,7 @@ import android.view.*;
 import android.widget.*;
 import com.flaghacker.uttt.common.*;
 import com.google.android.gms.ads.*;
-import com.henrykvdb.sttt.Util.DialogUtil;
+import com.henrykvdb.sttt.util.DialogUtilKt;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -104,12 +104,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Register receiver to close bt service intent
 		IntentFilter filter = new IntentFilter();
-		filter.addAction(Constants.INTENT_STOP_BT_SERVICE);
-		filter.addAction(Constants.INTENT_TURNLOCAL);
-		filter.addAction(Constants.INTENT_NEWGAME);
-		filter.addAction(Constants.INTENT_TOAST);
-		filter.addAction(Constants.INTENT_MOVE);
-		filter.addAction(Constants.INTENT_UNDO);
+		filter.addAction(ConstantsKt.INTENT_STOP_BT_SERVICE);
+		filter.addAction(ConstantsKt.INTENT_TURNLOCAL);
+		filter.addAction(ConstantsKt.INTENT_NEWGAME);
+		filter.addAction(ConstantsKt.INTENT_TOAST);
+		filter.addAction(ConstantsKt.INTENT_MOVE);
+		filter.addAction(ConstantsKt.INTENT_UNDO);
 		registerReceiver(intentReceiver, filter);
 
 		//Prepare fields
@@ -124,14 +124,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		}
 		else {
 			//Restore game
-			btServiceStarted = savedInstanceState.getBoolean(Constants.BTSERVICE_STARTED_KEY);
-			keepBtOn = savedInstanceState.getBoolean(Constants.STARTED_WITH_BT_KEY);
-			newGame((GameState) savedInstanceState.getSerializable(Constants.GAMESTATE_KEY));
+			btServiceStarted = savedInstanceState.getBoolean(ConstantsKt.BTSERVICE_STARTED_KEY);
+			keepBtOn = savedInstanceState.getBoolean(ConstantsKt.STARTED_WITH_BT_KEY);
+			newGame((GameState) savedInstanceState.getSerializable(ConstantsKt.GAMESTATE_KEY));
 		}
 
 		//Ask the user to rateDialog
 		if (savedInstanceState == null)
-			DialogUtil.rateDialog(this);
+			DialogUtilKt.rateDialog(this);
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Cancel notification
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(Constants.BT_STILL_RUNNING);
+		notificationManager.cancel(ConstantsKt.BT_STILL_RUNNING);
 
 		if (!btServiceStarted) {
 			startService(new Intent(this, BtService.class));
@@ -157,10 +157,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		killService = !isChangingConfigurations() && btService.getState() != BtService.State.CONNECTED;
-		outState.putBoolean(Constants.BTSERVICE_STARTED_KEY, btServiceStarted && !killService);
-		outState.putBoolean(Constants.STARTED_WITH_BT_KEY, keepBtOn);
-		outState.putSerializable(Constants.GAMESTATE_KEY, gs);
+		killService = !isChangingConfigurations() && btService!=null && btService.getState() != BtService.State.CONNECTED;
+		outState.putBoolean(ConstantsKt.BTSERVICE_STARTED_KEY, btServiceStarted && !killService);
+		outState.putBoolean(ConstantsKt.STARTED_WITH_BT_KEY, keepBtOn);
+		outState.putSerializable(ConstantsKt.GAMESTATE_KEY, gs);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		//Close notification
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-		notificationManager.cancel(Constants.BT_STILL_RUNNING);
+		notificationManager.cancel(ConstantsKt.BT_STILL_RUNNING);
 
 		super.onDestroy();
 	}
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		PendingIntent reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT);
 
 		//This intent shuts down the btService
-		Intent intentAction = new Intent(Constants.INTENT_STOP_BT_SERVICE);
+		Intent intentAction = new Intent(ConstantsKt.INTENT_STOP_BT_SERVICE);
 		PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT);
 
 		Notification notification = new NotificationCompat.Builder(this,"sttt")
@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				.setOngoing(true).build();
 
 		NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-		notificationManager.notify(Constants.BT_STILL_RUNNING, notification);
+		notificationManager.notify(ConstantsKt.BT_STILL_RUNNING, notification);
 	}
 
 	private final BroadcastReceiver intentReceiver = new BroadcastReceiver() {
@@ -239,27 +239,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			Log.e("INTENT", "RECEIVED INTENT: " + action);
 
 			switch (action) {
-				case Constants.INTENT_MOVE:
-					Source src = (Source) intent.getSerializableExtra(Constants.INTENT_DATA_FIRST);
-					Coord move = (Coord) intent.getSerializableExtra(Constants.INTENT_DATA_SECOND);
+				case ConstantsKt.INTENT_MOVE:
+					Source src = (Source) intent.getSerializableExtra(ConstantsKt.INTENT_DATA_FIRST);
+					Coord move = (Coord) intent.getSerializableExtra(ConstantsKt.INTENT_DATA_SECOND);
 					play(src, move);
 					break;
-				case Constants.INTENT_NEWGAME:
-					newGame((GameState) intent.getSerializableExtra(Constants.INTENT_DATA_FIRST));
+				case ConstantsKt.INTENT_NEWGAME:
+					newGame((GameState) intent.getSerializableExtra(ConstantsKt.INTENT_DATA_FIRST));
 					break;
-				case Constants.INTENT_STOP_BT_SERVICE:
+				case ConstantsKt.INTENT_STOP_BT_SERVICE:
 					unbindBtService(true);
 					NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
-					notificationManager.cancel(Constants.BT_STILL_RUNNING);
+					notificationManager.cancel(ConstantsKt.BT_STILL_RUNNING);
 					break;
-				case Constants.INTENT_TOAST:
-					toast(intent.getStringExtra(Constants.INTENT_DATA_FIRST));
+				case ConstantsKt.INTENT_TOAST:
+					toast(intent.getStringExtra(ConstantsKt.INTENT_DATA_FIRST));
 					break;
-				case Constants.INTENT_TURNLOCAL:
+				case ConstantsKt.INTENT_TURNLOCAL:
 					turnLocal();
 					break;
-				case Constants.INTENT_UNDO:
-					undo(intent.getBooleanExtra(Constants.INTENT_DATA_FIRST, false));
+				case ConstantsKt.INTENT_UNDO:
+					undo(intent.getBooleanExtra(ConstantsKt.INTENT_DATA_FIRST, false));
 			}
 		}
 	};
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 	private final ServiceConnection btServerConn = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			Log.e(Constants.LOG_TAG, "btService Connected");
+			Log.e(ConstantsKt.LOG_TAG, "btService Connected");
 
 			btService = ((BtService.LocalBinder) service).getService();
 			btServiceBound = true;
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
-			Log.e(Constants.LOG_TAG, "btService Disconnected");
+			Log.e(ConstantsKt.LOG_TAG, "btService Disconnected");
 			btServiceBound = false;
 		}
 	};
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	private void dismissBtDialog() {
 		if (btDialog != null) {
-			Log.e(Constants.LOG_TAG, "Closing bt dialog");
+			Log.e(ConstantsKt.LOG_TAG, "Closing bt dialog");
 			btDialog.dismiss();
 			btDialog = null;
 		}
@@ -516,19 +516,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		int id = item.getItemId();
 
 		if (id == R.id.nav_local_human)
-			DialogUtil.newLocal(accept -> newLocal(), this);
+			DialogUtilKt.newLocal(accept -> newLocal(), this);
 		else if (id == R.id.nav_local_ai)
-			DialogUtil.newAi(this::newGame, this);
+			DialogUtilKt.newAi(this::newGame, this);
 		else if (id == R.id.nav_bt_host)
 			hostBt();
 		else if (id == R.id.nav_bt_join)
 			joinBt();
 		else if (id == R.id.nav_other_feedback)
-			DialogUtil.feedbackSender(this);
+			DialogUtilKt.feedbackSender(this);
 		else if (id == R.id.nav_other_share)
-			DialogUtil.shareDialog(this);
+			DialogUtilKt.shareDialog(this);
 		else if (id == R.id.nav_other_about)
-			DialogUtil.aboutDialog(this);
+			DialogUtilKt.aboutDialog(this);
 		else return false;
 
 		((DrawerLayout) findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
@@ -572,9 +572,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 			((RadioGroup) layout.findViewById(R.id.start_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
 			((RadioGroup) layout.findViewById(R.id.board_radio_group)).setOnCheckedChangeListener(onCheckedChangeListener);
 
-			btDialog = DialogUtil.keepDialog(new AlertDialog.Builder(this)
+			btDialog = DialogUtilKt.keepDialog(new AlertDialog.Builder(this)
 					.setView(layout)
-					.setCustomTitle(DialogUtil.newTitle(this, getString(R.string.host_bluetooth_game)))
+					.setCustomTitle(DialogUtilKt.newTitle(this, getString(R.string.host_bluetooth_game)))
 					.setOnCancelListener(dialog -> btService.closeThread())
 					.setNegativeButton(getString(R.string.close), (dialog, which) ->
 					{
@@ -585,7 +585,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		else {
 			Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 			discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
-			startActivityForResult(discoverableIntent, Constants.REQUEST_ENABLE_DSC);
+			startActivityForResult(discoverableIntent, ConstantsKt.REQUEST_ENABLE_DSC);
 		}
 	}
 
@@ -599,21 +599,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 		// If BT is not on, request that it be enabled first.
 		if (!btAdapter.isEnabled()) {
 			Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BT);
+			startActivityForResult(enableIntent, ConstantsKt.REQUEST_ENABLE_BT);
 		}
 		else {
 			//If we don't have the COARSE LOCATION permission, request it
 			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
-				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, Constants.REQUEST_COARSE_LOCATION);
+				ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, ConstantsKt.REQUEST_COARSE_LOCATION);
 			else btDialog = new BtPicker(this, btAdapter, adr -> btService.connect(adr)).getAlertDialog();
 		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == Constants.REQUEST_ENABLE_BT && resultCode == RESULT_OK)
+		if (requestCode == ConstantsKt.REQUEST_ENABLE_BT && resultCode == RESULT_OK)
 			joinBt();
-		else if (requestCode == Constants.REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
+		else if (requestCode == ConstantsKt.REQUEST_ENABLE_DSC && resultCode != RESULT_CANCELED)
 			hostBt();
 
 		super.onActivityResult(requestCode, resultCode, data);
@@ -621,7 +621,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-		if (requestCode == Constants.REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+		if (requestCode == ConstantsKt.REQUEST_COARSE_LOCATION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
 			joinBt();
 
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -644,6 +644,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 				.setNegativeButton(getString(R.string.no), dialogClickListener)
 				.setOnDismissListener(dialogInterface -> callBack.invoke(false)).show();
 
-		DialogUtil.keepDialog(askDialog);
+		DialogUtilKt.keepDialog(askDialog);
 	}
 }

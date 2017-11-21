@@ -8,8 +8,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 import com.flaghacker.uttt.common.*;
-import com.henrykvdb.sttt.Util.IntentUtil;
-import com.henrykvdb.sttt.Util.Util;
+import com.henrykvdb.sttt.util.IntentUtilKt;
+import com.henrykvdb.sttt.util.UtilKt;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -70,7 +70,7 @@ public class BtService extends Service {
 		closeThread();
 
 		BluetoothDevice device = btAdapter.getRemoteDevice(address);
-		Log.e(Constants.LOG_TAG, "connect to: " + device);
+		Log.e(ConstantsKt.LOG_TAG, "connect to: " + device);
 
 		btThread = new ConnectingThread(device);
 		btThread.start();
@@ -86,7 +86,7 @@ public class BtService extends Service {
 			}
 		}
 
-		IntentUtil.sendTurnLocal(this);
+		IntentUtilKt.sendTurnLocal(this);
 	}
 
 	public static abstract class CloseableThread extends Thread implements Closeable {
@@ -103,13 +103,13 @@ public class BtService extends Service {
 				serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("SuperTTT", UUID);
 			}
 			catch (IOException e) {
-				Log.e(Constants.LOG_TAG, "listen() failed", e);
+				Log.e(ConstantsKt.LOG_TAG, "listen() failed", e);
 			}
 		}
 
 		@Override
 		public void run() {
-			Log.e(Constants.LOG_TAG, "BEGIN ListenThread " + this);
+			Log.e(ConstantsKt.LOG_TAG, "BEGIN ListenThread " + this);
 
 			// Listen to the server socket if we're not connected
 			while (state != BtService.State.CONNECTED && !isInterrupted()) {
@@ -118,7 +118,7 @@ public class BtService extends Service {
 					socket = serverSocket.accept();
 				}
 				catch (IOException e) {
-					Log.e(Constants.LOG_TAG, "accept() failed", e);
+					Log.e(ConstantsKt.LOG_TAG, "accept() failed", e);
 					break;
 				}
 
@@ -127,7 +127,7 @@ public class BtService extends Service {
 			}
 
 			state = BtService.State.NONE;
-			Log.e(Constants.LOG_TAG, "END ListenThread");
+			Log.e(ConstantsKt.LOG_TAG, "END ListenThread");
 		}
 
 		@Override
@@ -155,7 +155,7 @@ public class BtService extends Service {
 
 		@Override
 		public void run() {
-			Log.e(Constants.LOG_TAG, "BEGIN connectingThread" + this);
+			Log.e(ConstantsKt.LOG_TAG, "BEGIN connectingThread" + this);
 
 			btAdapter.cancelDiscovery();
 
@@ -171,18 +171,18 @@ public class BtService extends Service {
 			}
 			catch (IOException e) {
 				state = BtService.State.NONE;
-				IntentUtil.sendToast(BtService.this, getString(R.string.unable_to_connect));
-				Log.e(Constants.LOG_TAG, "Unable to connect to device", e);
+				IntentUtilKt.sendToast(BtService.this, getString(R.string.unable_to_connect));
+				Log.e(ConstantsKt.LOG_TAG, "Unable to connect to device", e);
 
 				try {
 					socket.close();
 				}
 				catch (IOException e2) {
-					Log.e(Constants.LOG_TAG, "unable to interrupt() socket during connection failure", e2);
+					Log.e(ConstantsKt.LOG_TAG, "unable to interrupt() socket during connection failure", e2);
 				}
 			}
 
-			Log.e(Constants.LOG_TAG, "END connectingThread" + this);
+			Log.e(ConstantsKt.LOG_TAG, "END connectingThread" + this);
 		}
 
 		@Override
@@ -193,7 +193,7 @@ public class BtService extends Service {
 	}
 
 	private void connected(BluetoothSocket socket, boolean isHost) {
-		Log.e(Constants.LOG_TAG, "BEGIN connected thread");
+		Log.e(ConstantsKt.LOG_TAG, "BEGIN connected thread");
 
 		if (Thread.interrupted())
 			return;
@@ -208,14 +208,14 @@ public class BtService extends Service {
 			state = State.CONNECTED;
 		}
 		catch (IOException e) {
-			Log.e(Constants.LOG_TAG, "connected sockets not created", e);
+			Log.e(ConstantsKt.LOG_TAG, "connected sockets not created", e);
 			state = State.NONE;
 			return;
 		}
 
 		connectedDeviceName = socket.getRemoteDevice().getName();
-		Log.e(Constants.LOG_TAG, "CONNECTED to " + connectedDeviceName);
-		IntentUtil.sendToast(this, getString(R.string.connected_to, connectedDeviceName));
+		Log.e(ConstantsKt.LOG_TAG, "CONNECTED to " + connectedDeviceName);
+		IntentUtilKt.sendToast(this, getString(R.string.connected_to, connectedDeviceName));
 
 		byte[] buffer = new byte[1024];
 
@@ -232,43 +232,43 @@ public class BtService extends Service {
 
 				int message = json.getInt("message");
 
-				Log.e(Constants.LOG_TAG, "RECEIVED BTMESSAGE: " + message);
+				Log.e(ConstantsKt.LOG_TAG, "RECEIVED BTMESSAGE: " + message);
 				if (message == Message.SEND_BOARD_UPDATE.ordinal()) {
 					Board newBoard = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					Coord newMove = newBoard.getLastMove();
 
-					if (Util.isValidBoard(localBoard, newBoard)) {
-						Log.e(Constants.LOG_TAG, "We received a valid board");
+					if (UtilKt.isValidBoard(localBoard, newBoard)) {
+						Log.e(ConstantsKt.LOG_TAG, "We received a valid board");
 						localBoard = newBoard;
-						IntentUtil.sendMove(this, MainActivity.Source.Bluetooth, newMove);
+						IntentUtilKt.sendMove(this, MainActivity.Source.Bluetooth, newMove);
 					}
 					else {
-						IntentUtil.sendToast(this, getString(R.string.desync_message));
+						IntentUtilKt.sendToast(this, getString(R.string.desync_message));
 						break;
 					}
 				}
 				else if (message == Message.RECEIVE_SETUP.ordinal()) {
 					Board board = JSONBoard.fromJSON(new JSONObject(json.getString("board")));
 					localBoard = board;
-					IntentUtil.sendNewGame(this, new GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build());
+					IntentUtilKt.sendNewGame(this, new GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build());
 				}
 				else if (message == Message.RECEIVE_UNDO.ordinal()) {
-					IntentUtil.sendUndo(this, json.getBoolean("force"));
+					IntentUtilKt.sendUndo(this, json.getBoolean("force"));
 				}
 			}
 			catch (IOException e) {
-				Log.e(Constants.LOG_TAG, "disconnected", e);
-				IntentUtil.sendToast(this, getString(R.string.connection_lost));
+				Log.e(ConstantsKt.LOG_TAG, "disconnected", e);
+				IntentUtilKt.sendToast(this, getString(R.string.connection_lost));
 				break;
 			}
 			catch (JSONException e) {
-				Log.e(Constants.LOG_TAG, "JSON read parsing failed");
+				Log.e(ConstantsKt.LOG_TAG, "JSON read parsing failed");
 				break;
 			}
 		}
 
 		state = State.NONE;
-		IntentUtil.sendTurnLocal(this);
+		IntentUtilKt.sendTurnLocal(this);
 
 		try {
 			inStream.close();
@@ -277,7 +277,7 @@ public class BtService extends Service {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		Log.e(Constants.LOG_TAG, "END connected thread");
+		Log.e(ConstantsKt.LOG_TAG, "END connected thread");
 	}
 
 	public String getConnectedDeviceName() {
@@ -295,7 +295,7 @@ public class BtService extends Service {
 	}
 
 	public void sendUndo(boolean force) {
-		Log.e(Constants.LOG_TAG, "Sending undo");
+		Log.e(ConstantsKt.LOG_TAG, "Sending undo");
 
 		if (state != State.CONNECTED)
 			return;
@@ -309,7 +309,7 @@ public class BtService extends Service {
 			outStream.write(data);
 		}
 		catch (IOException e) {
-			Log.e(Constants.LOG_TAG, "Exception during undo", e);
+			Log.e(ConstantsKt.LOG_TAG, "Exception during undo", e);
 		}
 		catch (JSONException e) {
 			e.printStackTrace();
@@ -317,8 +317,8 @@ public class BtService extends Service {
 	}
 
 	private void sendSetup() {
-		IntentUtil.sendNewGame(this, requestState);
-		Log.e(Constants.LOG_TAG, "Sending setup, starting: " + requestState.getPlayers().getFirst());
+		IntentUtilKt.sendNewGame(this, requestState);
+		Log.e(ConstantsKt.LOG_TAG, "Sending setup, starting: " + requestState.getPlayers().getFirst());
 
 		localBoard = requestState.board();
 
@@ -334,7 +334,7 @@ public class BtService extends Service {
 			outStream.write(data);
 		}
 		catch (IOException e) {
-			Log.e(Constants.LOG_TAG, "Exception during boardUpdate", e);
+			Log.e(ConstantsKt.LOG_TAG, "Exception during boardUpdate", e);
 		}
 		catch (JSONException e) {
 			e.printStackTrace();
@@ -342,7 +342,7 @@ public class BtService extends Service {
 	}
 
 	public void sendBoard(Board board) {
-		Log.e(Constants.LOG_TAG, "Sending board");
+		Log.e(ConstantsKt.LOG_TAG, "Sending board");
 
 		localBoard = board;
 
@@ -357,7 +357,7 @@ public class BtService extends Service {
 			outStream.write(data);
 		}
 		catch (IOException e) {
-			Log.e(Constants.LOG_TAG, "Exception during boardUpdate", e);
+			Log.e(ConstantsKt.LOG_TAG, "Exception during boardUpdate", e);
 		}
 		catch (JSONException e) {
 			e.printStackTrace();
