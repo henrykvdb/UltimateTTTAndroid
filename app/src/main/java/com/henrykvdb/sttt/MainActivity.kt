@@ -500,9 +500,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-
-        when (id) {
+        when (item.itemId) {
             R.id.nav_local_human -> com.henrykvdb.sttt.util.newLocal(object : Callback<Boolean> {
                 override fun invoke(t: Boolean) {
                     if (t) newLocal()
@@ -601,7 +599,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK)
             joinBt()
         else if (requestCode == REQUEST_ENABLE_DSC && resultCode != Activity.RESULT_CANCELED)
@@ -610,10 +608,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == REQUEST_COARSE_LOCATION && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
             joinBt()
-
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
