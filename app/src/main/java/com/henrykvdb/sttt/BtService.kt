@@ -10,8 +10,9 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import com.flaghacker.uttt.common.Board
-import com.flaghacker.uttt.common.JSONBoard
+import com.flaghacker.sttt.common.Board
+import com.flaghacker.sttt.common.JSONBoard
+import com.flaghacker.sttt.common.toJSON
 import com.henrykvdb.sttt.util.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -221,7 +222,7 @@ class BtService : Service() {
                 Log.e(LOG_TAG, "RECEIVED BTMESSAGE: " + message)
                 if (message == Message.SEND_BOARD_UPDATE.ordinal) {
                     val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
-                    val newMove = newBoard.lastMove
+                    val newMove = newBoard.lastMove()!!
 
                     if (isValidBoard(localBoard, newBoard)) {
                         Log.e(LOG_TAG, "We received a valid board")
@@ -294,7 +295,7 @@ class BtService : Service() {
 
             json.put("message", Message.RECEIVE_SETUP.ordinal)
             json.put("start", requestState.players.first == MainActivity.Source.Bluetooth)
-            json.put("board", JSONBoard.toJSON(requestState.board()).toString())
+            json.put("board", requestState.board().toJSON().toString())
 
             val data = json.toString().toByteArray()
 
@@ -316,7 +317,7 @@ class BtService : Service() {
             val json = JSONObject()
 
             json.put("message", Message.SEND_BOARD_UPDATE.ordinal)
-            json.put("board", JSONBoard.toJSON(board).toString())
+            json.put("board", board.toJSON().toString())
 
             val data = json.toString().toByteArray()
 

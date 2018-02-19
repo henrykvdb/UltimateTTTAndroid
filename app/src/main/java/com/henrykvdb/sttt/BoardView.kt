@@ -8,9 +8,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
-import com.flaghacker.uttt.common.Board
-import com.flaghacker.uttt.common.Coord
-import com.flaghacker.uttt.common.Player
+import com.flaghacker.sttt.common.*
 
 @Suppress("unused") typealias ds = DrawSettings
 
@@ -82,7 +80,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             //Set the helper text
             it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
             it.text = null
-            if (!board.isDone) {
+            if (!board.isDone()) {
                 if (!gameState.isHuman()){
                     val yourTurn = gameState.nextSource()== MainActivity.Source.Local
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
@@ -111,8 +109,9 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         paint.color = if (board.nextPlayer() == Player.PLAYER) ds.xColor else ds.oColor
         paint.alpha = 50
         for (coord in board.availableMoves()) {
-            val x = coord.xm() * macroSizeFull + coord.xs() * tileSize + whiteSpace
-            val y = coord.ym() * macroSizeFull + coord.ys() * tileSize + whiteSpace
+            val coords = coord.toPair()
+            val x = coords.first/3 * macroSizeFull + coords.first%3 * tileSize + whiteSpace
+            val y = coords.second/3 * macroSizeFull + coords.second%3 * tileSize + whiteSpace
 
             canvas.translate(x, y)
             canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
@@ -120,12 +119,12 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         }
 
         for (om in 0..8)
-            drawMacro(canvas, board, om)
+            drawMacro(canvas, board, om.toByte())
 
         //Bigger macro separate lines
         drawGridBarriers(canvas, fieldSize, ds.gridColor, bigGridStroke)
 
-        if (board.isDone) {
+        if (board.isDone()) {
             when (board.wonBy()) {
                 Player.PLAYER -> drawTile(canvas, true, true, fieldSize, ds.xColor - ds.symbolTransparency, wonSymbolStroke, tileSize)
                 Player.ENEMY -> drawTile(canvas, false, true, fieldSize, ds.oColor - ds.symbolTransparency, wonSymbolStroke, tileSize * oBorder / xBorder)
@@ -134,14 +133,14 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         }
     }
 
-    private fun drawMacro(canvas: Canvas, board: Board, om: Int) {
+    private fun drawMacro(canvas: Canvas, board: Board, om: Byte) {
         val xm = om % 3
         val ym = om / 3
 
-        val mPlayer = board.macro(xm, ym)
+        val mPlayer = board.macro(om)
         val mNeutral = mPlayer == Player.NEUTRAL
         val finished = board.wonBy() != Player.NEUTRAL
-        val lastMove = board.lastMove
+        val lastMove = board.lastMove()
 
         //Translate to macro
         val xmt = macroSizeFull * xm + whiteSpace
@@ -152,24 +151,24 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         drawGridBarriers(canvas, macroSizeSmall, ds.gridColor, smallGridStroke)
 
         //Loop through tiles of the macro
-        for (tile in Coord.macro(xm, ym)) {
-            val player = board.tile(tile)
+        for (tile in (9*om)..(9*om+8)) {
+            val player = board.tile(tile.toByte())
 
             //Translate to tile
-            val xt = tile.xs() * tileSize
-            val yt = tile.ys() * tileSize
+            val xt = (tile%9)%3 * tileSize
+            val yt = (tile%9)/3 * tileSize
             canvas.translate(xt, yt)
 
             if (player == Player.PLAYER)//x
                 drawTile(canvas, true, false, tileSize, when {
-                    tile == lastMove -> ds.xColorLight
+                    tile.toByte() == lastMove -> ds.xColorLight
                     finished -> ds.xColorDarkest
                     mNeutral -> ds.xColor
                     else -> ds.xColorDarker
                 }, tileSymbolStroke, xBorder)
             else if (player == Player.ENEMY)//o
                 drawTile(canvas, false, false, tileSize, when {
-                    tile == lastMove -> ds.oColorLight
+                    tile.toByte() == lastMove -> ds.oColorLight
                     finished -> ds.oColorDarkest
                     mNeutral -> ds.oColor
                     else -> ds.oColorDarker
@@ -260,7 +259,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             ys = if (ys > 2) --ys else ys
 
             performClick()
-            moveCallback.invoke(Coord.coord(xm, ym, xs, ys))
+            moveCallback.invoke(toCoord(xm*3+xs,ym*3+ys))
             Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")")
         }
 

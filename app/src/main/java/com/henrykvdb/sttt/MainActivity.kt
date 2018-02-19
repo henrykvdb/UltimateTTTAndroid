@@ -29,9 +29,9 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
-import com.flaghacker.uttt.common.Coord
-import com.flaghacker.uttt.common.Player
-import com.flaghacker.uttt.common.Timer
+import com.flaghacker.sttt.common.Coord
+import com.flaghacker.sttt.common.Player
+import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    fun btRunningNotification() {
+    private fun btRunningNotification() {
         //This intent reopens the app
         val reopenIntent = Intent(this, MainActivity::class.java)
         reopenIntent.action = Intent.ACTION_MAIN
@@ -274,7 +274,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
                     if (newBoard !== gs!!.board())
-                        play(Source.Bluetooth, newBoard.lastMove)
+                        play(Source.Bluetooth, newBoard.lastMove()!!)
 
                     //Update subtitle
                     setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
@@ -357,17 +357,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val p1 = gs!!.players.first
             val p2 = gs!!.players.second
 
-            while (!gs!!.board().isDone && running) {
+            while (!gs!!.board().isDone() && running) {
                 timer = Timer(5000)
 
                 if (gs!!.board().nextPlayer() == Player.PLAYER && running)
-                    playAndUpdateBoard(if (p1 != Source.AI) getMove(p1) else gs!!.extraBot.move(gs!!.board(), timer))
+                    playAndUpdateBoard(if (p1 != Source.AI) getMove(p1) else gs!!.extraBot.move(gs!!.board(), timer!!))
 
-                if (gs!!.board().isDone || !running)
+                if (gs!!.board().isDone() || !running)
                     continue
 
                 if (gs!!.board().nextPlayer() == Player.ENEMY && running)
-                    playAndUpdateBoard(if (p2 != Source.AI) getMove(p2) else gs!!.extraBot.move(gs!!.board(), timer))
+                    playAndUpdateBoard(if (p2 != Source.AI) getMove(p2) else gs!!.extraBot.move(gs!!.board(), timer!!))
             }
         }
 

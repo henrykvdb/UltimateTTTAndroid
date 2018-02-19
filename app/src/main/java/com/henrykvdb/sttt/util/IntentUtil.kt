@@ -2,7 +2,7 @@ package com.henrykvdb.sttt.util
 
 import android.content.Context
 import android.content.Intent
-import com.flaghacker.uttt.common.Coord
+import com.flaghacker.sttt.common.Coord
 import com.henrykvdb.sttt.*
 
 fun sendMove(context: Context, src: MainActivity.Source, move: Coord) {

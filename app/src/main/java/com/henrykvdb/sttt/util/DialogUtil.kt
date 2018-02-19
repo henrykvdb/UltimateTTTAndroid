@@ -13,9 +13,10 @@ import android.view.WindowManager
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
+import com.flaghacker.sttt.bots.MMBot
+import com.flaghacker.sttt.bots.RandomBot
 import com.henrykvdb.sttt.Callback
 import com.henrykvdb.sttt.GameState
-import com.henrykvdb.sttt.MMBot
 import com.henrykvdb.sttt.R
 import java.util.*
 
@@ -97,7 +98,7 @@ fun aboutDialog(context: Context) {
     keepDialog(AlertDialog.Builder(context)
             .setCustomTitle(newTitle(context, context.getString(R.string.about)))
             .setView(layout)
-            .setPositiveButton(context.getString(R.string.close)) { dialog1, which -> dialog1.dismiss() }
+            .setPositiveButton(context.getString(R.string.close)) { dialog1, _ -> dialog1.dismiss() }
             .show())
 }
 
@@ -114,15 +115,15 @@ fun rateDialog(context: Context) {
     editor.putLong(LAUNCH_COUNT, launchCount)
 
     // Get date of first launch
-    var date_firstLaunch: Long? = prefs.getLong(DATE_FIRST_LAUNCH, 0)
-    if (date_firstLaunch == 0L) {
-        date_firstLaunch = System.currentTimeMillis()
-        editor.putLong(DATE_FIRST_LAUNCH, date_firstLaunch)
+    var dateFirstLaunch: Long? = prefs.getLong(DATE_FIRST_LAUNCH, 0)
+    if (dateFirstLaunch == 0L) {
+        dateFirstLaunch = System.currentTimeMillis()
+        editor.putLong(DATE_FIRST_LAUNCH, dateFirstLaunch)
     }
 
     // Wait at least n days before opening
-    if (launchCount >= LAUNCHES_UNTIL_PROMPT && System.currentTimeMillis() >= date_firstLaunch!! + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000) {
-        @SuppressLint("InlinedApi") val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+    if (launchCount >= LAUNCHES_UNTIL_PROMPT && System.currentTimeMillis() >= dateFirstLaunch!! + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000) {
+        @SuppressLint("InlinedApi") val dialogClickListener = DialogInterface.OnClickListener { _, which ->
             when (which) {
                 DialogInterface.BUTTON_POSITIVE -> {
                     editor.putBoolean(DONT_SHOW_AGAIN, true)
@@ -175,12 +176,13 @@ fun newAi(callback: Callback<GameState>, context: Context) {
 
     val layout = View.inflate(context, R.layout.dialog_ai, null)
     val beginner = layout.findViewById<RadioGroup>(R.id.start_radio_group)
-    beginner.setOnCheckedChangeListener { group, checkedId -> swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || Random().nextBoolean()) }
+    beginner.setOnCheckedChangeListener { _, checkedId -> swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || Random().nextBoolean()) }
 
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+        val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
         when (which) {
             DialogInterface.BUTTON_POSITIVE -> callback.invoke(GameState.Builder()
-                    .ai(MMBot((layout.findViewById<View>(R.id.difficulty) as SeekBar).progress))
+                    .ai(if (progress > 0) MMBot(progress) else RandomBot())
                     .swapped(swapped[0]).build())
             DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
         }

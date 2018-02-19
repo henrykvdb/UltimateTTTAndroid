@@ -1,9 +1,9 @@
 package com.henrykvdb.sttt
 
-import com.flaghacker.uttt.bots.RandomBot
-import com.flaghacker.uttt.common.Board
-import com.flaghacker.uttt.common.Bot
-import com.flaghacker.uttt.common.Player
+import com.flaghacker.sttt.bots.RandomBot
+import com.flaghacker.sttt.common.Board
+import com.flaghacker.sttt.common.Bot
+import com.flaghacker.sttt.common.Player
 import com.henrykvdb.sttt.MainActivity.Source.*
 import java.io.Serializable
 import java.util.*
