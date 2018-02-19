@@ -12,9 +12,6 @@ android {
         targetSdkVersion 26
         versionCode 16
         versionName "2.0.0"
-        jackOptions {
-            enabled true
-        }
     }
     buildTypes {
         release {
@@ -35,7 +32,7 @@ dependencies {
     compile 'com.google.firebase:firebase-ads:11.6.0'
     compile 'com.google.firebase:firebase-crash:11.6.0'
 
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 repositories {
