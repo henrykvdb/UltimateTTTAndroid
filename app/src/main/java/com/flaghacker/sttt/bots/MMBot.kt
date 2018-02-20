@@ -15,9 +15,9 @@ class MMBot(private val depth: Int) : Bot {
 		return negaMax(board, depth, NEGATIVE_INFINITY, POSITIVE_INFINITY, playerSign(board.nextPlayer())).move
 	}
 
-	private class ValuedMove(val move: Byte, val value: Double)
+	public class ValuedMove(val move: Byte, val value: Double) //TODO make private
 
-	private fun negaMax(board: Board, depth: Int, a: Double, b: Double, player: Int): ValuedMove {
+	public fun negaMax(board: Board, depth: Int, a: Double, b: Double, player: Int): ValuedMove {//TODO make private
 		if (depth == 0 || board.isDone())
 			return ValuedMove(board.lastMove()!!, player * value(board))
 

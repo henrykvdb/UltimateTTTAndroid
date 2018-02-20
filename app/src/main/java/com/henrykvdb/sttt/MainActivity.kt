@@ -29,6 +29,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.common.Coord
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
@@ -38,6 +39,8 @@ import com.google.android.gms.ads.MobileAds
 import com.henrykvdb.sttt.util.*
 import java.io.Closeable
 import java.io.IOException
+import java.lang.Double.NEGATIVE_INFINITY
+import java.lang.Double.POSITIVE_INFINITY
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -363,11 +366,28 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (gs!!.board().nextPlayer() == Player.PLAYER && running)
                     playAndUpdateBoard(if (p1 != Source.AI) getMove(p1) else gs!!.extraBot.move(gs!!.board(), timer!!))
 
+
+                debug("p1! $p1") //TODO remove
+
                 if (gs!!.board().isDone() || !running)
                     continue
 
-                if (gs!!.board().nextPlayer() == Player.ENEMY && running)
-                    playAndUpdateBoard(if (p2 != Source.AI) getMove(p2) else gs!!.extraBot.move(gs!!.board(), timer!!))
+                //if (gs!!.board().nextPlayer() == Player.ENEMY && running)
+                //    playAndUpdateBoard(if (p2 != Source.AI) getMove(p2) else gs!!.extraBot.move(gs!!.board(), timer!!))
+
+
+                //TODO remove below
+                debug("p2! $p2")
+                val start1 = System.currentTimeMillis()
+                val move1 = MMBot(9999).negaMax(gs!!.board(), 6, NEGATIVE_INFINITY, POSITIVE_INFINITY, -1)
+                val elapsed1 = System.currentTimeMillis() - start1
+                debug("Got move1 $move1 in $elapsed1 ms")
+                val start = System.currentTimeMillis()
+                val move = MMBot(6).move(gs!!.board(), Timer(5000))
+                val elapsed = System.currentTimeMillis() - start
+                debug("Got move $move in $elapsed ms")
+                playAndUpdateBoard(move)
+                //TODO
             }
         }
 
@@ -383,6 +403,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun playAndUpdateBoard(move: Coord?) {
+        debug("Gotcha!")
         if (move != null) {
             val newBoard = gs!!.board().copy()
             newBoard.play(move)
@@ -393,7 +414,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             gs!!.pushBoard(newBoard)
         }
 
+
+        debug("drawing!")
         boardView!!.drawState(gs!!)
+        debug("Done!")
+    }
+
+    private fun debug(text:String){
+        Log.e("DEBUGO",text)
     }
 
     private fun play(source: Source, move: Coord) {
