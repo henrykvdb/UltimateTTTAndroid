@@ -273,13 +273,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (btService!!.getState() === BtService.State.CONNECTED) {
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
-                    if (newBoard !== gs!!.board())
-                        play(Source.Bluetooth, newBoard.lastMove()!!)
+                    if (newBoard !== gs!!.board()) newBoard.lastMove()?.let { play(Source.Bluetooth, it) }
 
                     //Update subtitle
                     setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
-                } else
-                    turnLocal()
+                } else turnLocal()
             }
         }
 
@@ -337,8 +335,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun turnLocal() {
-        if (!gs!!.isAi() && !gs!!.isHuman())
+        if (!gs!!.isAi() && !gs!!.isHuman()) {
             newGame(GameState.Builder().boards(gs!!.boards).build())
+            NotificationManagerCompat.from(this@MainActivity).cancel(BT_STILL_RUNNING)
+        }
     }
 
     private fun newLocal() {
@@ -346,7 +346,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private inner class GameThread : Thread(), Closeable {
-        @Volatile private var running: Boolean = false
+        @Volatile
+        private var running: Boolean = false
         private var timer: Timer? = null
 
         override fun run() {
@@ -506,11 +507,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     if (t) newLocal()
                 }
             }, this)
-            R.id.nav_local_ai -> newAi(object :Callback<GameState>{
+            R.id.nav_local_ai -> newAi(object : Callback<GameState> {
                 override fun invoke(t: GameState) {
                     newGame(t)
                 }
-            },this)
+            }, this)
             R.id.nav_bt_host -> hostBt()
             R.id.nav_bt_join -> joinBt()
             R.id.nav_other_feedback -> feedbackSender(this)
@@ -537,7 +538,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
             (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, btService!!.getLocalBluetoothName())
 
-            val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener{ _, _ ->
+            val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
                 //Get board type
                 val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
 
@@ -591,7 +592,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOCATION)
             else
-                btDialog = BtPicker(this, btAdapter!!, object :Callback<String>{
+                btDialog = BtPicker(this, btAdapter!!, object : Callback<String> {
                     override fun invoke(t: String) {
                         btService?.connect(t)
                     }
@@ -618,7 +619,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (askDialog != null && askDialog!!.isShowing)
             askDialog!!.dismiss()
 
-        val dialogClickListener = DialogInterface.OnClickListener{ _, which ->
+        val dialogClickListener = DialogInterface.OnClickListener { _, which ->
             if (which == DialogInterface.BUTTON_POSITIVE)
                 callBack.invoke(true)
             else if (which == DialogInterface.BUTTON_NEGATIVE)
