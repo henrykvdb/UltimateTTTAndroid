@@ -44,7 +44,7 @@
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="unable_to_connect">Unable to connect to device</string>
 	<string name="bt_not_available">Bluetooth is not available</string>
-	<string name="drawer_subtitle">No inspirational quote here</string>
+	<string name="drawer_subtitle">Tic Tac Toe with a unique twist</string>
     <string name="join_bluetooth_game">Join Bluetooth game</string>
 	<string name="host_bluetooth_game">Host Bluetooth game</string>
 	<string name="desync_message">Games got desynchronized</string>
