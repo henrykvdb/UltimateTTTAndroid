@@ -37,7 +37,6 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.henrykvdb.sttt.util.*
 import java.io.Closeable
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
@@ -47,9 +46,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var keepBtOn: Boolean = false
 
     //Game fields
-    private val playerMove = AtomicReference<Pair<Coord, Source>>()
-    private val playerLock = arrayOfNulls<Any>(0)
-    private var gameThread: GameThread? = null
+    private var gameThread = GameThread()
     private var boardView: BoardView? = null
 
     //Bluetooth
@@ -123,19 +120,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         boardView = findViewById(R.id.boardView)
         boardView?.setup(object : Callback<Coord> {
             override fun invoke(coord: Coord) {
-                play(Source.Local, coord)
+                gameThread.play(Source.Local, coord)
             }
         }, findViewById(R.id.next_move_view))
 
         if (savedInstanceState == null) {
             //New game
             keepBtOn = btAdapter != null && btAdapter!!.isEnabled
-            newLocal()
+            gs = GameState.Builder().swapped(false).build()
         } else {
             //Restore game
             btServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
             keepBtOn = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY)
-            newGame(savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState)
+            gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
         }
 
         //Ask the user to rateDialog
@@ -158,15 +155,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btServiceStarted = true
         }
 
-        if (!btServiceBound)
+        if (!btServiceBound) {
+            //gameThread = GameThread()
             bindService(Intent(this, BtService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
-        else
-            throw RuntimeException("BtService already bound") //TODO remove
+        } else throw RuntimeException("BtService already bound") //TODO remove
+
+        if (gs==null) throw RuntimeException()
+        else newGame(gs!!)
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        killService = !isChangingConfigurations && btService != null && btService!!.getState() !== BtService.State.CONNECTED
-        outState!!.putBoolean(BTSERVICE_STARTED_KEY, btServiceStarted && !killService)
+    override fun onSaveInstanceState(outState: Bundle) {
+        killService = !isChangingConfigurations && btService != null && btService?.getState() != BtService.State.CONNECTED
+        outState.putBoolean(BTSERVICE_STARTED_KEY, btServiceStarted && !killService)
         outState.putBoolean(STARTED_WITH_BT_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
         super.onSaveInstanceState(outState)
@@ -174,11 +174,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && btService!!.getState() === BtService.State.CONNECTED)
-            btRunningNotification()
+        if (!killService && btService?.getState() === BtService.State.CONNECTED) btRunningNotification()
 
         //Unbind btService and stop if needed
         unbindBtService(killService)
+        if (killService || isChangingConfigurations) gameThread.close()
+
 
         unregisterReceiver(btStateReceiver)
         super.onStop()
@@ -241,13 +242,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private val intentReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
-            Log.e("INTENT", "RECEIVED INTENT: " + action!!)
 
             when (action) {
                 INTENT_MOVE -> {
                     val src = intent.getSerializableExtra(INTENT_DATA_FIRST) as Source
                     val move = intent.getSerializableExtra(INTENT_DATA_SECOND) as Coord
-                    play(src, move)
+                    gameThread.play(src, move)
                 }
                 INTENT_NEWGAME -> newGame(intent.getSerializableExtra(INTENT_DATA_FIRST) as GameState)
                 INTENT_STOP_BT_SERVICE -> {
@@ -273,7 +273,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (btService!!.getState() === BtService.State.CONNECTED) {
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
-                    if (newBoard !== gs!!.board()) newBoard.lastMove()?.let { play(Source.Bluetooth, it) }
+                    if (newBoard !== gs!!.board()) newBoard.lastMove()?.let { gameThread.play(Source.Bluetooth, it) }
 
                     //Update subtitle
                     setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
@@ -307,8 +307,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun newGame(gs: GameState) {
-        Log.e("NEWGAME", "NEWGAME")
-        closeGame()
+        Log.e("GSO", "NEWGAME")
+        gameThread.close()
+        dismissBtDialog()
 
         this.gs = gs
         boardView!!.drawState(gs)
@@ -322,16 +323,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (!gs.isBluetooth()) {
             setSubTitle(null)
-
-            if (btService != null)
-                btService!!.closeThread()
-        } else if (btService != null)
-            setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
-
-        dismissBtDialog()
+            if (btService != null) btService!!.closeThread()
+        } else if (btService != null) setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
 
         gameThread = GameThread()
-        gameThread!!.start()
+        gameThread.start()
     }
 
     private fun turnLocal() {
@@ -346,98 +342,76 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private inner class GameThread : Thread(), Closeable {
+
+        private val playerLock = java.lang.Object()
+        private val playerMove = AtomicReference<Pair<Coord, Source>>()
+
         @Volatile
         private var running: Boolean = false
-        private var timer: Timer? = null
+        private var timer = Timer(0)
 
         override fun run() {
-            Log.e("GAMETHREAD RAN", "yea")
             name = "GameThread"
             running = true
 
-            val p1 = gs!!.players.first
-            val p2 = gs!!.players.second
-
             while (!gs!!.board().isDone() && running) {
                 timer = Timer(5000)
-
-                if (gs!!.board().nextPlayer() == Player.PLAYER && running)
-                    playAndUpdateBoard(if (p1 != Source.AI) getMove(p1) else gs!!.extraBot.move(gs!!.board(), timer!!))
-
-                if (gs!!.board().isDone() || !running)
-                    continue
-
-                if (gs!!.board().nextPlayer() == Player.ENEMY && running)
-                    playAndUpdateBoard(if (p2 != Source.AI) getMove(p2) else gs!!.extraBot.move(gs!!.board(), timer!!))
-            }
-        }
-
-        @Throws(IOException::class)
-        override fun close() {
-            running = false
-
-            if (timer != null)
-                timer!!.interrupt()
-
-            interrupt()
-        }
-    }
-
-    private fun playAndUpdateBoard(move: Coord?) {
-        if (move != null) {
-            val newBoard = gs!!.board().copy()
-            newBoard.play(move)
-
-            if (gs!!.players.contains(Source.Bluetooth) && gs!!.board().nextPlayer() == Player.PLAYER == (gs!!.players.first === Source.Local))
-                btService!!.sendBoard(newBoard)
-
-            gs!!.pushBoard(newBoard)
-        }
-
-        boardView!!.drawState(gs!!)
-    }
-
-    private fun play(source: Source, move: Coord) {
-        synchronized(playerLock) {
-            playerMove.set(Pair(move, source))
-            (playerLock as Object).notify() //TODO fix #1
-        }
-    }
-
-    private fun getMove(player: Source): Coord? {
-        playerMove.set(Pair<Coord, Source>(null, null))
-        while (!gs!!.board().availableMoves().contains(playerMove.get().first)    //Impossible move
-
-                || player != playerMove.get().second                      //Wrong player
-
-                || playerMove.get() == null                                     //No Pair
-
-                || playerMove.get().first == null                               //No move
-
-                || playerMove.get().second == null)
-        //No source
-        {
-            synchronized(playerLock) {
-                try {
-                    (playerLock as Object).wait() //TODO fix #2
-                } catch (e: InterruptedException) {
-                    return null
+                timer.start()
+                val next = gs!!.nextSource()
+                val move = if (next == Source.AI) gs!!.extraBot.move(gs!!.board(), timer) else {
+                    waitForMove(next)
                 }
+                if (running) move?.let {
+                    val newBoard = gs!!.board().copy()
+                    newBoard.play(move)
 
+                    if (gs!!.players.contains(Source.Bluetooth) && gs!!.board().nextPlayer() == Player.PLAYER == (gs!!.players.first === Source.Local))
+                        btService!!.sendBoard(newBoard)
+                    gs!!.pushBoard(newBoard)
+                    boardView!!.drawState(gs!!)
+                }
             }
         }
-        //TODO play sound
-        return playerMove.getAndSet(null).first
-    }
 
-    private fun closeGame() {
-        try {
-            if (gameThread != null)
-                gameThread!!.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
+        private fun waitForMove(player: Source): Coord? {
+            playerMove.set(Pair<Coord, Source>(null, null))
+            while ((!gs!!.board().availableMoves().contains(playerMove.get().first) //Impossible move
+                            || player != playerMove.get().second                            //Wrong player
+                            || playerMove.get() == null                                     //No Pair
+                            || playerMove.get().first == null                               //No move
+                            || playerMove.get().second == null)                             //No source
+                    && !Thread.interrupted()) {
+                synchronized(playerLock) {
+                    try {
+                        playerLock.wait() //TODO fix #2
+                    } catch (e: InterruptedException) {
+                        return null
+                    }
+                }
+            }
+            //TODO play sound
+            return playerMove.getAndSet(null).first
         }
 
+        fun play(source: Source, move: Coord) {
+            synchronized(playerLock) {
+                playerMove.set(Pair(move, source))
+                playerLock.notify() //TODO fix #1
+            }
+        }
+
+        override fun close() {
+            try {
+                synchronized(playerLock) {
+                    running = false
+                    timer.interrupt()
+                    interrupt()
+                    playerLock.notify()
+                }
+            } catch (t: Throwable) {
+                Log.e("RUN","Error closing thread $t")
+            }
+        }
     }
 
     private fun setTitle(title: String) {
