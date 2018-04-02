@@ -348,7 +348,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private inner class GameThread : Thread(), Closeable {
-
         private val playerLock = java.lang.Object()
         private val playerMove = AtomicReference<Pair<Coord, Source>>()
 
@@ -360,7 +359,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             name = "GameThread"
             running = true
 
-            Log.e(this.toString(), "STARTED")
             while (!gs!!.board().isDone() && running) {
                 timer = Timer(5000)
                 timer.start()
@@ -378,7 +376,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     boardView!!.drawState(gs!!)
                 }
             }
-            Log.e(this.toString(), "FINISHED")
         }
 
         private fun waitForMove(player: Source): Coord? {
