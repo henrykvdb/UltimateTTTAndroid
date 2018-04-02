@@ -1,13 +1,13 @@
 package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout

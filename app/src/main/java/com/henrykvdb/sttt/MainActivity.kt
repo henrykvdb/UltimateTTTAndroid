@@ -1,6 +1,7 @@
 package com.henrykvdb.sttt
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
 import android.content.*
@@ -17,7 +18,6 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v4.widget.ViewDragHelper
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.util.Log
@@ -41,10 +41,6 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
-    //Fields that get saved to bundle
-    private var gs: GameState? = null
-    private var keepBtOn: Boolean = false
-
     //Game fields
     private var gameThread = GameThread()
     private var boardView: BoardView? = null
@@ -53,14 +49,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var btServiceStarted: Boolean = false
     private var btServiceBound: Boolean = false
     private var killService: Boolean = false
+    private var keepBtOn: Boolean = false
     private var btAdapter: BluetoothAdapter? = null
     private var btService: BtService? = null
-
 
     //Other
     private var askDialog: AlertDialog? = null
     private var btDialog: AlertDialog? = null
     private var toast: Toast? = null
+    private var isInBackground = false
+    private var gs: GameState? = null
 
     enum class Source {
         Local,
@@ -131,7 +129,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             //Restore game
             btServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
-            keepBtOn = savedInstanceState.getBoolean(STARTED_WITH_BT_KEY)
+            keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
             gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
         }
 
@@ -142,6 +140,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStart() {
         super.onStart()
+        isInBackground = false
 
         //Register receiver
         registerReceiver(btStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
@@ -156,20 +155,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (!btServiceBound) {
-            //gameThread = GameThread()
             bindService(Intent(this, BtService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
         } else throw RuntimeException("BtService already bound") //TODO remove
 
-        if (gs==null) throw RuntimeException()
+        if (gs == null) throw RuntimeException()
         else newGame(gs!!)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         killService = !isChangingConfigurations && btService != null && btService?.getState() != BtService.State.CONNECTED
         outState.putBoolean(BTSERVICE_STARTED_KEY, btServiceStarted && !killService)
-        outState.putBoolean(STARTED_WITH_BT_KEY, keepBtOn)
+        outState.putBoolean(KEEP_BT_ON_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isInBackground = true
     }
 
     override fun onStop() {
@@ -190,8 +193,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (!isChangingConfigurations) {
             unbindBtService(true)
-            if (!keepBtOn)
-                btAdapter!!.disable()
+            if (!keepBtOn) btAdapter!!.disable()
         }
 
         //Close notification
@@ -202,13 +204,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun unbindBtService(stop: Boolean) {
+        RuntimeException("unbind").printStackTrace()
+
         if (btServiceBound) {
+            Log.e("BTS", "Unbinding")
             dismissBtDialog()
             btServiceBound = false
             unbindService(btServerConn)
         }
 
         if (stop) {
+            Log.e("BTS", "Stopping")
             btServiceStarted = false
             stopService(Intent(this, BtService::class.java))
             turnLocal()
@@ -269,7 +275,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btService = (service as BtService.LocalBinder).getService()
             btServiceBound = true
 
-            if (gs!!.isBluetooth()) {
+            if (isInBackground) unbindBtService(killService)
+            else if (gs!!.isBluetooth()) {
                 if (btService!!.getState() === BtService.State.CONNECTED) {
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
@@ -307,7 +314,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun newGame(gs: GameState) {
-        Log.e("GSO", "NEWGAME")
         gameThread.close()
         dismissBtDialog()
 
@@ -354,6 +360,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             name = "GameThread"
             running = true
 
+            Log.e(this.toString(), "STARTED")
             while (!gs!!.board().isDone() && running) {
                 timer = Timer(5000)
                 timer.start()
@@ -371,6 +378,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     boardView!!.drawState(gs!!)
                 }
             }
+            Log.e(this.toString(), "FINISHED")
         }
 
         private fun waitForMove(player: Source): Coord? {
@@ -409,7 +417,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     playerLock.notify()
                 }
             } catch (t: Throwable) {
-                Log.e("RUN","Error closing thread $t")
+                Log.e("RUN", "Error closing thread $t")
             }
         }
     }

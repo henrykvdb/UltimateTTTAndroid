@@ -20,7 +20,7 @@ const val REQUEST_COARSE_LOCATION = 102  //Permission required to search nearby 
 //Keys for saving to bundle
 const val BTSERVICE_STARTED_KEY = "BTSERVICE_STARTED_KEY"
 const val GAMESTATE_KEY = "GAMESTATE_KEY"
-const val STARTED_WITH_BT_KEY = "STARTED_WITH_BT_KEY"
+const val KEEP_BT_ON_KEY = "KEEP_BT_ON_KEY"
 
 //Notification ID's
 const val BT_STILL_RUNNING = 1
