@@ -53,6 +53,7 @@
 	<string name="new_local_title">Start a new game?</string>
     <string name="starting_player">Beginning player</string>
 	<string name="enemy_turn">The enemy is playing!</string>
+	<string name="connecting_to">Connecting to %1$s</string>
 	<string name="connection_lost">Connection lost</string>
 	<string name="no_prev_moves">No previous moves</string>
 	<string name="game_winner">%1$s won the game!</string>
@@ -65,6 +66,7 @@
 	<string name="tie_message">It is a tie!</string>
 	<string name="bt_game">Bluetooth Game</string>
 	<string name="human_game">Human Game</string>
+	<string name="connecting">Connecting</string>
 	<string name="choose_one">Choose one</string>
 	<string name="no_thanks">No, thanks</string>
 	<string name="you_lost">You lost!</string>

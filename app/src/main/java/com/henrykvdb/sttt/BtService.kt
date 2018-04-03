@@ -70,7 +70,8 @@ class BtService : Service() {
         closeThread()
 
         val device = btAdapter.getRemoteDevice(address)
-        Log.e(LOG_TAG, "connect to: " + device)
+        sendToast(this, device.name?.let { getString(R.string.connecting_to, it) } ?: getString(R.string.connecting))
+        Log.e(LOG_TAG, "connecting to: " + device)
 
         btThread = ConnectingThread(device)
         btThread?.start()
