@@ -29,7 +29,6 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
-import com.flaghacker.sttt.common.Coord
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
@@ -116,8 +115,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         //Prepare fields
         btAdapter = BluetoothAdapter.getDefaultAdapter()
         boardView = findViewById(R.id.boardView)
-        boardView?.setup(object : Callback<Coord> {
-            override fun invoke(coord: Coord) {
+        boardView?.setup(object : Callback<Byte> {
+            override fun invoke(coord: Byte) {
                 gameThread.play(Source.Local, coord)
             }
         }, findViewById(R.id.next_move_view))
@@ -252,7 +251,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             when (action) {
                 INTENT_MOVE -> {
                     val src = intent.getSerializableExtra(INTENT_DATA_FIRST) as Source
-                    val move = intent.getSerializableExtra(INTENT_DATA_SECOND) as Coord
+                    val move = intent.getSerializableExtra(INTENT_DATA_SECOND) as Byte
                     gameThread.play(src, move)
                 }
                 INTENT_NEWGAME -> newGame(intent.getSerializableExtra(INTENT_DATA_FIRST) as GameState)
@@ -349,7 +348,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private inner class GameThread : Thread(), Closeable {
         private val playerLock = java.lang.Object()
-        private val playerMove = AtomicReference<Pair<Coord, Source>>()
+        private val playerMove = AtomicReference<Pair<Byte, Source>>()
 
         @Volatile
         private var running: Boolean = false
@@ -378,8 +377,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
-        private fun waitForMove(player: Source): Coord? {
-            playerMove.set(Pair<Coord, Source>(null, null))
+        private fun waitForMove(player: Source): Byte? {
+            playerMove.set(Pair<Byte, Source>(null, null))
             while ((!gs!!.board().availableMoves().contains(playerMove.get().first) //Impossible move
                             || player != playerMove.get().second                            //Wrong player
                             || playerMove.get() == null                                     //No Pair
@@ -398,7 +397,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return playerMove.getAndSet(null).first
         }
 
-        fun play(source: Source, move: Coord) {
+        fun play(source: Source, move: Byte) {
             synchronized(playerLock) {
                 playerMove.set(Pair(move, source))
                 playerLock.notify() //TODO fix #1

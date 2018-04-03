@@ -3,11 +3,9 @@ package com.flaghacker.sttt.common
 import java.io.Serializable
 import java.util.*
 
-typealias Coord = Byte
-
 fun toCoord(x: Int, y: Int) = (((x / 3) + (y / 3) * 3) * 9 + ((x % 3) + (y % 3) * 3)).toByte()
 fun Int.toPair() = toByte().toPair()
-fun Coord.toPair(): Pair<Int, Int> {
+fun Byte.toPair(): Pair<Int, Int> {
 	val om = this / 9
 	val os = this % 9
 	return Pair((om % 3) * 3 + (os % 3), (om / 3) * 3 + (os / 3))
@@ -27,7 +25,7 @@ class Board : Serializable {
 	private var rows: Array<Int> = Array(6) { 0 }
 	private var macroMask = 0b111111111
 	private var nextPlayer: Player = Player.PLAYER
-	private var lastMove: Coord? = null
+	private var lastMove: Byte? = null
 	private var wonBy = Player.NEUTRAL
 
 	constructor()
@@ -42,7 +40,7 @@ class Board : Serializable {
 		lastMove = board.lastMove
 	}
 
-	constructor(board: Array<Array<Player>>, macroMask: Int, lastMove: Coord?) {
+	constructor(board: Array<Array<Player>>, macroMask: Int, lastMove: Byte?) {
 		if (board.size != 9 && board.all { it.size != 9 })
 			throw IllegalArgumentException("Input board is the wrong size (input: $board)")
 		else if (macroMask < 0 || macroMask > 0b111111111)
@@ -96,8 +94,8 @@ class Board : Serializable {
 		return board
 	}
 
-	fun availableMoves(): List<Coord> {
-		val output = ArrayList<Coord>()
+	fun availableMoves(): List<Byte> {
+		val output = ArrayList<Byte>()
 
 		for (macro in 0 until 9) {
 			if (macroMask.getBit(macro)) {
@@ -115,13 +113,13 @@ class Board : Serializable {
 		else -> Player.NEUTRAL
 	}
 
-	fun tile(index: Coord): Player = when {
+	fun tile(index: Byte): Player = when {
 		rows[index / 27].getBit(index % 27) -> Player.PLAYER
 		rows[3 + index / 27].getBit(index % 27) -> Player.ENEMY
 		else -> Player.NEUTRAL
 	}
 
-	fun play(index: Coord): Boolean {
+	fun play(index: Byte): Boolean {
 		val row = index / 27                     //Row (0,1,2)
 		val macroShift = (index / 9) % 3 * 9     //Shift to go to the right micro (9om)
 		val moveShift = index % 9                //Shift required for index within matrix (os)

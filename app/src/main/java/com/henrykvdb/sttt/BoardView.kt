@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import com.flaghacker.sttt.common.Board
-import com.flaghacker.sttt.common.Coord
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
 
@@ -19,7 +18,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private val path: Path = Path()
     private val paint: Paint = Paint()
 
-    private lateinit var moveCallback: Callback<Coord>
+    private lateinit var moveCallback: Callback<Byte>
     private var gameState: GameState = GameState.Builder().build()
     private var nextPlayerView: TextView? = null
 
@@ -46,7 +45,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         postInvalidate()
     }
 
-    fun setup(moveCallback: Callback<Coord>, nextPlayerView: TextView) {
+    fun setup(moveCallback: Callback<Byte>, nextPlayerView: TextView) {
         this.moveCallback = moveCallback
         this.nextPlayerView = nextPlayerView
     }
