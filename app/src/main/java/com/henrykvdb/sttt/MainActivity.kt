@@ -379,7 +379,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         private fun waitForMove(player: Source): Byte? {
             playerMove.set(Pair<Byte, Source>(null, null))
-            while ((!gs!!.board().availableMoves().contains(playerMove.get().first) //Impossible move
+            while ((!gs!!.board().availableMoves().contains(playerMove.get().first)         //Impossible move
                             || player != playerMove.get().second                            //Wrong player
                             || playerMove.get() == null                                     //No Pair
                             || playerMove.get().first == null                               //No move
