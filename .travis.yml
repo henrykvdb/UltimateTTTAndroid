@@ -13,15 +13,14 @@ android:
 script:
 - "./gradlew build --stacktrace"
 before_deploy:
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/app-release-unsigned.apk
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk
   key -keystore keystore.jks -storepass $storepass -keypass $keypass
-- "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/app-release-unsigned.apk
-  app/build/outputs/apk/STTT.apk"
+- "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/release/app-release-unsigned.apk STTT.apk"
 deploy:
   provider: releases
   api_key:
     secure: F70sB3kfdrOCK5Lnu2omagHHdMy1NfBLs0/XF/JYyAxWv/3BVLxZN1+0Tz1Sx9eRPjGAMEhX99eTUSAdGCyis4AP5JCKFraPKZp6Od6evIq9FhBb5oQ5j27x1KePe0U/TMgS/gUFcAXPYnHzzNNGbGzBZuhIycfAoljvNYaKsVvYuYW8srNAa397gB/CoPL1uidsDNNhQv226aquTbRjrtWDI1Oez6YTflWjRG5skiZW62mS4JCt6Ahg3BPclkPGIlWkQsIl3D17RKoUpXylYqEK6NGEQVl17wQc+49In0fS/jsMUYrs1QpdwRLJyy3K4Wz1ZbH1XI8iUC/tNxNtK+55IgTnvq0idwJ5lwoTgtayV4qndR0wInk47aweyV32T5LaZnJP/m3twCFJ/xonDd9Sz99petn9Ni3xGMYo06EGuOrHXlbFwsLn0/VBcN595eeAB3uGIcQZ97JOZswfCqV0gl33NEViOYPJmXY0DrQzlx6fMrqLQcRYtpZTnO4bzChdyK6/babyT2MWGKO47EwLFFHsARepnqdjyV2SAH061o8eZoPVXLBK0hRPb3IL6TJ2GHTaj4q3vxetU3efLZymMI394rcAzjLsm0NbhAJ5HdE25rYcT97oY2h3jaDxu0VQq23RlBV24NgoHSPaEdBCwWElKyZ5hFQ0v+j2OR8=
-  file: app/build/outputs/apk/STTT.apk
+  file: STTT.apk
   file_glob: 'true'
   skip_cleanup: true
   on:
