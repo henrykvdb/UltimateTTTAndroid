@@ -81,7 +81,7 @@ fun shareDialog(context: Context) {
     i.type = "text/plain"
     i.putExtra(Intent.EXTRA_SUBJECT, context.resources.getString(R.string.app_name_long))
     i.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.lets_play_together) + " " + context.getString(R.string.market_url))
-    context.startActivity(Intent.createChooser(i, context.getString(R.string.choose_one)))
+    context.startActivity(Intent.createChooser(i, context.getString(R.string.share_with)))
 }
 
 @SuppressLint("SetTextI18n")

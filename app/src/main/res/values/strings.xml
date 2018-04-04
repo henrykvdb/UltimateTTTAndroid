@@ -49,7 +49,7 @@
 	<string name="host_bluetooth_game">Host Bluetooth game</string>
 	<string name="desync_message">Games got desynchronized</string>
     <string name="joinable_devices">Joinable devices</string>
-	<string name="new_ai_title">Start a new ai game?</string>
+	<string name="new_ai_title">Start a new AI game?</string>
 	<string name="new_local_title">Start a new game?</string>
     <string name="starting_player">Beginning player</string>
 	<string name="enemy_turn">The enemy is playing!</string>
@@ -67,7 +67,7 @@
 	<string name="bt_game">Bluetooth Game</string>
 	<string name="human_game">Human Game</string>
 	<string name="connecting">Connecting</string>
-	<string name="choose_one">Choose one</string>
+	<string name="share_with">Share with</string>
 	<string name="no_thanks">No, thanks</string>
 	<string name="you_lost">You lost!</string>
 	<string name="rate_app">Rate app</string>
