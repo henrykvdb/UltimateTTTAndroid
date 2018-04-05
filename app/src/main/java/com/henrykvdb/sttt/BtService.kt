@@ -25,7 +25,7 @@ class BtService : Service() {
     private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
     private val mBinder = LocalBinder()
 
-    private lateinit var btAdapter: BluetoothAdapter
+    private var btAdapter: BluetoothAdapter? =  BluetoothAdapter.getDefaultAdapter()
     @Volatile private var state = State.NONE
     private var localBoard = Board()
 
@@ -53,11 +53,6 @@ class BtService : Service() {
 
     override fun onBind(intent: Intent): IBinder? = mBinder
 
-    override fun onCreate() {
-        super.onCreate()
-        btAdapter = BluetoothAdapter.getDefaultAdapter()
-    }
-
     fun listen() {
         setRequestState(GameState.Builder().bt().build())
 
@@ -69,11 +64,11 @@ class BtService : Service() {
     fun connect(address: String) {
         closeThread()
 
-        val device = btAdapter.getRemoteDevice(address)
-        sendToast(this, device.name?.let { getString(R.string.connecting_to, it) } ?: getString(R.string.connecting))
+        val device = btAdapter?.getRemoteDevice(address)
+        sendToast(this, device?.name?.let { getString(R.string.connecting_to, it) } ?: getString(R.string.connecting))
         Log.e(LOG_TAG, "connecting to: " + device)
 
-        btThread = ConnectingThread(device)
+        btThread = device?.let { ConnectingThread(it) }
         btThread?.start()
     }
 
@@ -97,7 +92,7 @@ class BtService : Service() {
             this@BtService.state = BtService.State.LISTENING
 
             try {
-                serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("SuperTTT", UUID)
+                serverSocket = btAdapter?.listenUsingRfcommWithServiceRecord("SuperTTT", UUID)
             } catch (e: IOException) {
                 Log.e(LOG_TAG, "listen() failed", e)
             }
@@ -149,7 +144,7 @@ class BtService : Service() {
         override fun run() {
             Log.e(LOG_TAG, "BEGIN connectingThread" + this)
 
-            btAdapter.cancelDiscovery()
+            btAdapter?.cancelDiscovery()
 
             try {
                 // This is a blocking call and will only return on a successful connection or an exception
@@ -340,7 +335,7 @@ class BtService : Service() {
     }
 
     @SuppressLint("HardwareIds")
-    fun getLocalBluetoothName(): String = if (btAdapter.name != null) btAdapter.name else btAdapter.address
+    fun getLocalBluetoothName(): String = if (btAdapter!!.name != null) btAdapter!!.name else btAdapter!!.address
     fun getConnectedDeviceName(): String? = if (state != State.CONNECTED) null else connectedDeviceName
     fun getLocalBoard() = localBoard
     fun getState() = state
