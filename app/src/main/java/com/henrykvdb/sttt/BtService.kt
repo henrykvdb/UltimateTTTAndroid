@@ -47,11 +47,10 @@ class BtService : Service() {
         SEND_BOARD_UPDATE
     }
 
+    override fun onBind(intent: Intent): IBinder? = mBinder
     inner class LocalBinder : Binder() {
         fun getService() = this@BtService
     }
-
-    override fun onBind(intent: Intent): IBinder? = mBinder
 
     fun listen() {
         setRequestState(GameState.Builder().bt().build())
@@ -66,7 +65,7 @@ class BtService : Service() {
 
         val device = btAdapter?.getRemoteDevice(address)
         sendToast(this, device?.name?.let { getString(R.string.connecting_to, it) } ?: getString(R.string.connecting))
-        Log.e(LOG_TAG, "connecting to: " + device)
+        Log.e(LOG_TAG, "connecting to: $device")
 
         btThread = device?.let { ConnectingThread(it) }
         btThread?.start()
@@ -197,13 +196,12 @@ class BtService : Service() {
         }
 
         connectedDeviceName = socket.remoteDevice.name
-        Log.e(LOG_TAG, "CONNECTED to " + connectedDeviceName)
+        Log.e(LOG_TAG, "CONNECTED to $connectedDeviceName")
         sendToast(this, getString(R.string.connected_to, connectedDeviceName))
 
         val buffer = ByteArray(1024)
 
-        if (isHost && !Thread.interrupted())
-            sendSetup()
+        if (isHost && !Thread.interrupted()) sendSetup()
 
         // Keep listening to the InputStream while connected
         while (state == State.CONNECTED && !Thread.interrupted()) {
@@ -215,7 +213,7 @@ class BtService : Service() {
 
                 val message = json.getInt("message")
 
-                Log.e(LOG_TAG, "RECEIVED BTMESSAGE: " + message)
+                Log.e(LOG_TAG, "RECEIVED BTMESSAGE: $message")
                 if (message == Message.SEND_BOARD_UPDATE.ordinal) {
                     val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
                     val newMove = newBoard.lastMove()!!
@@ -280,7 +278,7 @@ class BtService : Service() {
 
     }
 
-    private fun sendSetup() {
+    private fun sendSetup() { //TODO only called once: inline
         sendNewGame(this, requestState)
         Log.e(LOG_TAG, "Sending setup, starting: " + requestState.players.first)
 
@@ -288,11 +286,9 @@ class BtService : Service() {
 
         try {
             val json = JSONObject()
-
             json.put("message", Message.RECEIVE_SETUP.ordinal)
             json.put("start", requestState.players.first == MainActivity.Source.Bluetooth)
             json.put("board", requestState.board().toJSON().toString())
-
             val data = json.toString().toByteArray()
 
             outStream?.write(data)
@@ -301,12 +297,10 @@ class BtService : Service() {
         } catch (e: JSONException) {
             e.printStackTrace()
         }
-
     }
 
     fun sendBoard(board: Board) {
         Log.e(LOG_TAG, "Sending board")
-
         localBoard = board
 
         try {

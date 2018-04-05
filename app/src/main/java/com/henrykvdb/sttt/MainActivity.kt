@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     //Bluetooth
     private var btServiceStarted: Boolean = false
     private var btServiceBound: Boolean = false
-    private var killService: Boolean = false
+    private var killService: Boolean = false //TODO improve
     private var keepBtOn: Boolean = false
     private var btAdapter: BluetoothAdapter? = null
     private var btService: BtService? = null
@@ -55,9 +55,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     //Other
     private var askDialog: AlertDialog? = null
     private var btDialog: AlertDialog? = null
-    private var toast: Toast? = null
     private var isInBackground = false
-    private var gs: GameState? = null
+    
+    //Late init
+    private lateinit var gs: GameState
+    private lateinit var toast: Toast
 
     enum class Source {
         Local,
@@ -157,8 +159,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             bindService(Intent(this, BtService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
         } else throw RuntimeException("BtService already bound") //TODO remove
 
-        if (gs == null) throw RuntimeException()
-        else newGame(gs!!)
+        newGame(gs)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -176,7 +177,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && btService?.getState() === BtService.State.CONNECTED) btRunningNotification()
+        if (!killService && btService?.getState() == BtService.State.CONNECTED) btRunningNotification()
 
         //Unbind btService and stop if needed
         unbindBtService(killService)
@@ -275,11 +276,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btServiceBound = true
 
             if (isInBackground) unbindBtService(killService)
-            else if (gs!!.isBluetooth()) {
-                if (btService!!.getState() === BtService.State.CONNECTED) {
+            else if (gs.isBluetooth()) {
+                if (btService!!.getState() == BtService.State.CONNECTED) {
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
-                    if (newBoard !== gs!!.board()) newBoard.lastMove()?.let { gameThread.play(Source.Bluetooth, it) }
+                    if (newBoard !== gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.Bluetooth, it) }
 
                     //Update subtitle
                     setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
@@ -320,9 +321,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         boardView!!.drawState(gs)
 
         when {
-            this.gs!!.isBluetooth() -> setTitle(getString(R.string.bt_game))
-            this.gs!!.isAi() -> setTitle(getString(R.string.ai_game))
-            this.gs!!.isHuman() -> setTitle(getString(R.string.human_game))
+            this.gs.isBluetooth() -> setTitle(getString(R.string.bt_game))
+            this.gs.isAi() -> setTitle(getString(R.string.ai_game))
+            this.gs.isHuman() -> setTitle(getString(R.string.human_game))
             else -> throw IllegalStateException()
         }
 
@@ -336,8 +337,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun turnLocal() {
-        if (!gs!!.isAi() && !gs!!.isHuman()) {
-            newGame(GameState.Builder().boards(gs!!.boards).build())
+        if (!gs.isAi() && !gs.isHuman()) {
+            newGame(GameState.Builder().boards(gs.boards).build())
             NotificationManagerCompat.from(this@MainActivity).cancel(BT_STILL_RUNNING)
         }
     }
@@ -358,28 +359,28 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             name = "GameThread"
             running = true
 
-            while (!gs!!.board().isDone() && running) {
+            while (!gs.board().isDone() && running) {
                 timer = Timer(5000)
                 timer.start()
-                val next = gs!!.nextSource()
-                val move = if (next == Source.AI) gs!!.extraBot.move(gs!!.board(), timer) else {
+                val next = gs.nextSource()
+                val move = if (next == Source.AI) gs.extraBot.move(gs.board(), timer) else {
                     waitForMove(next)
                 }
                 if (running) move?.let {
-                    val newBoard = gs!!.board().copy()
+                    val newBoard = gs.board().copy()
                     newBoard.play(move)
 
-                    if (gs!!.players.contains(Source.Bluetooth) && gs!!.board().nextPlayer() == Player.PLAYER == (gs!!.players.first === Source.Local))
+                    if (gs.players.contains(Source.Bluetooth) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.Local))
                         btService!!.sendBoard(newBoard)
-                    gs!!.pushBoard(newBoard)
-                    boardView!!.drawState(gs!!)
+                    gs.pushBoard(newBoard)
+                    boardView!!.drawState(gs)
                 }
             }
         }
 
         private fun waitForMove(player: Source): Byte? {
             playerMove.set(Pair<Byte, Source>(null, null))
-            while ((!gs!!.board().availableMoves().contains(playerMove.get().first)         //Impossible move
+            while ((!gs.board().availableMoves().contains(playerMove.get().first)         //Impossible move
                             || player != playerMove.get().second                            //Wrong player
                             || playerMove.get() == null                                     //No Pair
                             || playerMove.get().first == null                               //No move
@@ -427,11 +428,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun toast(text: String) {
-        if (toast == null)
-            toast = Toast.makeText(this@MainActivity, "", Toast.LENGTH_SHORT)
-
-        toast!!.setText(text)
-        toast!!.show()
+        if (toast == null) toast = Toast.makeText(this@MainActivity, "", Toast.LENGTH_SHORT)
+        toast.setText(text)
+        toast.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -443,12 +442,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (item.itemId != R.id.action_undo)
             return false
 
-        if (gs!!.boards.size == 1) {
+        if (gs.boards.size == 1) {
             toast(getString(R.string.no_prev_moves))
             return true
         }
 
-        if (btService != null && btService!!.getState() === BtService.State.CONNECTED && gs!!.isBluetooth())
+        if (btService != null && btService!!.getState() == BtService.State.CONNECTED && gs.isBluetooth())
             btService!!.sendUndo(false)
         else
             undo(false)
@@ -456,7 +455,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun undo(force: Boolean) {
-        if (!force && btService != null && btService!!.getState() === BtService.State.CONNECTED && gs!!.isBluetooth()) {
+        if (!force && btService?.getState() == BtService.State.CONNECTED && gs.isBluetooth()) {
             askUser(getString(R.string.undo_request, btService!!.getConnectedDeviceName()), object : Callback<Boolean> {
                 override fun invoke(allow: Boolean) { //TODO fix #3
                     if (allow) {
@@ -466,15 +465,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
             })
         } else {
-            val newState = GameState.Builder().gs(gs!!).build()
+            val newState = GameState.Builder().gs(gs).build()
             newState.popBoard()
-            if (Source.AI == gs!!.otherSource() && newState.boards.size > 1)
+            if (Source.AI == gs.otherSource() && newState.boards.size > 1)
                 newState.popBoard()
 
             newGame(newState)
 
-            if (btService != null && btService!!.getState() === BtService.State.CONNECTED)
-                btService!!.setLocalBoard(gs!!.board())
+            if (btService?.getState() == BtService.State.CONNECTED)
+                btService!!.setLocalBoard(gs.board())
         }
     }
 
@@ -528,10 +527,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 else if (beginner == R.id.start_other) start = false
 
                 //Create the actual requested gamestate
-                val swapped = if (newBoard) !start else start xor (gs!!.board().nextPlayer() == Player.PLAYER)
+                val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer() == Player.PLAYER)
                 val gsBuilder = GameState.Builder().bt().swapped(swapped)
                 if (!newBoard)
-                    gsBuilder.board(gs!!.board())
+                    gsBuilder.board(gs.board())
 
                 btService!!.setRequestState(gsBuilder.build())
             }
@@ -588,7 +587,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == REQUEST_COARSE_LOCATION && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        if (requestCode == REQUEST_COARSE_LOCATION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
             joinBt()
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
