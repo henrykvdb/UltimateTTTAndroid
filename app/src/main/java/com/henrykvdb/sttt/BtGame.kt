@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
@@ -8,7 +9,8 @@ import android.content.res.Resources
 import android.util.Log
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.JSONBoard
-import com.henrykvdb.sttt.util.*
+import com.flaghacker.sttt.common.toJSON
+import com.henrykvdb.sttt.util.isValidBoard
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Closeable
@@ -16,7 +18,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-class BtGame: RemoteGame{
+class BtGame(val callback: RemoteCallback) : RemoteGame {
+
     //Final fields
     private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
     private val btAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter() //TODO make sure adapter isn't null
@@ -27,7 +30,7 @@ class BtGame: RemoteGame{
     override fun getState() = state
 
     //Other
-    private var btThread: BtService.CloseableThread? = null
+    private var btThread: CloseableThread? = null
     private var connectedDeviceName: String? = null
     private lateinit var requestState: GameState
     private var outStream: OutputStream? = null
@@ -36,7 +39,7 @@ class BtGame: RemoteGame{
     override fun listen(gs: GameState) {
         requestState = gs
 
-        if (state!= RemoteState.LISTENING){
+        if (state != RemoteState.LISTENING) {
             close()
             btThread = ListenThread()
             btThread?.start()
@@ -45,8 +48,8 @@ class BtGame: RemoteGame{
 
     override fun connect(adr: String) {
         val device = btAdapter.getRemoteDevice(adr)
-        sendToast(this, device?.name?.let { res.getString(R.string.connecting_to, it) } ?: res.getString(R.string.connecting))
-        Log.e(LOG_TAG, "connecting to: $device")
+        callback.toast(device?.name?.let { res.getString(R.string.connecting_to, it) }
+                ?: res.getString(R.string.connecting))
 
         close()
         btThread = device?.let { ConnectingThread(it) }
@@ -60,12 +63,12 @@ class BtGame: RemoteGame{
             e.printStackTrace()
         }
 
-        sendTurnLocal(this)
+        callback.turnLocal()
     }
 
     abstract class CloseableThread : Thread(), Closeable
 
-    private inner class ListenThread : BtService.CloseableThread() {
+    private inner class ListenThread : CloseableThread() {
         private var serverSocket: BluetoothServerSocket? = null
         private var socket: BluetoothSocket? = null
 
@@ -73,7 +76,7 @@ class BtGame: RemoteGame{
             this@BtGame.state = RemoteState.LISTENING
 
             try {
-                serverSocket = btAdapter?.listenUsingRfcommWithServiceRecord("SuperTTT", UUID)
+                serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("SuperTTT", UUID)
             } catch (e: IOException) {
                 Log.e(LOG_TAG, "listen() failed", e)
             }
@@ -108,7 +111,7 @@ class BtGame: RemoteGame{
         }
     }
 
-    private inner class ConnectingThread(device: BluetoothDevice) : BtService.CloseableThread() {
+    private inner class ConnectingThread(device: BluetoothDevice) : CloseableThread() {
         private var socket: BluetoothSocket? = null
 
         init {
@@ -138,7 +141,7 @@ class BtGame: RemoteGame{
                 socket!!.close()
             } catch (e: IOException) {
                 this@BtGame.state = RemoteState.NONE
-                sendToast(this@BtGame, res.getString(R.string.unable_to_connect))
+                callback.toast(res.getString(R.string.unable_to_connect))
                 Log.e(LOG_TAG, "Unable to connect to device", e)
 
                 try {
@@ -178,7 +181,7 @@ class BtGame: RemoteGame{
 
         connectedDeviceName = socket.remoteDevice.name
         Log.e(LOG_TAG, "CONNECTED to $connectedDeviceName")
-        sendToast(this, res.getString(R.string.connected_to, connectedDeviceName))
+        callback.toast(res.getString(R.string.connected_to, connectedDeviceName))
 
         val buffer = ByteArray(1024)
 
@@ -195,38 +198,37 @@ class BtGame: RemoteGame{
                 val message = json.getInt("message")
 
                 Log.e(LOG_TAG, "RECEIVED BTMESSAGE: $message")
-                if (message == BtService.Message.SEND_BOARD_UPDATE.ordinal) {
+                if (message == RemoteMessage.BOARD_UPDATE.ordinal) {
                     val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
                     val newMove = newBoard.lastMove()!!
 
                     if (isValidBoard(localBoard, newBoard)) {
                         Log.e(LOG_TAG, "We received a valid board")
                         localBoard = newBoard
-                        sendMove(this, MainActivity.Source.Bluetooth, newMove)
+                        callback.move(newMove)
                     } else {
-                        sendToast(this, res.getString(R.string.desync_message))
+                        callback.toast(res.getString(R.string.desync_message))
                         break
                     }
-                } else if (message == BtService.Message.RECEIVE_SETUP.ordinal) {
+                } else if (message == RemoteMessage.SETUP.ordinal) {
                     val board = JSONBoard.fromJSON(JSONObject(json.getString("board")))
                     localBoard = board
-                    sendNewGame(this, GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
-                } else if (message == BtService.Message.RECEIVE_UNDO.ordinal) {
-                    sendUndo(this, json.getBoolean("force"))
+                    callback.newGame(GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
+                } else if (message == RemoteMessage.UNDO.ordinal) {
+                    callback.undo(json.getBoolean("force"))
                 }
             } catch (e: IOException) {
                 Log.e(LOG_TAG, "disconnected", e)
-                sendToast(this, res.getString(R.string.connection_lost))
+                callback.toast(res.getString(R.string.connection_lost))
                 break
             } catch (e: JSONException) {
                 Log.e(LOG_TAG, "JSON read parsing failed")
                 break
             }
-
         }
 
         state = RemoteState.NONE
-        sendTurnLocal(this)
+        callback.turnLocal()
 
         try {
             inStream.close()
@@ -239,18 +241,65 @@ class BtGame: RemoteGame{
     }
 
     override fun sendUndo(force: Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.e(LOG_TAG, "Sending undo")
+        if (state != RemoteState.CONNECTED) return
+
+        try {
+            val json = JSONObject()
+            json.put("message", RemoteMessage.UNDO.ordinal)
+            json.put("force", force)
+            val data = json.toString().toByteArray()
+            outStream?.write(data)
+        } catch (e: IOException) {
+            Log.e(LOG_TAG, "Exception during undo", e)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
     }
 
     override fun sendBoard(board: Board) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.e(LOG_TAG, "Sending board")
+        localBoard = board
+
+        try {
+            val json = JSONObject()
+
+            json.put("message", RemoteMessage.BOARD_UPDATE.ordinal)
+            json.put("board", board.toJSON().toString())
+
+            val data = json.toString().toByteArray()
+
+            outStream?.write(data)
+        } catch (e: IOException) {
+            Log.e(LOG_TAG, "Exception during boardUpdate", e)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
     }
 
-    override fun getRemoteName(): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun sendSetup() { //TODO only called once: inline
+        callback.newGame(requestState)
+        Log.e(LOG_TAG, "Sending setup, starting: " + requestState.players.first)
+
+        localBoard = requestState.board()
+
+        try {
+            val json = JSONObject()
+            json.put("message", RemoteMessage.SETUP.ordinal)
+            json.put("start", requestState.players.first == MainActivity.Source.Bluetooth)
+            json.put("board", requestState.board().toJSON().toString())
+            val data = json.toString().toByteArray()
+
+            outStream?.write(data)
+        } catch (e: IOException) {
+            Log.e(LOG_TAG, "Exception during boardUpdate", e)
+        } catch (e: JSONException) {
+            e.printStackTrace()
+        }
     }
 
-    override fun getLocalName(): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    @SuppressLint("HardwareIds")
+    override fun getLocalName() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
+
+    override fun getRemoteName() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
 }

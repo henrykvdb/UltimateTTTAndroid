@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     
     //Late init
     private lateinit var gs: GameState
-    private lateinit var toast: Toast
+    private var toast: Toast? = null
 
     enum class Source {
         Local,
@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        killService = !isChangingConfigurations && btService != null && btService?.getState() != BtService.State.CONNECTED
+        killService = !isChangingConfigurations && btService != null && btService?.getState() != RemoteState.CONNECTED
         outState.putBoolean(BTSERVICE_STARTED_KEY, btServiceStarted && !killService)
         outState.putBoolean(KEEP_BT_ON_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && btService?.getState() == BtService.State.CONNECTED) btRunningNotification()
+        if (!killService && btService?.getState() == RemoteState.CONNECTED) btRunningNotification()
 
         //Unbind btService and stop if needed
         unbindBtService(killService)
@@ -276,7 +276,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             if (isInBackground) unbindBtService(killService)
             else if (gs.isBluetooth()) {
-                if (btService!!.getState() == BtService.State.CONNECTED) {
+                if (btService!!.getState() == RemoteState.CONNECTED) {
                     //Fetch latest board
                     val newBoard = btService!!.getLocalBoard()
                     if (newBoard !== gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.Bluetooth, it) }
@@ -428,8 +428,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun toast(text: String) {
         if (toast == null) toast = Toast.makeText(this@MainActivity, "", Toast.LENGTH_SHORT)
-        toast.setText(text)
-        toast.show()
+        toast?.setText(text)
+        toast?.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -446,7 +446,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
-        if (btService != null && btService!!.getState() == BtService.State.CONNECTED && gs.isBluetooth())
+        if (btService != null && btService!!.getState() == RemoteState.CONNECTED && gs.isBluetooth())
             btService!!.sendUndo(false)
         else
             undo(false)
@@ -454,7 +454,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun undo(force: Boolean) {
-        if (!force && btService?.getState() == BtService.State.CONNECTED && gs.isBluetooth()) {
+        if (!force && btService?.getState() == RemoteState.CONNECTED && gs.isBluetooth()) {
             askUser(getString(R.string.undo_request, btService!!.getConnectedDeviceName()), object : Callback<Boolean> {
                 override fun invoke(allow: Boolean) { //TODO fix #3
                     if (allow) {
@@ -471,7 +471,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             newGame(newState)
 
-            if (btService?.getState() == BtService.State.CONNECTED)
+            if (btService?.getState() == RemoteState.CONNECTED)
                 btService!!.setLocalBoard(gs.board())
         }
     }
