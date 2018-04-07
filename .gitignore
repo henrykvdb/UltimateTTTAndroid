@@ -1,7 +1,8 @@
 *.iml
 .gradle
-/.idea
-/build
-/captures
+.idea
+build
+captures
 local.properties
-/extra
+extra
+projectFilesBackup

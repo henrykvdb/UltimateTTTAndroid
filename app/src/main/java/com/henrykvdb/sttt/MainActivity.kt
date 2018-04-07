@@ -45,11 +45,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var boardView: BoardView? = null
 
     //Bluetooth
-    private var btServiceStarted: Boolean = false
-    private var btServiceBound: Boolean = false
-    private var killService: Boolean = false //TODO improve
-    private var keepBtOn: Boolean = false
-    private var btAdapter: BluetoothAdapter? = null
+    private var btServiceStarted = false
+    private var btServiceBound = false
+    private var killService = false //TODO improve
+    private var keepBtOn = false
+    private var btAdapter = BluetoothAdapter.getDefaultAdapter()
     private var btService: BtService? = null
 
     //Other
@@ -115,7 +115,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         registerReceiver(intentReceiver, filter)
 
         //Prepare fields
-        btAdapter = BluetoothAdapter.getDefaultAdapter()
         boardView = findViewById(R.id.boardView)
         boardView?.setup(object : Callback<Byte> {
             override fun invoke(coord: Byte) {
