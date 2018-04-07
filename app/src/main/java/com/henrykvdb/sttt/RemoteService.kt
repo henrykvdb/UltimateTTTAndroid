@@ -10,7 +10,7 @@ enum class RemoteType{
     BLUETOOTH
 }
 
-class BtService : Service() {
+class RemoteService : Service() {
     private val mBinder = LocalBinder()
 
     private var remoteGame: RemoteGame? = null
@@ -18,13 +18,12 @@ class BtService : Service() {
 
     override fun onBind(intent: Intent): IBinder? = mBinder
     inner class LocalBinder : Binder() {
-        fun getService() = this@BtService
+        fun getService() = this@RemoteService
     }
 
-    fun getRemoteGame() = remoteGame
+    fun remoteGame() = remoteGame
 
     fun getType() = type
-
     fun setType(type: RemoteType, callback: RemoteCallback){
         remoteGame?.close()
         this.type = type

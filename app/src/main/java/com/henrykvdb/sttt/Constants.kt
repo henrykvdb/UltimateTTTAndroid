@@ -1,16 +1,7 @@
 package com.henrykvdb.sttt
 
 //Intents
-const val INTENT_TOAST = "INTENT_TOAST"       //String text
-const val INTENT_NEWGAME = "INTENT_NEWGAME"   //GameState requeststate
-const val INTENT_MOVE = "INTENT_MOVE"         //Source source, Coord move
-const val INTENT_UNDO = "INTENT_UNDO"         //Boolean force
 const val INTENT_STOP_BT_SERVICE = "INTENT_STOP_BT_SERVICE"
-const val INTENT_TURNLOCAL = "INTENT_TURNLOCAL"
-
-//Intents data types
-const val INTENT_DATA_FIRST = "INTENT_DATA_FIRST"
-const val INTENT_DATA_SECOND = "INTENT_DATA_SECOND"
 
 //Request codes
 const val REQUEST_ENABLE_BT = 100        //Permission required to enable Bluetooth

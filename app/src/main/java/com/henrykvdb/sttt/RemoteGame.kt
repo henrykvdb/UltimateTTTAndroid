@@ -2,7 +2,7 @@ package com.henrykvdb.sttt
 
 import com.flaghacker.sttt.common.Board
 
-//States the remote game can have
+//States the remoteGame game can have
 enum class RemoteState {
     NONE,
     LISTENING,
@@ -10,7 +10,7 @@ enum class RemoteState {
     CONNECTED
 }
 
-//Types of messages the remote game can send
+//Types of messages the remoteGame game can send
 enum class RemoteMessage {
     UNDO,
     SETUP,
@@ -26,7 +26,7 @@ interface RemoteCallback{
     fun turnLocal()
 }
 
-//Interface all remote games must extend
+//Interface all remoteGame games must extend
 interface RemoteGame {
     fun listen(gs: GameState)
     fun connect(adr: String)
@@ -38,4 +38,5 @@ interface RemoteGame {
     fun getRemoteName(): String?
     fun getLocalName(): String
     fun getState(): RemoteState
+    fun lastBoard(): Board
 }

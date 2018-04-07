@@ -19,7 +19,6 @@ import java.io.InputStream
 import java.io.OutputStream
 
 class BtGame(val callback: RemoteCallback) : RemoteGame {
-
     //Final fields
     private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
     private val btAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter() //TODO make sure adapter isn't null
@@ -286,7 +285,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
         try {
             val json = JSONObject()
             json.put("message", RemoteMessage.SETUP.ordinal)
-            json.put("start", requestState.players.first == MainActivity.Source.Bluetooth)
+            json.put("start", requestState.players.first == Source.REMOTE)
             json.put("board", requestState.board().toJSON().toString())
             val data = json.toString().toByteArray()
 
@@ -300,6 +299,6 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
 
     @SuppressLint("HardwareIds")
     override fun getLocalName() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
-
     override fun getRemoteName() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
+    override fun lastBoard() = localBoard
 }

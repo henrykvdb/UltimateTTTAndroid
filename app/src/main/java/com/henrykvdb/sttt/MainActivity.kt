@@ -44,28 +44,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var gameThread = GameThread()
     private var boardView: BoardView? = null
 
-    //Bluetooth
-    private var btServiceStarted = false
-    private var btServiceBound = false
+    //Remote
+    private var remoteServiceStarted = false
+    private var remoteServiceBound = false
+    private var remoteService: RemoteService? = null
     private var killService = false //TODO improve
+    fun remote() = remoteService?.remoteGame()
+
+    //Bluetooth
     private var keepBtOn = false
     private var btAdapter = BluetoothAdapter.getDefaultAdapter()
-    private var btService: BtService? = null
 
     //Other
     private var askDialog: AlertDialog? = null
     private var btDialog: AlertDialog? = null
     private var isInBackground = false
-    
+
     //Late init
     private lateinit var gs: GameState
     private var toast: Toast? = null
-
-    enum class Source {
-        Local,
-        AI,
-        Bluetooth
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,21 +101,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             (findViewById<View>(R.id.adView) as AdView).loadAd(AdRequest.Builder().build())
         }
 
-        //Register receiver to close bt service intent
-        val filter = IntentFilter()
-        filter.addAction(INTENT_STOP_BT_SERVICE)
-        filter.addAction(INTENT_TURNLOCAL)
-        filter.addAction(INTENT_NEWGAME)
-        filter.addAction(INTENT_TOAST)
-        filter.addAction(INTENT_MOVE)
-        filter.addAction(INTENT_UNDO)
-        registerReceiver(intentReceiver, filter)
-
         //Prepare fields
         boardView = findViewById(R.id.boardView)
         boardView?.setup(object : Callback<Byte> {
             override fun invoke(coord: Byte) {
-                gameThread.play(Source.Local, coord)
+                gameThread.play(Source.LOCAL, coord)
             }
         }, findViewById(R.id.next_move_view))
 
@@ -128,7 +115,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             gs = GameState.Builder().swapped(false).build()
         } else {
             //Restore game
-            btServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
+            remoteServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
             keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
             gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
         }
@@ -143,27 +130,29 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         isInBackground = false
 
         //Register receiver
-        registerReceiver(btStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+        val intentFilter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+        intentFilter.addAction(INTENT_STOP_BT_SERVICE)
+        registerReceiver(btStateReceiver, intentFilter)
 
         //Cancel notification
         val notificationManager = NotificationManagerCompat.from(this@MainActivity)
         notificationManager.cancel(BT_STILL_RUNNING)
 
-        if (!btServiceStarted) {
-            startService(Intent(this, BtService::class.java))
-            btServiceStarted = true
+        if (!remoteServiceStarted) {
+            startService(Intent(this, RemoteService::class.java))
+            remoteServiceStarted = true
         }
 
-        if (!btServiceBound) {
-            bindService(Intent(this, BtService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
+        if (!remoteServiceBound) {
+            bindService(Intent(this, RemoteService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
         } else throw RuntimeException("BtService already bound") //TODO remove
 
         newGame(gs)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        killService = !isChangingConfigurations && btService != null && btService?.getState() != RemoteState.CONNECTED
-        outState.putBoolean(BTSERVICE_STARTED_KEY, btServiceStarted && !killService)
+        killService = !isChangingConfigurations && remote()?.getState() != RemoteState.CONNECTED
+        outState.putBoolean(BTSERVICE_STARTED_KEY, remoteServiceStarted && !killService)
         outState.putBoolean(KEEP_BT_ON_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
         super.onSaveInstanceState(outState)
@@ -176,19 +165,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && btService?.getState() == RemoteState.CONNECTED) btRunningNotification()
+        if (!killService && remote()?.getState() == RemoteState.CONNECTED) btRunningNotification()
 
-        //Unbind btService and stop if needed
+        //Unbind remoteService and stop if needed
         unbindBtService(killService)
         if (killService || isChangingConfigurations) gameThread.close()
 
-
-        unregisterReceiver(btStateReceiver)
         super.onStop()
     }
 
     override fun onDestroy() {
-        unregisterReceiver(intentReceiver)
+        unregisterReceiver(btStateReceiver)
 
         if (!isChangingConfigurations) {
             unbindBtService(true)
@@ -205,17 +192,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun unbindBtService(stop: Boolean) {
         RuntimeException("unbind").printStackTrace()
 
-        if (btServiceBound) {
+        if (remoteServiceBound) {
             Log.e("BTS", "Unbinding")
             dismissBtDialog()
-            btServiceBound = false
+            remoteServiceBound = false
             unbindService(btServerConn)
         }
 
         if (stop) {
             Log.e("BTS", "Stopping")
-            btServiceStarted = false
-            stopService(Intent(this, BtService::class.java))
+            remoteServiceStarted = false
+            stopService(Intent(this, RemoteService::class.java))
             turnLocal()
         }
     }
@@ -227,7 +214,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         reopenIntent.addCategory(Intent.CATEGORY_LAUNCHER)
         val reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT)
 
-        //This intent shuts down the btService
+        //This intent shuts down the remoteService
         val intentAction = Intent(INTENT_STOP_BT_SERVICE)
         val pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT)
 
@@ -244,72 +231,62 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         notificationManager.notify(BT_STILL_RUNNING, notification)
     }
 
-    private val intentReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
+    private val remoteCallback = object : RemoteCallback {
+        override fun move(move: Byte) = gameThread.play(Source.REMOTE, move)
+        override fun newGame(gs: GameState) = this@MainActivity.newGame(gs)
+        override fun undo(force: Boolean) = this@MainActivity.undo(force)
+        override fun toast(text: String) = this@MainActivity.toast(text)
+        override fun turnLocal() = this@MainActivity.turnLocal()
 
-            when (action) {
-                INTENT_MOVE -> {
-                    val src = intent.getSerializableExtra(INTENT_DATA_FIRST) as Source
-                    val move = intent.getSerializableExtra(INTENT_DATA_SECOND) as Byte
-                    gameThread.play(src, move)
-                }
-                INTENT_NEWGAME -> newGame(intent.getSerializableExtra(INTENT_DATA_FIRST) as GameState)
-                INTENT_STOP_BT_SERVICE -> {
-                    unbindBtService(true)
-                    val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-                    notificationManager.cancel(BT_STILL_RUNNING)
-                }
-                INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA_FIRST))
-                INTENT_TURNLOCAL -> turnLocal()
-                INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA_FIRST, false))
-            }
-        }
     }
 
     private val btServerConn = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            Log.e(LOG_TAG, "btService Connected")
+            Log.e(LOG_TAG, "remoteService Connected")
 
-            btService = (service as BtService.LocalBinder).getService()
-            btServiceBound = true
+            remoteService = (service as RemoteService.LocalBinder).getService()
+            remoteServiceBound = true
 
             if (isInBackground) unbindBtService(killService)
-            else if (gs.isBluetooth()) {
-                if (btService!!.getState() == RemoteState.CONNECTED) {
+            else if (gs.isRemote()) {
+                if (remote()?.getState() == RemoteState.CONNECTED) {
                     //Fetch latest board
-                    val newBoard = btService!!.getLocalBoard()
-                    if (newBoard !== gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.Bluetooth, it) }
+                    val newBoard = remote()!!.lastBoard()
+                    if (newBoard != gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.REMOTE, it) }
 
                     //Update subtitle
-                    setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
+                    setSubTitle(getString(R.string.connected_to, remote()?.getRemoteName()))
                 } else turnLocal()
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            Log.e(LOG_TAG, "btService Disconnected")
-            btServiceBound = false
+            Log.e(LOG_TAG, "remoteService Disconnected")
+            remoteServiceBound = false
         }
     }
 
     private val btStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == BluetoothAdapter.ACTION_STATE_CHANGED && btAdapter!!.state == BluetoothAdapter.STATE_TURNING_OFF) {
-                dismissBtDialog()
-                btService!!.closeThread()
-                keepBtOn = false
-                Log.e("btStateReceiver", "TURNING OFF")
+            if (intent.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
+                if (btAdapter?.state == BluetoothAdapter.STATE_TURNING_OFF) {
+                    dismissBtDialog()
+                    remote()?.close()
+                    keepBtOn = false
+                    Log.e("btStateReceiver", "TURNING OFF")
+                }
+            } else if (intent.action == INTENT_STOP_BT_SERVICE) {
+                unbindBtService(true)
+                val notificationManager = NotificationManagerCompat.from(this@MainActivity)
+                notificationManager.cancel(BT_STILL_RUNNING)
             }
         }
     }
 
     private fun dismissBtDialog() {
-        if (btDialog != null) {
-            Log.e(LOG_TAG, "Closing bt dialog")
-            btDialog!!.dismiss()
-            btDialog = null
-        }
+        Log.e(LOG_TAG, "Closing bt dialog")
+        btDialog?.dismiss()
+        btDialog = null
     }
 
     private fun newGame(gs: GameState) {
@@ -320,16 +297,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         boardView!!.drawState(gs)
 
         when {
-            this.gs.isBluetooth() -> setTitle(getString(R.string.bt_game))
+            this.gs.isRemote() -> setTitle(getString(R.string.bt_game))
             this.gs.isAi() -> setTitle(getString(R.string.ai_game))
             this.gs.isHuman() -> setTitle(getString(R.string.human_game))
             else -> throw IllegalStateException()
         }
 
-        if (!gs.isBluetooth()) {
+        if (!gs.isRemote()) {
             setSubTitle(null)
-            if (btService != null) btService!!.closeThread()
-        } else if (btService != null) setSubTitle(getString(R.string.connected_to, btService!!.getConnectedDeviceName()))
+            if (remoteService != null) remote()?.close()
+        } else if (remoteService != null) setSubTitle(getString(R.string.connected_to, remote()?.getRemoteName()))
 
         gameThread = GameThread()
         gameThread.start()
@@ -369,8 +346,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     val newBoard = gs.board().copy()
                     newBoard.play(move)
 
-                    if (gs.players.contains(Source.Bluetooth) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.Local))
-                        btService!!.sendBoard(newBoard)
+                    if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.LOCAL))
+                        remote()?.sendBoard(newBoard)
                     gs.pushBoard(newBoard)
                     boardView!!.drawState(gs)
                 }
@@ -446,20 +423,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
-        if (btService != null && btService!!.getState() == RemoteState.CONNECTED && gs.isBluetooth())
-            btService!!.sendUndo(false)
+        if (remoteService != null && remote()?.getState() == RemoteState.CONNECTED && gs.isRemote())
+            remote()?.sendUndo(false)
         else
             undo(false)
         return true
     }
 
     fun undo(force: Boolean) {
-        if (!force && btService?.getState() == RemoteState.CONNECTED && gs.isBluetooth()) {
-            askUser(getString(R.string.undo_request, btService!!.getConnectedDeviceName()), object : Callback<Boolean> {
+        if (!force && remote()?.getState() == RemoteState.CONNECTED && gs.isRemote()) {
+            askUser(getString(R.string.undo_request, remote()?.getRemoteName()), object : Callback<Boolean> {
                 override fun invoke(allow: Boolean) { //TODO fix #3
                     if (allow) {
                         undo(true)
-                        btService!!.sendUndo(true)
+                        remote()?.sendUndo(true)
                     }
                 }
             })
@@ -471,8 +448,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             newGame(newState)
 
-            if (btService?.getState() == RemoteState.CONNECTED)
-                btService!!.setLocalBoard(gs.board())
+            if (remote()?.getState() == RemoteState.CONNECTED)
+                remoteService!!.setLocalBoard(gs.board())
         }
     }
 
@@ -509,10 +486,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val discoverable = btAdapter!!.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
 
         if (discoverable) {
-            btService!!.listen()
+            remote()?.listen(GameState.Builder().bt().build())
 
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
-            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, btService!!.getLocalBluetoothName())
+            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, remote()?.getLocalName())
 
             val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
                 //Get board type
@@ -528,10 +505,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 //Create the actual requested gamestate
                 val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer() == Player.PLAYER)
                 val gsBuilder = GameState.Builder().bt().swapped(swapped)
-                if (!newBoard)
-                    gsBuilder.board(gs.board())
+                if (!newBoard) gsBuilder.board(gs.board())
 
-                btService!!.setRequestState(gsBuilder.build())
+                remote()?.listen(gsBuilder.build())
             }
 
             (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
@@ -540,10 +516,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
                     .setCustomTitle(newTitle(this, getString(R.string.host_bluetooth_game)))
-                    .setOnCancelListener { btService!!.closeThread() }
+                    .setOnCancelListener { remote()?.close() }
                     .setNegativeButton(getString(R.string.close)) { _, _ ->
                         dismissBtDialog()
-                        btService!!.closeThread()
+                        remote()?.close()
                     }.show())
         } else {
             val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
@@ -570,7 +546,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             else
                 btDialog = BtPicker(this, btAdapter!!, object : Callback<String> {
                     override fun invoke(t: String) {
-                        btService?.connect(t)
+                        remote()?.connect(t)
                     }
                 }).alertDialog
         }
@@ -609,4 +585,4 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         keepDialog(askDialog!!)
     }
-} 
+}

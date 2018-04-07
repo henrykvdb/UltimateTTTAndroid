@@ -23,7 +23,7 @@
 			</intent-filter>
 		</activity>
 		<service
-				android:name="com.henrykvdb.sttt.BtService"
+				android:name="com.henrykvdb.sttt.RemoteService"
 				android:exported="false"/>
 	</application>
 
