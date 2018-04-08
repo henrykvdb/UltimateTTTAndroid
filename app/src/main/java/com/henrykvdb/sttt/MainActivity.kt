@@ -38,6 +38,8 @@ import com.henrykvdb.sttt.util.*
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     //Game fields
@@ -48,7 +50,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var remoteServiceStarted = false
     private var remoteServiceBound = false
     private var remoteService: RemoteService? = null
-    private var killService = false //TODO improve
     fun remote() = remoteService?.remoteGame()
 
     //Bluetooth
@@ -103,11 +104,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         //Prepare fields
         boardView = findViewById(R.id.boardView)
-        boardView?.setup(object : Callback<Byte> {
-            override fun invoke(coord: Byte) {
-                gameThread.play(Source.LOCAL, coord)
-            }
-        }, findViewById(R.id.next_move_view))
+        boardView?.setup({coord -> gameThread.play(Source.LOCAL, coord) }, findViewById(R.id.next_move_view))
 
         if (savedInstanceState == null) {
             //New game
@@ -145,13 +142,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (!remoteServiceBound) {
             bindService(Intent(this, RemoteService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
-        } else throw RuntimeException("BtService already bound") //TODO remove
+        } else throw IllegalStateException("BtService already bound") //TODO remove
 
         newGame(gs)
     }
 
+    private var killService = false
     override fun onSaveInstanceState(outState: Bundle) {
-        killService = !isChangingConfigurations && remote()?.getState() != RemoteState.CONNECTED
+        killService = !isChangingConfigurations && remote()?.state != RemoteState.CONNECTED
         outState.putBoolean(BTSERVICE_STARTED_KEY, remoteServiceStarted && !killService)
         outState.putBoolean(KEEP_BT_ON_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
@@ -165,7 +163,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && remote()?.getState() == RemoteState.CONNECTED) btRunningNotification()
+        if (!killService && remote()?.state == RemoteState.CONNECTED) btRunningNotification()
 
         //Unbind remoteService and stop if needed
         unbindBtService(killService)
@@ -249,13 +247,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             if (isInBackground) unbindBtService(killService)
             else if (gs.isRemote()) {
-                if (remote()?.getState() == RemoteState.CONNECTED) {
+                if (remote()?.state == RemoteState.CONNECTED) {
                     //Fetch latest board
                     val newBoard = remote()!!.lastBoard()
                     if (newBoard != gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.REMOTE, it) }
 
                     //Update subtitle
-                    setSubTitle(getString(R.string.connected_to, remote()?.getRemoteName()))
+                    setSubTitle(getString(R.string.connected_to, remote()?.remoteName))
                 } else turnLocal()
             }
         }
@@ -306,7 +304,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (!gs.isRemote()) {
             setSubTitle(null)
             if (remoteService != null) remote()?.close()
-        } else if (remoteService != null) setSubTitle(getString(R.string.connected_to, remote()?.getRemoteName()))
+        } else if (remoteService != null) setSubTitle(getString(R.string.connected_to, remote()?.remoteName)) //TODO remoteName is nullable
 
         gameThread = GameThread()
         gameThread.start()
@@ -370,7 +368,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     }
                 }
             }
-            //TODO play sound
             return playerMove.getAndSet(null).first
         }
 
@@ -423,7 +420,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
-        if (remoteService != null && remote()?.getState() == RemoteState.CONNECTED && gs.isRemote())
+        if (remoteService != null && remote()?.state == RemoteState.CONNECTED && gs.isRemote())
             remote()?.sendUndo(false)
         else
             undo(false)
@@ -431,40 +428,29 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun undo(force: Boolean) {
-        if (!force && remote()?.getState() == RemoteState.CONNECTED && gs.isRemote()) {
-            askUser(getString(R.string.undo_request, remote()?.getRemoteName()), object : Callback<Boolean> {
-                override fun invoke(allow: Boolean) { //TODO fix #3
-                    if (allow) {
-                        undo(true)
-                        remote()?.sendUndo(true)
-                    }
+        if (!force && remote()?.state == RemoteState.CONNECTED && gs.isRemote()) {
+            askUser(getString(R.string.undo_request, remote()?.remoteName), { allow ->
+                if (allow) {
+                    undo(true)
+                    remote()?.sendUndo(true)
                 }
             })
         } else {
             val newState = GameState.Builder().gs(gs).build()
             newState.popBoard()
-            if (Source.AI == gs.otherSource() && newState.boards.size > 1)
-                newState.popBoard()
+            if (Source.AI == gs.otherSource() && newState.boards.size > 1) newState.popBoard()
 
             newGame(newState)
 
-            if (remote()?.getState() == RemoteState.CONNECTED)
+            if (remote()?.state == RemoteState.CONNECTED)
                 remoteService!!.setLocalBoard(gs.board())
         }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_local_human -> com.henrykvdb.sttt.util.newLocal(object : Callback<Boolean> {
-                override fun invoke(t: Boolean) {
-                    if (t) newLocal()
-                }
-            }, this)
-            R.id.nav_local_ai -> newAi(object : Callback<GameState> {
-                override fun invoke(t: GameState) {
-                    newGame(t)
-                }
-            }, this)
+            R.id.nav_local_human -> com.henrykvdb.sttt.util.newLocal({ accept -> if (accept) newLocal() }, this)
+            R.id.nav_local_ai -> newAi({ gs -> newGame(gs) }, this)
             R.id.nav_bt_host -> hostBt()
             R.id.nav_bt_join -> joinBt()
             R.id.nav_other_feedback -> feedbackSender(this)
@@ -489,7 +475,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             remote()?.listen(GameState.Builder().bt().build())
 
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
-            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, remote()?.getLocalName())
+            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, remote()?.localName)
 
             val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
                 //Get board type
@@ -542,40 +528,28 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             //If we don't have the COARSE LOCATION permission, request it
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOCATION)
-            else
-                btDialog = BtPicker(this, btAdapter!!, object : Callback<String> {
-                    override fun invoke(t: String) {
-                        remote()?.connect(t)
-                    }
-                }).alertDialog
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOC)
+            else btDialog = BtPicker(this, btAdapter!!, { adr -> remote()?.connect(adr) }).alertDialog
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK)
-            joinBt()
-        else if (requestCode == REQUEST_ENABLE_DSC && resultCode != Activity.RESULT_CANCELED)
-            hostBt()
-
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) joinBt()
+        else if (requestCode == REQUEST_ENABLE_DSC && resultCode != Activity.RESULT_CANCELED) hostBt()
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (requestCode == REQUEST_COARSE_LOCATION && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
-            joinBt()
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == REQUEST_COARSE_LOC && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) joinBt()
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    private fun askUser(message: String, callBack: Callback<Boolean>) {
-        if (askDialog != null && askDialog!!.isShowing)
-            askDialog!!.dismiss()
+    private fun askUser(message: String, callBack: (Boolean) -> Unit) {
+        if (askDialog?.isShowing == true) askDialog!!.dismiss()
 
         val dialogClickListener = DialogInterface.OnClickListener { _, which ->
-            if (which == DialogInterface.BUTTON_POSITIVE)
-                callBack.invoke(true)
-            else if (which == DialogInterface.BUTTON_NEGATIVE)
-                callBack.invoke(false)
+            if (which == DialogInterface.BUTTON_POSITIVE) callBack.invoke(true)
+            else if (which == DialogInterface.BUTTON_NEGATIVE) callBack.invoke(false)
         }
 
         askDialog = AlertDialog.Builder(this).setMessage(message)

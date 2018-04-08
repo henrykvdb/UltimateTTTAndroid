@@ -5,18 +5,17 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 
-enum class RemoteType{
+enum class RemoteType {
     NONE,
     BLUETOOTH
 }
 
 class RemoteService : Service() {
-    private val mBinder = LocalBinder()
-
-    private var remoteGame: RemoteGame? = null
+    private var remoteGame: RemoteGame = DummyRemoteGame
     private var type = RemoteType.NONE
 
-    override fun onBind(intent: Intent): IBinder? = mBinder
+    private val binder = LocalBinder()
+    override fun onBind(intent: Intent): IBinder? = binder
     inner class LocalBinder : Binder() {
         fun getService() = this@RemoteService
     }
@@ -24,12 +23,13 @@ class RemoteService : Service() {
     fun remoteGame() = remoteGame
 
     fun getType() = type
-    fun setType(type: RemoteType, callback: RemoteCallback){
-        remoteGame?.close()
+    fun setType(type: RemoteType, callback: RemoteCallback) {
+        remoteGame.close()
         this.type = type
 
-        if (type == RemoteType.BLUETOOTH){
-            remoteGame = BtGame(callback)
+        remoteGame = when (type) {
+            RemoteType.BLUETOOTH -> BtGame(callback)
+            RemoteType.NONE -> DummyRemoteGame
         }
     }
 }

@@ -15,11 +15,11 @@ import com.flaghacker.sttt.common.toCoord
 @Suppress("unused") typealias ds = DrawSettings
 
 class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-    private val path: Path = Path()
-    private val paint: Paint = Paint()
+    private val path = Path()
+    private val paint = Paint()
 
-    private lateinit var moveCallback: Callback<Byte>
-    private var gameState: GameState = GameState.Builder().build()
+    private lateinit var moveCallback: (Byte) -> Unit
+    private var gameState = GameState.Builder().build()
     private var nextPlayerView: TextView? = null
 
     private var macroSizeSmall = 0.0f
@@ -37,15 +37,15 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private var bigGridStroke = 0
 
     //Fields for distinguishing click and drag events
-    private var pressedX: Float = 0.0f
-    private var pressedY: Float = 0.0f
+    private var pressedX = 0.0f
+    private var pressedY = 0.0f
 
     init {
         setVars()
         postInvalidate()
     }
 
-    fun setup(moveCallback: Callback<Byte>, nextPlayerView: TextView) {
+    fun setup(moveCallback: (Byte) -> Unit, nextPlayerView: TextView) {
         this.moveCallback = moveCallback
         this.nextPlayerView = nextPlayerView
     }
@@ -83,7 +83,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             if (!board.isDone()) {
                 if (!gameState.isHuman()) {
                     it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
-                    val yourTurn = gameState.nextSource() == MainActivity.Source.Local
+                    val yourTurn = gameState.nextSource() == Source.LOCAL
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
                 }
             } else {
@@ -97,8 +97,8 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                     } else {
                         it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
                         val youWon =
-                                if (board.wonBy() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
-                                else gameState.players.second == MainActivity.Source.Local
+                                if (board.wonBy() == Player.PLAYER) gameState.players.first == Source.LOCAL
+                                else gameState.players.second == Source.LOCAL
                         it.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
                     }
                 }

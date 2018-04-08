@@ -156,7 +156,7 @@ fun rateDialog(context: Context) {
     editor.apply()
 }
 
-fun newLocal(callback: Callback<Boolean>, context: Context) {
+fun newLocal(callback: (Boolean) -> Unit, context: Context) {
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
         when (which) {
             DialogInterface.BUTTON_POSITIVE -> callback.invoke(true)
@@ -171,7 +171,7 @@ fun newLocal(callback: Callback<Boolean>, context: Context) {
             .setNegativeButton(context.getString(R.string.close), dialogClickListener).show())
 }
 
-fun newAi(callback: Callback<GameState>, context: Context) {
+fun newAi(callback: (GameState) -> Unit, context: Context) {
     val swapped = BooleanArray(1)
 
     val layout = View.inflate(context, R.layout.dialog_ai, null)

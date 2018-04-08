@@ -16,9 +16,7 @@ enum class Source {
 class GameState private constructor(val players: Players, val boards: LinkedList<Board>, val extraBot: Bot) : Serializable {
     fun board() = boards.peek()!!
     fun pushBoard(board: Board) = boards.push(board)
-    fun popBoard() {
-        boards.pop()
-    }
+    fun popBoard() = boards.pop() ?: null
 
     fun isHuman() = (players.first == Source.LOCAL && players.second == Source.LOCAL)
     fun isRemote() = players.contains(Source.REMOTE)
@@ -33,7 +31,7 @@ class GameState private constructor(val players: Players, val boards: LinkedList
 
     class Players(val first: Source, val second: Source) : Serializable {
         operator fun contains(source: Source) = (first == source || second == source)
-        fun swap(): Players = Players(second, first)
+        fun swap() = Players(second, first)
 
         companion object {
             private const val serialVersionUID = 5619757295352382870L

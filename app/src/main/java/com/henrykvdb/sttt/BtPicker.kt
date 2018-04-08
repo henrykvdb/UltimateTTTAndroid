@@ -16,7 +16,7 @@ import com.henrykvdb.sttt.util.keepDialog
 import com.henrykvdb.sttt.util.newLoadTitle
 import java.util.*
 
-class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: Callback<String>) {
+class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: (String) -> Unit) {
     private val devices = ArrayList<BluetoothDevice>()
 
     private val view = View.inflate(context, R.layout.dialog_bt_join, null)

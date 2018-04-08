@@ -21,12 +21,11 @@ import java.io.OutputStream
 class BtGame(val callback: RemoteCallback) : RemoteGame {
     //Final fields
     private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
-    private val btAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter() //TODO make sure adapter isn't null
+    private val btAdapter = BluetoothAdapter.getDefaultAdapter()!!
     private val res = Resources.getSystem()
 
     //State
-    @Volatile private var state = RemoteState.NONE
-    override fun getState() = state
+    override var state = RemoteState.NONE
 
     //Other
     private var btThread: CloseableThread? = null
@@ -163,14 +162,12 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
     private fun connected(socket: BluetoothSocket, isHost: Boolean) {
         Log.e(LOG_TAG, "BEGIN connected thread")
 
-        if (Thread.interrupted())
-            return
+        if (Thread.interrupted()) return
 
         val inStream: InputStream
         try {
             inStream = socket.inputStream
             outStream = socket.outputStream
-
             state = RemoteState.CONNECTED
         } catch (e: IOException) {
             Log.e(LOG_TAG, "connected sockets not created", e)
@@ -298,7 +295,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
     }
 
     @SuppressLint("HardwareIds")
-    override fun getLocalName() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
-    override fun getRemoteName() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
+    override val localName = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
+    override val remoteName = if (state == RemoteState.CONNECTED) connectedDeviceName else null
     override fun lastBoard() = localBoard
 }
