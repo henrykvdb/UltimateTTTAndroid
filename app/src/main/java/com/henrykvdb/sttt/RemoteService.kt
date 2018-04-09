@@ -28,7 +28,7 @@ class RemoteService : Service() {
         this.type = type
 
         remoteGame = when (type) {
-            RemoteType.BLUETOOTH -> BtGame(callback)
+            RemoteType.BLUETOOTH -> BtGame(resources)
             RemoteType.NONE -> DummyRemoteGame
         }
     }

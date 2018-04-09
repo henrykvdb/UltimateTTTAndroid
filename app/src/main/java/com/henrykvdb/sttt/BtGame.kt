@@ -17,12 +17,12 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.*
 
-class BtGame(val callback: RemoteCallback) : RemoteGame {
+class BtGame(val res: Resources) : RemoteGame {
     //Final fields
     private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()!!
-    private val res = Resources.getSystem()
 
     //State
     override var state = RemoteState.NONE
@@ -32,7 +32,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
     private var connectedDeviceName: String? = null
     private lateinit var requestState: GameState
     private var outStream: OutputStream? = null
-    private var localBoard = Board()
+    private var boards = LinkedList(listOf(Board()))
 
     override fun listen(gs: GameState) {
         requestState = gs
@@ -46,8 +46,8 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
 
     override fun connect(adr: String) {
         val device = btAdapter.getRemoteDevice(adr)
-        callback.toast(device?.name?.let { res.getString(R.string.connecting_to, it) }
-                ?: res.getString(R.string.connecting))
+        callback.toast(
+                device?.name?.let { res.getString(R.string.connecting_to, it) } ?: res.getString(R.string.connecting))
 
         close()
         btThread = device?.let { ConnectingThread(it) }
@@ -194,24 +194,30 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
                 val message = json.getInt("message")
 
                 Log.e(LOG_TAG, "RECEIVED BTMESSAGE: $message")
-                if (message == RemoteMessage.BOARD_UPDATE.ordinal) {
-                    val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
-                    val newMove = newBoard.lastMove()!!
+                when(RemoteMessageType.values()[message]){
+                    RemoteMessageType.BOARD_UPDATE->{
+                        val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
+                        val newMove = newBoard.lastMove()!!
 
-                    if (isValidBoard(localBoard, newBoard)) {
-                        Log.e(LOG_TAG, "We received a valid board")
-                        localBoard = newBoard
-                        callback.move(newMove)
-                    } else {
-                        callback.toast(res.getString(R.string.desync_message))
-                        break
+                        if (isValidBoard(boards.peek(), newBoard)) {
+                            Log.e(LOG_TAG, "We received a valid board")
+                            boards.push(newBoard)
+                            callback.move(newMove)
+                        } else {
+                            callback.toast(res.getString(R.string.desync_message))
+                            break
+                        }
                     }
-                } else if (message == RemoteMessage.SETUP.ordinal) {
-                    val board = JSONBoard.fromJSON(JSONObject(json.getString("board")))
-                    localBoard = board
-                    callback.newGame(GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
-                } else if (message == RemoteMessage.UNDO.ordinal) {
-                    callback.undo(json.getBoolean("force"))
+                    RemoteMessageType.SETUP->{
+                        val board = JSONBoard.fromJSON(JSONObject(json.getString("board")))
+                        boards = LinkedList(listOf(board))
+                        callback.newGame(GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
+                    }
+                    RemoteMessageType.UNDO->{
+                        val force = json.getBoolean("force")
+                        callback.undo(force)
+                        if(force) boards.pop()
+                    }
                 }
             } catch (e: IOException) {
                 Log.e(LOG_TAG, "disconnected", e)
@@ -239,10 +245,11 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
     override fun sendUndo(force: Boolean) {
         Log.e(LOG_TAG, "Sending undo")
         if (state != RemoteState.CONNECTED) return
+        if (force) boards.pop()
 
         try {
             val json = JSONObject()
-            json.put("message", RemoteMessage.UNDO.ordinal)
+            json.put("message", RemoteMessageType.UNDO.ordinal)
             json.put("force", force)
             val data = json.toString().toByteArray(Charsets.UTF_8)
             outStream?.write(data)
@@ -255,12 +262,12 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
 
     override fun sendBoard(board: Board) {
         Log.e(LOG_TAG, "Sending board")
-        localBoard = board
+        boards.push(board)
 
         try {
             val json = JSONObject()
 
-            json.put("message", RemoteMessage.BOARD_UPDATE.ordinal)
+            json.put("message", RemoteMessageType.BOARD_UPDATE.ordinal)
             json.put("board", board.toJSON().toString())
 
             val data = json.toString().toByteArray(Charsets.UTF_8)
@@ -277,11 +284,11 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
         callback.newGame(requestState)
         Log.e(LOG_TAG, "Sending setup, starting: " + requestState.players.first)
 
-        localBoard = requestState.board()
+        boards = LinkedList(listOf(requestState.board()))
 
         try {
             val json = JSONObject()
-            json.put("message", RemoteMessage.SETUP.ordinal)
+            json.put("message", RemoteMessageType.SETUP.ordinal)
             json.put("start", requestState.players.first == Source.REMOTE)
             json.put("board", requestState.board().toJSON().toString())
             val data = json.toString().toByteArray(Charsets.UTF_8)
@@ -297,5 +304,5 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
     @SuppressLint("HardwareIds")
     override val localName = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
     override val remoteName = if (state == RemoteState.CONNECTED) connectedDeviceName else null
-    override fun lastBoard() = localBoard
+    override val lastBoard = boards.pop()!!
 }

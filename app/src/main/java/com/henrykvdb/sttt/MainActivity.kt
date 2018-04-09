@@ -24,7 +24,9 @@ import android.util.Pair
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
@@ -32,7 +34,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.henrykvdb.sttt.util.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_bt_host.*
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -235,7 +236,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             else if (gs.isRemote()) {
                 if (remote?.state == RemoteState.CONNECTED) {
                     //Fetch latest board
-                    val newBoard = remote!!.lastBoard()
+                    val newBoard = remote!!.lastBoard
                     if (newBoard != gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.REMOTE, it) }
 
                     //Update subtitle
@@ -431,9 +432,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (Source.AI == gs.otherSource() && newState.boards.size > 1) newState.popBoard()
 
             newGame(newState)
-
-            if (remote?.state == RemoteState.CONNECTED)
-                remoteService!!.setLocalBoard(gs.board())
         }
     }
 
@@ -454,6 +452,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun hostBt() {
+        remoteService?.setType(RemoteType.BLUETOOTH,remoteCallback)
+
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
             return
@@ -465,17 +465,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             remote?.listen(GameState.Builder().bt().build())
 
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
-            bt_host_desc_textview.text = getString(R.string.host_desc, remote?.localName)
+            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, remote?.localName)
 
             val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
                 //Get board type
-                val newBoard = board_new_radiobtn.isChecked
+                val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
 
                 //Get the beginning player
-                val beginner = start_radio_group.checkedRadioButtonId
+                val beginner = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).checkedRadioButtonId
                 var start = Random().nextBoolean()
-                if (beginner == R.id.start_you_radiobtn) start = true
-                else if (beginner == R.id.start_other_radiobtn) start = false
+                if (beginner == R.id.start_you)
+                    start = true
+                else if (beginner == R.id.start_other) start = false
 
                 //Create the actual requested gamestate
                 val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer() == Player.PLAYER)
@@ -485,8 +486,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 remote?.listen(gsBuilder.build())
             }
 
-            start_radio_group.setOnCheckedChangeListener(onCheckedChangeListener)
-            board_radio_group.setOnCheckedChangeListener(onCheckedChangeListener)
+            (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
+            (layout.findViewById<View>(R.id.board_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
 
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
@@ -504,6 +505,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun joinBt() {
+        remoteService?.setType(RemoteType.BLUETOOTH,remoteCallback)
+
         // If the adapter is null, then Bluetooth is not supported
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
