@@ -23,13 +23,21 @@ class RemoteService : Service() {
     fun remoteGame() = remoteGame
 
     fun getType() = type
-    fun setType(type: RemoteType, callback: RemoteCallback) {
+    fun setType(type: RemoteType) {
         remoteGame.close()
         this.type = type
 
         remoteGame = when (type) {
-            RemoteType.BLUETOOTH -> BtGame(resources)
+            RemoteType.BLUETOOTH -> BtGame(callback, resources)
             RemoteType.NONE -> DummyRemoteGame
         }
+    }
+
+    private val callback = object : RemoteCallback {
+        override fun newGame(gs: GameState) = this@RemoteService.sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA, gs))
+        override fun undo(force: Boolean) = this@RemoteService.sendBroadcast(Intent(INTENT_UNDO).putExtra(INTENT_DATA, force))
+        override fun toast(text: String) = this@RemoteService.sendBroadcast(Intent(INTENT_TOAST).putExtra(INTENT_DATA, text))
+        override fun move(move: Byte) = this@RemoteService.sendBroadcast(Intent(INTENT_MOVE).putExtra(INTENT_DATA, move))
+        override fun turnLocal() = this@RemoteService.sendBroadcast(Intent(INTENT_TURNLOCAL))
     }
 }

@@ -93,6 +93,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             adView?.loadAd(AdRequest.Builder().build())
         }
 
+        //Register receiver to get updates from the remote game
+        registerReceiver(remoteReceiver,IntentFilter().apply{
+            addAction(INTENT_TURNLOCAL)
+            addAction(INTENT_NEWGAME)
+            addAction(INTENT_TOAST)
+            addAction(INTENT_MOVE)
+            addAction(INTENT_UNDO)
+        })
+
         //Prepare fields
         boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, next_move_textview)
 
@@ -160,6 +169,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onDestroy() {
+        unregisterReceiver(remoteReceiver)
         unregisterReceiver(btStateReceiver)
 
         if (!isChangingConfigurations) {
@@ -216,13 +226,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         notificationManager.notify(BT_STILL_RUNNING, notification)
     }
 
-    private val remoteCallback = object : RemoteCallback {
-        override fun move(move: Byte) = gameThread.play(Source.REMOTE, move)
-        override fun newGame(gs: GameState) = this@MainActivity.newGame(gs)
-        override fun undo(force: Boolean) = this@MainActivity.undo(force)
-        override fun toast(text: String) = this@MainActivity.toast(text)
-        override fun turnLocal() = this@MainActivity.turnLocal()
-
+    private val remoteReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = when (intent.action) {
+            INTENT_MOVE -> gameThread.play(Source.REMOTE, intent.getSerializableExtra(INTENT_DATA) as Byte)
+            INTENT_NEWGAME -> newGame(intent.getSerializableExtra(INTENT_DATA) as GameState)
+            INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA, false))
+            INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA))
+            INTENT_TURNLOCAL -> turnLocal()
+            else -> throw IllegalStateException(intent.action)
+        }
     }
 
     private val btServerConn = object : ServiceConnection {
@@ -452,7 +464,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun hostBt() {
-        remoteService?.setType(RemoteType.BLUETOOTH,remoteCallback)
+        remoteService?.setType(RemoteType.BLUETOOTH)
 
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
@@ -505,7 +517,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun joinBt() {
-        remoteService?.setType(RemoteType.BLUETOOTH,remoteCallback)
+        remoteService?.setType(RemoteType.BLUETOOTH)
 
         // If the adapter is null, then Bluetooth is not supported
         if (btAdapter == null) {

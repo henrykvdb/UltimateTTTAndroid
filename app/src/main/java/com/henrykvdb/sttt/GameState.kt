@@ -50,7 +50,6 @@ class GameState private constructor(val players: Players, val boards: LinkedList
         fun swapped(swapped: Boolean) = apply { this.swapped = swapped }
         fun ai(extraBot: Bot) = apply { this.extraBot = extraBot;players = Players(Source.LOCAL, Source.AI) }
         fun bt() = apply { players = Players(Source.LOCAL, Source.REMOTE) }
-
         fun gs(gs: GameState) = apply {
             players = gs.players
             boards = gs.boards

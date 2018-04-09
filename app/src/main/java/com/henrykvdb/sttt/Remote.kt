@@ -2,18 +2,7 @@ package com.henrykvdb.sttt
 
 import com.flaghacker.sttt.common.Board
 
-/**Messages send between MainActivity and RemoteService using the EventBus library*/
-class RemoteMessage{
-    enum class Type {
-        MOVE,
-        NEWGAME,
-        UNDO,
-        TOAST,
-        TURNLOCAL,
-    }
-}
-
-/**States the remoteGame game can have*/
+/**States the RemoteGame implementation can have*/
 enum class RemoteState {
     NONE,
     LISTENING,
@@ -21,14 +10,14 @@ enum class RemoteState {
     CONNECTED
 }
 
-/**Types of messages the remoteGame game can send*/
+/**Types of messages the RemoteGame implementation can send*/
 enum class RemoteMessageType {
     UNDO,
     SETUP,
     BOARD_UPDATE;
 }
 
-/**Callback used to callback data to the UI*/
+/**Callback used to callback data from the remoteGame to the RemoteService*/
 interface RemoteCallback {
     fun move(move: Byte)
     fun newGame(gs: GameState)
@@ -57,6 +46,7 @@ object DummyRemoteGame : RemoteGame {
     override val remoteName: String? = null
     override val localName = ""
     override val state = RemoteState.NONE
+    override val lastBoard get() = throw IllegalStateException()
 
     override fun listen(gs: GameState) = Unit
     override fun connect(adr: String) = Unit
@@ -64,5 +54,4 @@ object DummyRemoteGame : RemoteGame {
 
     override fun sendUndo(force: Boolean) = Unit
     override fun sendBoard(board: Board) = Unit
-    override fun lastBoard() = throw IllegalStateException("DummyGame's lastBoard method should not be called")
 }
