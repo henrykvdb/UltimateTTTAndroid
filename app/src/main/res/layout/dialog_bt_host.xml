@@ -25,7 +25,7 @@
 				android:id="@+id/board_radio_group">
 			<RadioButton
 					android:text="@string/new_board"
-					android:id="@+id/board_new"
+					android:id="@+id/board_new_radiobtn"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
@@ -51,7 +51,7 @@
 				android:id="@+id/start_radio_group">
 			<RadioButton
 					android:text="@string/you"
-					android:id="@+id/start_you"
+					android:id="@+id/start_you_radiobtn"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
@@ -59,7 +59,7 @@
 					android:checked="true"/>
 			<RadioButton
 					android:text="@string/other"
-					android:id="@+id/start_other"
+					android:id="@+id/start_other_radiobtn"
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
@@ -73,7 +73,7 @@
 		</RadioGroup>
 		<TextView
 				android:paddingTop="10dp"
-				android:id="@+id/bt_host_desc"
+				android:id="@+id/bt_host_desc_textview"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:textStyle="normal|bold"/>

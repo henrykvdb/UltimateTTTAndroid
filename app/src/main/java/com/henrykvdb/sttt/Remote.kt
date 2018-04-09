@@ -50,6 +50,7 @@ object DummyRemoteGame : RemoteGame {
     override fun listen(gs: GameState) = Unit
     override fun connect(adr: String) = Unit
     override fun close() = Unit
+
     override fun sendUndo(force: Boolean) = Unit
     override fun sendBoard(board: Board) = Unit
     override fun lastBoard() = throw IllegalStateException("DummyGame's lastBoard method should not be called")

@@ -189,7 +189,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
                 // Read from the InputStream
                 inStream.read(buffer) //TODO improve
 
-                val json = JSONObject(String(buffer))
+                val json = JSONObject(String(buffer, Charsets.UTF_8))
 
                 val message = json.getInt("message")
 
@@ -244,7 +244,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
             val json = JSONObject()
             json.put("message", RemoteMessage.UNDO.ordinal)
             json.put("force", force)
-            val data = json.toString().toByteArray()
+            val data = json.toString().toByteArray(Charsets.UTF_8)
             outStream?.write(data)
         } catch (e: IOException) {
             Log.e(LOG_TAG, "Exception during undo", e)
@@ -263,7 +263,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
             json.put("message", RemoteMessage.BOARD_UPDATE.ordinal)
             json.put("board", board.toJSON().toString())
 
-            val data = json.toString().toByteArray()
+            val data = json.toString().toByteArray(Charsets.UTF_8)
 
             outStream?.write(data)
         } catch (e: IOException) {
@@ -284,7 +284,7 @@ class BtGame(val callback: RemoteCallback) : RemoteGame {
             json.put("message", RemoteMessage.SETUP.ordinal)
             json.put("start", requestState.players.first == Source.REMOTE)
             json.put("board", requestState.board().toJSON().toString())
-            val data = json.toString().toByteArray()
+            val data = json.toString().toByteArray(Charsets.UTF_8)
 
             outStream?.write(data)
         } catch (e: IOException) {

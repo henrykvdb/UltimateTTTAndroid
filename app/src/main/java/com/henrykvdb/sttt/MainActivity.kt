@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.PendingIntent
@@ -15,42 +16,37 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
 import android.support.v4.widget.ViewDragHelper
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.util.Pair
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.TextView
 import android.widget.Toast
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.henrykvdb.sttt.util.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_bt_host.*
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 
+@SuppressLint("ShowToast")
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     //Game fields
     private var gameThread = GameThread()
-    private var boardView: BoardView? = null
 
     //Remote
     private var remoteServiceStarted = false
     private var remoteServiceBound = false
     private var remoteService: RemoteService? = null
-    fun remote() = remoteService?.remoteGame()
+    val remote get() = remoteService?.remoteGame()
 
     //Bluetooth
     private var keepBtOn = false
@@ -63,22 +59,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     //Late init
     private lateinit var gs: GameState
-    private var toast: Toast? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         //Create some variables used later
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
 
         //Make it easier to open the drawer
         try {
-            val dragger = drawer.javaClass.getDeclaredField("mLeftDragger")
+            val dragger = drawer_layout.javaClass.getDeclaredField("mLeftDragger")
             dragger.isAccessible = true
-            val draggerObj = dragger.get(drawer) as ViewDragHelper
+            val draggerObj = dragger.get(drawer_layout) as ViewDragHelper
             val mEdgeSize = draggerObj.javaClass.getDeclaredField("mEdgeSize")
             mEdgeSize.isAccessible = true
             mEdgeSize.setInt(draggerObj, mEdgeSize.getInt(draggerObj) * 4)
@@ -88,38 +81,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         //Add listener to open and closeGame drawer
         val toggle = ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawer.addDrawerListener(toggle)
+                this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
-        //Add listener to the items
-        val navigationView = findViewById<NavigationView>(R.id.nav_view)
-        navigationView.setNavigationItemSelectedListener(this)
+        navigation_view.setNavigationItemSelectedListener(this)
 
         //Add ads in portrait
         if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
             MobileAds.initialize(applicationContext, getString(R.string.banner_ad_unit_id))
-            (findViewById<View>(R.id.adView) as AdView).loadAd(AdRequest.Builder().build())
+            adView?.loadAd(AdRequest.Builder().build())
         }
 
         //Prepare fields
-        boardView = findViewById(R.id.boardView)
-        boardView?.setup({coord -> gameThread.play(Source.LOCAL, coord) }, findViewById(R.id.next_move_view))
+        boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, next_move_textview)
 
         if (savedInstanceState == null) {
             //New game
             keepBtOn = btAdapter != null && btAdapter!!.isEnabled
             gs = GameState.Builder().swapped(false).build()
+            rateDialog(this)
         } else {
             //Restore game
             remoteServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
             keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
             gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
         }
-
-        //Ask the user to rateDialog
-        if (savedInstanceState == null)
-            rateDialog(this)
     }
 
     override fun onStart() {
@@ -149,7 +135,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private var killService = false
     override fun onSaveInstanceState(outState: Bundle) {
-        killService = !isChangingConfigurations && remote()?.state != RemoteState.CONNECTED
+        killService = !isChangingConfigurations && remote?.state != RemoteState.CONNECTED
         outState.putBoolean(BTSERVICE_STARTED_KEY, remoteServiceStarted && !killService)
         outState.putBoolean(KEEP_BT_ON_KEY, keepBtOn)
         outState.putSerializable(GAMESTATE_KEY, gs)
@@ -163,7 +149,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onStop() {
         //Notification telling the user that BtService is still open
-        if (!killService && remote()?.state == RemoteState.CONNECTED) btRunningNotification()
+        if (!killService && remote?.state == RemoteState.CONNECTED) btRunningNotification()
 
         //Unbind remoteService and stop if needed
         unbindBtService(killService)
@@ -247,13 +233,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             if (isInBackground) unbindBtService(killService)
             else if (gs.isRemote()) {
-                if (remote()?.state == RemoteState.CONNECTED) {
+                if (remote?.state == RemoteState.CONNECTED) {
                     //Fetch latest board
-                    val newBoard = remote()!!.lastBoard()
+                    val newBoard = remote!!.lastBoard()
                     if (newBoard != gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.REMOTE, it) }
 
                     //Update subtitle
-                    setSubTitle(getString(R.string.connected_to, remote()?.remoteName))
+                    setSubTitle(getString(R.string.connected_to, remote?.remoteName))
                 } else turnLocal()
             }
         }
@@ -269,7 +255,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             if (intent.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
                 if (btAdapter?.state == BluetoothAdapter.STATE_TURNING_OFF) {
                     dismissBtDialog()
-                    remote()?.close()
+                    remote?.close()
                     keepBtOn = false
                     Log.e("btStateReceiver", "TURNING OFF")
                 }
@@ -303,8 +289,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (!gs.isRemote()) {
             setSubTitle(null)
-            if (remoteService != null) remote()?.close()
-        } else if (remoteService != null) setSubTitle(getString(R.string.connected_to, remote()?.remoteName)) //TODO remoteName is nullable
+            if (remoteService != null) remote?.close()
+        } else if (remoteService != null) {
+            val remoteName = remote?.remoteName
+            if (remoteName != null) setSubTitle(getString(R.string.connected_to, remoteName))
+            else setSubTitle(getString(R.string.connected))
+        }
 
         gameThread = GameThread()
         gameThread.start()
@@ -345,7 +335,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     newBoard.play(move)
 
                     if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.LOCAL))
-                        remote()?.sendBoard(newBoard)
+                        remote?.sendBoard(newBoard)
                     gs.pushBoard(newBoard)
                     boardView!!.drawState(gs)
                 }
@@ -384,7 +374,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     running = false
                     timer.interrupt()
                     interrupt()
-                    playerLock.notify()
+                    playerLock.notify() //TODO fix #0
                 }
             } catch (t: Throwable) {
                 Log.e("RUN", "Error closing thread $t")
@@ -400,10 +390,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         supportActionBar?.subtitle = subTitle
     }
 
+    private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
     private fun toast(text: String) {
-        if (toast == null) toast = Toast.makeText(this@MainActivity, "", Toast.LENGTH_SHORT)
-        toast?.setText(text)
-        toast?.show()
+        toast.setText(text)
+        toast.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -420,19 +410,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
-        if (remoteService != null && remote()?.state == RemoteState.CONNECTED && gs.isRemote())
-            remote()?.sendUndo(false)
-        else
-            undo(false)
+        if (remote?.state == RemoteState.CONNECTED && gs.isRemote())
+            remote?.sendUndo(false)
+        else undo(false)
+
         return true
     }
 
     fun undo(force: Boolean) {
-        if (!force && remote()?.state == RemoteState.CONNECTED && gs.isRemote()) {
-            askUser(getString(R.string.undo_request, remote()?.remoteName), { allow ->
+        if (!force && remote?.state == RemoteState.CONNECTED && gs.isRemote()) {
+            askUser(getString(R.string.undo_request, remote?.remoteName), { allow ->
                 if (allow) {
                     undo(true)
-                    remote()?.sendUndo(true)
+                    remote?.sendUndo(true)
                 }
             })
         } else {
@@ -442,7 +432,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             newGame(newState)
 
-            if (remote()?.state == RemoteState.CONNECTED)
+            if (remote?.state == RemoteState.CONNECTED)
                 remoteService!!.setLocalBoard(gs.board())
         }
     }
@@ -459,7 +449,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             else -> return false
         }
 
-        (findViewById<View>(R.id.drawer_layout) as DrawerLayout).closeDrawer(GravityCompat.START)
+        drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
 
@@ -472,40 +462,39 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val discoverable = btAdapter!!.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
 
         if (discoverable) {
-            remote()?.listen(GameState.Builder().bt().build())
+            remote?.listen(GameState.Builder().bt().build())
 
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
-            (layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, remote()?.localName)
+            bt_host_desc_textview.text = getString(R.string.host_desc, remote?.localName)
 
             val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
                 //Get board type
-                val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
+                val newBoard = board_new_radiobtn.isChecked
 
                 //Get the beginning player
-                val beginner = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).checkedRadioButtonId
+                val beginner = start_radio_group.checkedRadioButtonId
                 var start = Random().nextBoolean()
-                if (beginner == R.id.start_you)
-                    start = true
-                else if (beginner == R.id.start_other) start = false
+                if (beginner == R.id.start_you_radiobtn) start = true
+                else if (beginner == R.id.start_other_radiobtn) start = false
 
                 //Create the actual requested gamestate
                 val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer() == Player.PLAYER)
                 val gsBuilder = GameState.Builder().bt().swapped(swapped)
                 if (!newBoard) gsBuilder.board(gs.board())
 
-                remote()?.listen(gsBuilder.build())
+                remote?.listen(gsBuilder.build())
             }
 
-            (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
-            (layout.findViewById<View>(R.id.board_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
+            start_radio_group.setOnCheckedChangeListener(onCheckedChangeListener)
+            board_radio_group.setOnCheckedChangeListener(onCheckedChangeListener)
 
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
                     .setCustomTitle(newTitle(this, getString(R.string.host_bluetooth_game)))
-                    .setOnCancelListener { remote()?.close() }
+                    .setOnCancelListener { remote?.close() }
                     .setNegativeButton(getString(R.string.close)) { _, _ ->
                         dismissBtDialog()
-                        remote()?.close()
+                        remote?.close()
                     }.show())
         } else {
             val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
@@ -529,7 +518,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             //If we don't have the COARSE LOCATION permission, request it
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOC)
-            else btDialog = BtPicker(this, btAdapter!!, { adr -> remote()?.connect(adr) }).alertDialog
+            else btDialog = BtPicker(this, btAdapter!!, { adr -> remote?.connect(adr) }).alertDialog
         }
     }
 
