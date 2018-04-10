@@ -28,13 +28,17 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.crashlytics.android.Crashlytics
+import com.crashlytics.android.core.CrashlyticsCore
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.henrykvdb.sttt.remote.RemoteService
 import com.henrykvdb.sttt.remote.RemoteState
 import com.henrykvdb.sttt.remote.RemoteType
+import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.Closeable
 import java.util.*
@@ -68,6 +72,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        //Disable crash reporting and firebase analytics on debug builds
+        Fabric.with(this, Crashlytics.Builder().core(CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build()).build())
+        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(!BuildConfig.DEBUG)
+
         //Make it easier to open the drawer
         try {
             val dragger = drawer_layout.javaClass.getDeclaredField("mLeftDragger")
@@ -88,7 +96,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         navigation_view.setNavigationItemSelectedListener(this)
 
         //Add ads in portrait
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
             MobileAds.initialize(applicationContext, getString(R.string.banner_ad_unit_id))
             adView?.loadAd(AdRequest.Builder().build())
         }
