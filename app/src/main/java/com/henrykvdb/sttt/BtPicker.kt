@@ -12,8 +12,6 @@ import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.henrykvdb.sttt.util.keepDialog
-import com.henrykvdb.sttt.util.newLoadingTitle
 import java.util.*
 
 class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: (String) -> Unit) {

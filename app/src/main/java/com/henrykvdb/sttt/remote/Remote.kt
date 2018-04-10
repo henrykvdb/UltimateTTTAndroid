@@ -1,6 +1,7 @@
-package com.henrykvdb.sttt
+package com.henrykvdb.sttt.remote
 
 import com.flaghacker.sttt.common.Board
+import com.henrykvdb.sttt.GameState
 
 /**States the RemoteGame implementation can have*/
 enum class RemoteState {

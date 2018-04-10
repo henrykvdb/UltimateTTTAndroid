@@ -20,7 +20,7 @@ const val GAMESTATE_KEY = "GAMESTATE_KEY"
 const val KEEP_BT_ON_KEY = "KEEP_BT_ON_KEY"
 
 //Notification ID's
-const val BT_STILL_RUNNING = 1
+const val REMOTE_STILL_RUNNING = 1
 
 //Misc
 const val LOG_TAG = "DEBUGLOG"

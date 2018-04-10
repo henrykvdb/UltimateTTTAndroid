@@ -32,7 +32,9 @@ import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
-import com.henrykvdb.sttt.util.*
+import com.henrykvdb.sttt.remote.RemoteService
+import com.henrykvdb.sttt.remote.RemoteState
+import com.henrykvdb.sttt.remote.RemoteType
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.Closeable
 import java.util.*
@@ -64,8 +66,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        //Create some variables used later
         setSupportActionBar(toolbar)
 
         //Make it easier to open the drawer
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         //Register receiver to get updates from the remote game
-        registerReceiver(remoteReceiver,IntentFilter().apply{
+        registerReceiver(remoteReceiver, IntentFilter().apply {
             addAction(INTENT_TURNLOCAL)
             addAction(INTENT_NEWGAME)
             addAction(INTENT_TOAST)
@@ -102,34 +102,32 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             addAction(INTENT_UNDO)
         })
 
-        //Prepare fields
-        boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, next_move_textview)
+        //Register the reciever that handles bt state changes
+        registerReceiver(btStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED).apply {
+            addAction(INTENT_STOP_BT_SERVICE)
+        })
 
         if (savedInstanceState == null) {
-            //New game
             keepBtOn = btAdapter != null && btAdapter!!.isEnabled
             gs = GameState.Builder().swapped(false).build()
             rateDialog(this)
         } else {
-            //Restore game
             remoteServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
             keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
             gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
         }
+
+        //Add listener to the BoardView
+        boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, next_move_textview)
     }
 
     override fun onStart() {
         super.onStart()
         isInBackground = false
 
-        //Register receiver
-        val intentFilter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        intentFilter.addAction(INTENT_STOP_BT_SERVICE)
-        registerReceiver(btStateReceiver, intentFilter)
-
-        //Cancel notification
+        //Cancel notification saying that the RemoteService is still running in the background
         val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-        notificationManager.cancel(BT_STILL_RUNNING)
+        notificationManager.cancel(REMOTE_STILL_RUNNING)
 
         if (!remoteServiceStarted) {
             startService(Intent(this, RemoteService::class.java))
@@ -152,17 +150,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onSaveInstanceState(outState)
     }
 
-    override fun onPause() {
-        super.onPause()
-        isInBackground = true
-    }
-
     override fun onStop() {
+        isInBackground = true
+
         //Notification telling the user that BtService is still open
-        if (!killService && remote?.state == RemoteState.CONNECTED) btRunningNotification()
+        if (!killService && remote?.state == RemoteState.CONNECTED) remoteRunningNotification()
 
         //Unbind remoteService and stop if needed
-        unbindBtService(killService)
+        unbindRemoteService(killService)
         if (killService || isChangingConfigurations) gameThread.close()
 
         super.onStop()
@@ -173,18 +168,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         unregisterReceiver(btStateReceiver)
 
         if (!isChangingConfigurations) {
-            unbindBtService(true)
+            unbindRemoteService(true)
             if (!keepBtOn) btAdapter!!.disable()
         }
 
         //Close notification
         val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-        notificationManager.cancel(BT_STILL_RUNNING)
+        notificationManager.cancel(REMOTE_STILL_RUNNING)
 
         super.onDestroy()
     }
 
-    private fun unbindBtService(stop: Boolean) {
+    private fun unbindRemoteService(stop: Boolean) {
         RuntimeException("unbind").printStackTrace()
 
         if (remoteServiceBound) {
@@ -202,7 +197,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun btRunningNotification() {
+    private fun remoteRunningNotification() {
         //This intent reopens the app
         val reopenIntent = Intent(this, MainActivity::class.java)
         reopenIntent.action = Intent.ACTION_MAIN
@@ -210,20 +205,35 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT)
 
         //This intent shuts down the remoteService
-        val intentAction = Intent(INTENT_STOP_BT_SERVICE)
-        val pendingCloseIntent = PendingIntent.getBroadcast(this, 1, intentAction, PendingIntent.FLAG_ONE_SHOT)
+        val type = remoteService?.getType()
+        val closeRemoteIntent = PendingIntent.getBroadcast(this, 1, when (type) {
+            RemoteType.BLUETOOTH -> Intent(INTENT_STOP_BT_SERVICE)
+            RemoteType.NONE, null -> Intent()
+        }, PendingIntent.FLAG_ONE_SHOT)
+
+        //Text to be displayed
+        val text = when (type) {
+            RemoteType.BLUETOOTH -> getString(R.string.bt_running_notification)
+            RemoteType.NONE, null -> ""
+        }
+
+        //Drawalbe to be displayed
+        val drawable = when (type) {
+            RemoteType.BLUETOOTH -> R.drawable.ic_menu_bluetooth
+            RemoteType.NONE, null -> R.drawable.ic_icon
+        }
 
         val notification = NotificationCompat.Builder(this, "sttt")
                 .setSmallIcon(R.drawable.ic_icon)
                 .setContentTitle(getString(R.string.app_name_long))
                 .setContentIntent(reopenPendingIntent)
-                .setContentText(getString(R.string.bt_running_notification))
-                .setStyle(NotificationCompat.BigTextStyle().bigText(getString(R.string.bt_running_notification)))
-                .addAction(R.drawable.ic_menu_bluetooth, getString(R.string.close), pendingCloseIntent)
+                .setContentText(text)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                .addAction(drawable, getString(R.string.close), closeRemoteIntent)
                 .setOngoing(true).build()
 
         val notificationManager = NotificationManagerCompat.from(this)
-        notificationManager.notify(BT_STILL_RUNNING, notification)
+        notificationManager.notify(REMOTE_STILL_RUNNING, notification)
     }
 
     private val remoteReceiver = object : BroadcastReceiver() {
@@ -244,7 +254,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             remoteService = (service as RemoteService.LocalBinder).getService()
             remoteServiceBound = true
 
-            if (isInBackground) unbindBtService(killService)
+            if (isInBackground) unbindRemoteService(killService)
             else if (gs.isRemote()) {
                 if (remote?.state == RemoteState.CONNECTED) {
                     //Fetch latest board
@@ -265,22 +275,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private val btStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == BluetoothAdapter.ACTION_STATE_CHANGED) {
-                if (btAdapter?.state == BluetoothAdapter.STATE_TURNING_OFF) {
-                    dismissBtDialog()
-                    remote?.close()
-                    keepBtOn = false
-                    Log.e("btStateReceiver", "TURNING OFF")
+            when(intent.action){
+                BluetoothAdapter.ACTION_STATE_CHANGED->{
+                    if (btAdapter?.state == BluetoothAdapter.STATE_TURNING_OFF) {
+                        dismissBtDialog()
+                        if (remoteService?.getType()==RemoteType.BLUETOOTH) remote?.close()
+                        keepBtOn = false
+                    }
                 }
-            } else if (intent.action == INTENT_STOP_BT_SERVICE) {
-                unbindBtService(true)
-                val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-                notificationManager.cancel(BT_STILL_RUNNING)
+                INTENT_STOP_BT_SERVICE->{
+                    unbindRemoteService(true)
+                    val notificationManager = NotificationManagerCompat.from(this@MainActivity)
+                    notificationManager.cancel(REMOTE_STILL_RUNNING)
+                }
             }
         }
     }
 
-    private fun dismissBtDialog() {
+    private fun dismissBtDialog() { //TODO everyone and their mother calls this method, it has to stop
         Log.e(LOG_TAG, "Closing bt dialog")
         btDialog?.dismiss()
         btDialog = null
@@ -316,7 +328,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun turnLocal() {
         if (!gs.isAi() && !gs.isHuman()) {
             newGame(GameState.Builder().boards(gs.boards).build())
-            NotificationManagerCompat.from(this@MainActivity).cancel(BT_STILL_RUNNING)
+            NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
         }
     }
 
@@ -415,15 +427,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId != R.id.action_undo)
-            return false
+        if (item.itemId != R.id.action_undo) return false
 
         if (gs.boards.size == 1) {
             toast(getString(R.string.no_prev_moves))
             return true
         }
 
-        if (remote?.state == RemoteState.CONNECTED && gs.isRemote())
+        if (gs.isRemote() && remote?.state == RemoteState.CONNECTED)
             remote?.sendUndo(false)
         else undo(false)
 
@@ -449,7 +460,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_local_human -> com.henrykvdb.sttt.util.newLocal({ accept -> if (accept) newLocal() }, this)
+            R.id.nav_local_human -> newLocal({ accept -> if (accept) newLocal() }, this)
             R.id.nav_local_ai -> newAi({ gs -> newGame(gs) }, this)
             R.id.nav_bt_host -> hostBt()
             R.id.nav_bt_join -> joinBt()
@@ -464,12 +475,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun hostBt() {
-        remoteService?.setType(RemoteType.BLUETOOTH)
-
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
             return
         }
+        else remoteService?.setType(RemoteType.BLUETOOTH)
 
         val discoverable = btAdapter!!.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE
 
@@ -517,13 +527,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun joinBt() {
-        remoteService?.setType(RemoteType.BLUETOOTH)
-
-        // If the adapter is null, then Bluetooth is not supported
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
             return
         }
+        else remoteService?.setType(RemoteType.BLUETOOTH)
 
         // If BT is not on, request that it be enabled first.
         if (!btAdapter!!.isEnabled) {

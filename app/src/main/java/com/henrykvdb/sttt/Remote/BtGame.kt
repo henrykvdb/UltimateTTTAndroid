@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt
+package com.henrykvdb.sttt.remote
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -10,7 +10,10 @@ import android.util.Log
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.JSONBoard
 import com.flaghacker.sttt.common.toJSON
-import com.henrykvdb.sttt.util.isValidBoard
+import com.henrykvdb.sttt.GameState
+import com.henrykvdb.sttt.LOG_TAG
+import com.henrykvdb.sttt.R
+import com.henrykvdb.sttt.Source
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Closeable

@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt.util
+package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -15,8 +15,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
-import com.henrykvdb.sttt.GameState
-import com.henrykvdb.sttt.R
 import java.util.*
 
 private const val DAYS_UNTIL_PROMPT = 3      //Min number of days needed before asking for rating

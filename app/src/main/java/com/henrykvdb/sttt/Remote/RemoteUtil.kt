@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt.util
+package com.henrykvdb.sttt.remote
 
 import com.flaghacker.sttt.common.Board
 
