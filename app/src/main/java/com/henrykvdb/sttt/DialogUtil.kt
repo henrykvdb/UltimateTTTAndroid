@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt.util
+package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -15,9 +15,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
-import com.henrykvdb.sttt.Callback
-import com.henrykvdb.sttt.GameState
-import com.henrykvdb.sttt.R
 import java.util.*
 
 private const val DAYS_UNTIL_PROMPT = 3      //Min number of days needed before asking for rating
@@ -48,7 +45,7 @@ fun newTitle(context: Context, title: String): View {
     return v
 }
 
-fun newLoadTitle(context: Context, title: String): View {
+fun newLoadingTitle(context: Context, title: String): View {
     val v = View.inflate(context, R.layout.dialog_title_load, null)
     (v.findViewById<View>(R.id.action_bar_title) as TextView).text = title
     return v
@@ -56,23 +53,19 @@ fun newLoadTitle(context: Context, title: String): View {
 
 fun feedbackSender(context: Context) {
     var deviceInfo = ("\n /** please do not remove this block, technical info: "
-            + "os version: " + System.getProperty("os.version")
-            + "(" + android.os.Build.VERSION.INCREMENTAL + "), API: " + android.os.Build.VERSION.SDK_INT)
+            + "os version: ${System.getProperty("os.version")}(${android.os.Build.VERSION.INCREMENTAL})"
+            + ", API: ${android.os.Build.VERSION.SDK_INT}")
     try {
         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        deviceInfo += ", app version: " + pInfo.versionName
+        deviceInfo += ", app version: ${pInfo.versionName}"
     } catch (e: PackageManager.NameNotFoundException) {
         e.printStackTrace()
     }
-
     deviceInfo += "**/"
 
     val send = Intent(Intent.ACTION_SENDTO)
-    val uri = Uri.parse("mailto:" + Uri.encode("henrykdev@gmail.com") +
-            "?subject=" + Uri.encode("Feedback") +
-            "&body=" + Uri.encode(deviceInfo))
-
-    send.data = uri
+    send.data = Uri.parse(
+            "mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${Uri.encode(deviceInfo)}")
     context.startActivity(Intent.createChooser(send, context.getString(R.string.send_feedback)))
 }
 
@@ -156,7 +149,7 @@ fun rateDialog(context: Context) {
     editor.apply()
 }
 
-fun newLocal(callback: Callback<Boolean>, context: Context) {
+fun newLocal(callback: (Boolean) -> Unit, context: Context) {
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
         when (which) {
             DialogInterface.BUTTON_POSITIVE -> callback.invoke(true)
@@ -171,12 +164,14 @@ fun newLocal(callback: Callback<Boolean>, context: Context) {
             .setNegativeButton(context.getString(R.string.close), dialogClickListener).show())
 }
 
-fun newAi(callback: Callback<GameState>, context: Context) {
+fun newAi(callback: (GameState) -> Unit, context: Context) {
     val swapped = BooleanArray(1)
 
     val layout = View.inflate(context, R.layout.dialog_ai, null)
     val beginner = layout.findViewById<RadioGroup>(R.id.start_radio_group)
-    beginner.setOnCheckedChangeListener { _, checkedId -> swapped[0] = checkedId != R.id.start_you && (checkedId == R.id.start_ai || Random().nextBoolean()) }
+    beginner.setOnCheckedChangeListener { _, checkedId ->
+        swapped[0] = checkedId != R.id.start_you_radiobtn && (checkedId == R.id.start_ai || Random().nextBoolean())
+    }
 
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
         val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress

@@ -12,18 +12,16 @@ import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.henrykvdb.sttt.util.keepDialog
-import com.henrykvdb.sttt.util.newLoadTitle
 import java.util.*
 
-class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: Callback<String>) {
+class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: (String) -> Unit) {
     private val devices = ArrayList<BluetoothDevice>()
 
     private val view = View.inflate(context, R.layout.dialog_bt_join, null)
     private val devicesLayout = view.findViewById<View>(R.id.devices) as LinearLayout
 
     val alertDialog: AlertDialog = keepDialog(AlertDialog.Builder(context)
-            .setCustomTitle(newLoadTitle(context, context.getString(R.string.join_bluetooth_game)))
+            .setCustomTitle(newLoadingTitle(context, context.getString(R.string.join_bluetooth_game)))
             .setView(view)
             .setNegativeButton(context.getString(R.string.close)) { dialog, _ -> dialog.dismiss() }
             .setOnDismissListener { destroy() }

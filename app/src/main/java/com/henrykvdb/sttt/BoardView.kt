@@ -14,12 +14,45 @@ import com.flaghacker.sttt.common.toCoord
 
 @Suppress("unused") typealias ds = DrawSettings
 
-class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-    private val path: Path = Path()
-    private val paint: Paint = Paint()
+object DrawSettings {
+    //PLAYER color settings (X)
+    const val xColor = Color.BLUE
+    val xColorDarker = Color.rgb(0, 0, 230)
+    val xColorDarkest = Color.rgb(0, 0, 200)
+    val xColorLight = Color.rgb(75, 155, 255)
 
-    private lateinit var moveCallback: Callback<Byte>
-    private var gameState: GameState = GameState.Builder().build()
+    //ENEMY color settings (O)
+    const val oColor = Color.RED
+    val oColorDarker = Color.rgb(230, 0, 0)
+    val oColorDarkest = Color.rgb(200, 0, 0)
+    val oColorLight = Color.rgb(255, 155, 75)
+
+    //Availability color settings
+    val unavailableColor = Color.argb(50, 136, 136, 136)
+    const val symbolTransparency = 60 and 0xff shl 24
+
+    //Symbol stroke width
+    const val tileSymbolStroke = 16f / 984
+    const val macroSymbolStroke = 40f / 984
+    const val wonSymbolStroke = 120f / 984
+
+    //Grid-line settings
+    const val gridColor = Color.BLACK
+    const val bigGridStroke = 8f / 984
+    const val smallGridStroke = 1f / 984
+
+    //Other settings
+    const val whiteSpace = 0.02f
+    const val borderX = 0.10f / 9
+    const val borderO = 0.15f / 9
+}
+
+class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+    private val path = Path()
+    private val paint = Paint()
+
+    private lateinit var moveCallback: (Byte) -> Unit
+    private var gameState = GameState.Builder().build()
     private var nextPlayerView: TextView? = null
 
     private var macroSizeSmall = 0.0f
@@ -37,15 +70,15 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     private var bigGridStroke = 0
 
     //Fields for distinguishing click and drag events
-    private var pressedX: Float = 0.0f
-    private var pressedY: Float = 0.0f
+    private var pressedX = 0.0f
+    private var pressedY = 0.0f
 
     init {
         setVars()
         postInvalidate()
     }
 
-    fun setup(moveCallback: Callback<Byte>, nextPlayerView: TextView) {
+    fun setup(moveCallback: (Byte) -> Unit, nextPlayerView: TextView) {
         this.moveCallback = moveCallback
         this.nextPlayerView = nextPlayerView
     }
@@ -83,7 +116,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             if (!board.isDone()) {
                 if (!gameState.isHuman()) {
                     it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
-                    val yourTurn = gameState.nextSource() == MainActivity.Source.Local
+                    val yourTurn = gameState.nextSource() == Source.LOCAL
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
                 }
             } else {
@@ -97,8 +130,8 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                     } else {
                         it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
                         val youWon =
-                                if (board.wonBy() == Player.PLAYER) gameState.players.first == MainActivity.Source.Local
-                                else gameState.players.second == MainActivity.Source.Local
+                                if (board.wonBy() == Player.PLAYER) gameState.players.first == Source.LOCAL
+                                else gameState.players.second == Source.LOCAL
                         it.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
                     }
                 }
