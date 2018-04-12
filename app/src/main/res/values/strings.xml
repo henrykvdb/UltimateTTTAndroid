@@ -48,6 +48,7 @@
     <string name="join_bluetooth_game">Join Bluetooth game</string>
 	<string name="host_bluetooth_game">Host Bluetooth game</string>
 	<string name="desync_message">Games got desynchronized</string>
+	<string name="json_parsing_failed">JSON parsing failed</string>
     <string name="joinable_devices">Joinable devices</string>
 	<string name="new_ai_title">Start a new AI game?</string>
 	<string name="new_local_title">Start a new game?</string>
