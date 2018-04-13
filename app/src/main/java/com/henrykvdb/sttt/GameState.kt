@@ -18,9 +18,11 @@ class GameState private constructor(val players: Players, val boards: LinkedList
     fun pushBoard(board: Board) = boards.push(board)
     fun popBoard() = boards.pop() ?: null
 
-    fun isHuman() = (players.first == Source.LOCAL && players.second == Source.LOCAL)
-    fun isRemote() = players.contains(Source.REMOTE)
-    fun isAi() = players.contains(Source.AI)
+    val type = when {
+        Source.REMOTE in players -> Source.REMOTE
+        Source.AI in players -> Source.AI
+        else -> Source.LOCAL
+    }
 
     fun nextSource() = if (board().nextPlayer() == Player.PLAYER) players.first else players.second
     fun otherSource() = if (board().nextPlayer() == Player.PLAYER) players.second else players.first

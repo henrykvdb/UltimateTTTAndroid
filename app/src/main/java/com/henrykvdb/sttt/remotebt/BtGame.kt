@@ -16,6 +16,7 @@ import com.henrykvdb.sttt.R
 import com.henrykvdb.sttt.Source
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -31,7 +32,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     override var state = RemoteState.NONE
 
     //Other
-    private var btThread: Thread? = null
+    private var btThread: CloseableThread? = null
     private var connectedDeviceName: String? = null
     private lateinit var requestState: GameState
     private var boards = LinkedList(listOf(Board()))
@@ -61,17 +62,17 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
         }
     }
 
-    override fun close(){
-        try {
-            btThread?.interrupt() ?: Unit
-            inStream?.close()
-            outStream?.close()
-        } catch (e:IOException){
-            Log.e(LOG_TAG,"Error closing btGame",e)
-        }
+    override fun close() {
+        Log.e(LOG_TAG,"btthread close beforeclose ${btThread?.isAlive} ${btThread?.state} $btThread")
+        btThread?.close()
+        Log.e(LOG_TAG,"btthread close afterclose ${btThread?.isAlive} ${btThread?.state} $btThread")
+        btThread?.join()
+        Log.e(LOG_TAG,"btthread close afterjoin ${btThread?.isAlive} ${btThread?.state} $btThread")
     }
 
-    private inner class ListenThread : Thread() {
+    private abstract class CloseableThread : Thread(), Closeable
+
+    private inner class ListenThread : CloseableThread() {
         private var serverSocket: BluetoothServerSocket? = null
         private var socket: BluetoothSocket? = null
 
@@ -109,14 +110,21 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
             Log.e(LOG_TAG, "END ListenThread $this")
         }
+
+        override fun close() {
+            serverSocket?.close()
+            socket?.close()
+        }
     }
 
-    private inner class ConnectingThread(device: BluetoothDevice) : Thread() {
+    private inner class ConnectingThread(device: BluetoothDevice) : CloseableThread() {
         private var socket: BluetoothSocket? = null
+        override fun close() = socket?.close() ?: Unit
 
         init {
             try {
                 this@BtGame.state = RemoteState.CONNECTING
+                btAdapter.cancelDiscovery()
                 socket = device.createRfcommSocketToServiceRecord(UUID)
             } catch (e: IOException) {
                 throw e
@@ -127,7 +135,6 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             Log.e(LOG_TAG, "BEGIN connectingThread" + this)
 
             try {
-                btAdapter.cancelDiscovery()
                 socket?.connect() //Blocking call
 
                 if (!isInterrupted) {
@@ -150,6 +157,8 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     }
 
     private fun connected(socket: BluetoothSocket, isHost: Boolean) {
+        Log.e(LOG_TAG, "BEGIN connected" + this)
+
         try {
             inStream = socket.inputStream
             outStream = socket.outputStream
@@ -192,7 +201,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                             callback.move(newBoard.lastMove()!!)
                         } else {
                             callback.toast(res.getString(R.string.desync_message))
-                            close()
+                            Thread.currentThread().interrupt()
                         }
                     }
                     RemoteMessageType.SETUP -> {
@@ -228,6 +237,8 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+
+        Log.e(LOG_TAG, "END connected" + this)
     }
 
     override fun sendUndo(force: Boolean) {

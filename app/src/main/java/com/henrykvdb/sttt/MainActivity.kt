@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             remoteServiceBound = true
 
             if (isInBackground) unbindRemoteService(killService)
-            else if (gs.isRemote()) {
+            else if (gs.type == Source.REMOTE) {
                 if (remote?.state == RemoteState.CONNECTED) {
                     //Fetch latest board
                     val newBoard = remote!!.lastBoard
@@ -298,48 +298,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun dismissBtDialog() {
-        Log.e("DEBUGGERMAN", "NEWLOCAL")
-        RuntimeException().printStackTrace()
-        btDialog?.dismiss()
-    }
-
     private fun newGame(gs: GameState) {
         gameThread.close()
-        dismissBtDialog()
-
+        boardView.drawState(gs)
         this.gs = gs
-        boardView!!.drawState(gs)
 
-        when {
-            this.gs.isRemote() -> setTitle(getString(R.string.bt_game))
-            this.gs.isAi() -> setTitle(getString(R.string.ai_game))
-            this.gs.isHuman() -> setTitle(getString(R.string.human_game))
-            else -> throw IllegalStateException()
-        }
+        setTitle(when (gs.type) {
+            Source.LOCAL -> getString(R.string.human_game)
+            Source.REMOTE -> getString(R.string.bt_game)
+            Source.AI -> getString(R.string.ai_game)
+        })
 
-        if (!gs.isRemote()) {
-            setSubTitle(null)
-            remote?.close()
-        } else {
+        if (gs.type == Source.REMOTE) {
+            dismissBtDialog()
             val remoteName = remote?.remoteName
             if (remoteName != null) setSubTitle(getString(R.string.connected_to, remoteName))
             else setSubTitle(getString(R.string.connected))
-        }
+        } else setSubTitle(null)
 
         gameThread = GameThread()
         gameThread.start()
     }
 
+    private fun newLocal() = newGame(GameState.Builder().swapped(false).build())
     private fun turnLocal() {
-        if (gs.isRemote()) {
+        if (gs.type == Source.REMOTE) {
             newGame(GameState.Builder().boards(gs.boards).build())
             NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
         }
-    }
-
-    private fun newLocal() {
-        newGame(GameState.Builder().swapped(false).build())
     }
 
     private inner class GameThread : Thread(), Closeable {
@@ -440,7 +426,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
-        if (gs.isRemote() && remote?.state == RemoteState.CONNECTED)
+        if (gs.type == Source.REMOTE && remote?.state == RemoteState.CONNECTED)
             remote?.sendUndo(false)
         else undo(false)
 
@@ -448,7 +434,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun undo(force: Boolean) {
-        if (!force && remote?.state == RemoteState.CONNECTED && gs.isRemote()) {
+        if (!force && remote?.state == RemoteState.CONNECTED && gs.type == Source.REMOTE) {
             askUser(getString(R.string.undo_request, remote?.remoteName), { allow ->
                 if (allow) {
                     undo(true)
@@ -480,12 +466,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+    private fun dismissBtDialog() {
+        Log.e("DEBUGGERMAN", "NEWLOCAL")
+        RuntimeException().printStackTrace()
+        btDialog?.dismiss()
+    }
+
     private fun hostBt() {
         if (btAdapter == null) {
             Toast.makeText(this, getString(R.string.bt_not_available), Toast.LENGTH_LONG).show()
             return
-        }
-        else remoteService?.setType(RemoteType.BLUETOOTH)
+        } else remoteService?.setType(RemoteType.BLUETOOTH)
 
         if (btAdapter!!.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             remote?.listen(GameState.Builder().bt().build())
@@ -515,6 +506,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
             (layout.findViewById<View>(R.id.board_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
 
+            btDialog?.dismiss()
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
                     .setCustomTitle(newTitle(this, getString(R.string.host_bluetooth_game)))

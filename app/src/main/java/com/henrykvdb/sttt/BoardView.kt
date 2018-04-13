@@ -114,7 +114,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         nextPlayerView?.let {
             it.text = null
             if (!board.isDone()) {
-                if (!gameState.isHuman()) {
+                if (gameState.type != Source.LOCAL) {
                     it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
                     val yourTurn = gameState.nextSource() == Source.LOCAL
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
@@ -124,7 +124,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                     it.setTextColor(Color.BLACK)
                     it.text = resources.getText(R.string.tie_message)
                 } else {
-                    if (gameState.isHuman()) {
+                    if (gameState.type == Source.LOCAL) {
                         it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
                         it.text = resources.getString(R.string.game_winner, if (board.wonBy() == Player.PLAYER) "X" else "O")
                     } else {
