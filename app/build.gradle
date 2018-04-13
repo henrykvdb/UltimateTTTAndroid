@@ -10,8 +10,8 @@ android {
         applicationId "com.henrykvdb.sttt"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 21
-        versionName "2.1.4"
+        versionCode 22
+        versionName "2.1.5"
     }
     buildTypes {
         release {
