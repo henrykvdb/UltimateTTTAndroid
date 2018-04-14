@@ -205,11 +205,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun unbindRemoteService(stop: Boolean) {
-        RuntimeException("unbind").printStackTrace()
-
         if (remoteServiceBound) {
             Log.e("BTS", "Unbinding")
-            dismissBtDialog()
+            btDialog?.dismiss()
             remoteServiceBound = false
             unbindService(btServerConn)
         }
@@ -303,7 +301,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             when (intent.action) {
                 BluetoothAdapter.ACTION_STATE_CHANGED -> {
                     if (btAdapter?.state == BluetoothAdapter.STATE_TURNING_OFF) {
-                        dismissBtDialog()
+                        btDialog?.dismiss()
                         if (remoteService?.getType() == RemoteType.BLUETOOTH) remote?.close()
                         keepBtOn = false
                     }
@@ -329,7 +327,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         })
 
         if (gs.type == Source.REMOTE) {
-            dismissBtDialog()
+            btDialog?.dismiss()
             val remoteName = remote?.remoteName
             if (remoteName != null) setSubTitle(getString(R.string.connected_to, remoteName))
             else setSubTitle(getString(R.string.connected))
@@ -459,13 +457,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     remote?.sendUndo(true)
                 }
             })
-        } else {
-            val newState = GameState.Builder().gs(gs).build()
-            newState.popBoard()
-            if (Source.AI == gs.otherSource() && newState.boards.size > 1) newState.popBoard()
-
-            newGame(newState)
-        }
+        } else newGame(GameState.Builder().gs(gs).build().apply {
+            repeat(if (Source.AI == gs.otherSource() && boards.size > 1) 2 else 1) { popBoard() }
+        })
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -482,12 +476,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
-    }
-
-    private fun dismissBtDialog() {
-        Log.e("DEBUGGERMAN", "NEWLOCAL")
-        RuntimeException().printStackTrace()
-        btDialog?.dismiss()
     }
 
     private fun hostBt() {
@@ -528,11 +516,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
                     .setCustomTitle(newTitle(getString(R.string.host_bluetooth_game)))
-                    .setOnCancelListener { remote?.close() }
-                    .setNegativeButton(getString(R.string.close)) { _, _ ->
-                        dismissBtDialog()
-                        remote?.close()
-                    }.show())
+                    .setNegativeButton(getString(R.string.close)) { _, _ -> btDialog?.dismiss() }
+                    .setOnDismissListener({ remote?.close() })
+                    .show())
         } else {
             val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0)
