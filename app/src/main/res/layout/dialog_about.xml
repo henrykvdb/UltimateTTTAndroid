@@ -26,13 +26,26 @@
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textStyle="normal"
             android:textSize="20sp"
-            android:paddingBottom="9dp"/>
-    <TextView
-            android:text="@string/other_credits"
+            android:paddingBottom="6dp"/>
+    <com.henrykvdb.sttt.LinkView
+            android:text="@string/special_thanks"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal"
-            android:gravity="center_horizontal"
-            android:textSize="14sp"/>
+			android:paddingBottom="6dp"/>
+	<TextView
+			android:text="@string/open_source_title"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textAppearance="@style/TextAppearance.AppCompat"
+			android:textStyle="normal|bold"
+			android:gravity="center_horizontal"
+			android:textSize="16sp"/>
+	<TextView
+			android:text="@string/github_url"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:autoLink="web"
+			android:textStyle="normal"
+			android:gravity="center_horizontal"
+			android:textSize="14sp"/>
 </LinearLayout>

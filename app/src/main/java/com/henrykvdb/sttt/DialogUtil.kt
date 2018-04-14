@@ -26,6 +26,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.text.Html
+import android.text.method.LinkMovementMethod
+import android.util.AttributeSet
 import android.view.View
 import android.view.WindowManager
 import android.widget.RadioGroup
@@ -107,7 +110,6 @@ fun aboutDialog(context: Context) {
     }
 
     keepDialog(AlertDialog.Builder(context)
-            .setCustomTitle(newTitle(context, context.getString(R.string.about)))
             .setView(layout)
             .setPositiveButton(context.getString(R.string.close)) { dialog1, _ -> dialog1.dismiss() }
             .show())
@@ -205,4 +207,12 @@ fun newAi(callback: (GameState) -> Unit, context: Context) {
             .setView(layout).setCustomTitle(newTitle(context, context.getString(R.string.new_ai_title)))
             .setPositiveButton(context.getString(R.string.start), dialogClickListener)
             .setNegativeButton(context.getString(R.string.close), dialogClickListener).show())
+}
+
+class LinkView(context: Context, attrs: AttributeSet) : TextView(context, attrs) {
+    init {
+        movementMethod = LinkMovementMethod.getInstance()
+        text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
+        else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
+    }
 }
