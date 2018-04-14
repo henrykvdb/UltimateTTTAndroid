@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package com.henrykvdb.sttt.remote
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -30,6 +30,10 @@ import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.henrykvdb.sttt.LOG_TAG
+import com.henrykvdb.sttt.R
+import com.henrykvdb.sttt.keepDialog
+import com.henrykvdb.sttt.newLoadingTitle
 import java.util.*
 
 class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: (String) -> Unit) {
@@ -39,7 +43,7 @@ class BtPicker(private val context: Context, private val btAdapter: BluetoothAda
     private val devicesLayout = view.findViewById<View>(R.id.devices) as LinearLayout
 
     val alertDialog: AlertDialog = keepDialog(AlertDialog.Builder(context)
-            .setCustomTitle(newLoadingTitle(context, context.getString(R.string.join_bluetooth_game)))
+            .setCustomTitle(context.newLoadingTitle(context.getString(R.string.join_bluetooth_game)))
             .setView(view)
             .setNegativeButton(context.getString(R.string.close)) { dialog, _ -> dialog.dismiss() }
             .setOnDismissListener { destroy() }

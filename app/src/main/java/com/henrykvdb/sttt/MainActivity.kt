@@ -53,6 +53,7 @@ import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.henrykvdb.sttt.remote.BtPicker
 import com.henrykvdb.sttt.remote.RemoteService
 import com.henrykvdb.sttt.remote.RemoteState
 import com.henrykvdb.sttt.remote.RemoteType
@@ -134,7 +135,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (savedInstanceState == null) {
             keepBtOn = btAdapter != null && btAdapter!!.isEnabled
             gs = GameState.Builder().swapped(false).build()
-            rateDialog(this)
+            rateDialog()
         } else {
             remoteServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
             keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
@@ -338,7 +339,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         gameThread.start()
     }
 
-    private fun newLocal() = newGame(GameState.Builder().swapped(false).build())
     private fun turnLocal() {
         if (gs.type == Source.REMOTE) {
             newGame(GameState.Builder().boards(gs.boards).build())
@@ -470,13 +470,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_local_human -> newLocal({ accept -> if (accept) newLocal() }, this)
-            R.id.nav_local_ai -> newAi({ gs -> newGame(gs) }, this)
+            R.id.nav_local_human -> newLocalDialog()
+            R.id.nav_local_ai -> newAiDialog()
             R.id.nav_bt_host -> hostBt()
             R.id.nav_bt_join -> joinBt()
-            R.id.nav_other_feedback -> feedbackSender(this)
-            R.id.nav_other_share -> shareDialog(this)
-            R.id.nav_other_about -> aboutDialog(this)
+            R.id.nav_other_feedback -> feedbackSender()
+            R.id.nav_other_share -> shareDialog()
+            R.id.nav_other_about -> aboutDialog()
             else -> return false
         }
 
@@ -527,7 +527,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             btDialog?.dismiss()
             btDialog = keepDialog(AlertDialog.Builder(this)
                     .setView(layout)
-                    .setCustomTitle(newTitle(this, getString(R.string.host_bluetooth_game)))
+                    .setCustomTitle(newTitle(getString(R.string.host_bluetooth_game)))
                     .setOnCancelListener { remote?.close() }
                     .setNegativeButton(getString(R.string.close)) { _, _ ->
                         dismissBtDialog()

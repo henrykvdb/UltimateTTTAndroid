@@ -40,10 +40,11 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
 
+private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
+
 @SuppressLint("HardwareIds")
 class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     //Final fields
-    private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
     private val btAdapter = BluetoothAdapter.getDefaultAdapter()!!
 
     //State

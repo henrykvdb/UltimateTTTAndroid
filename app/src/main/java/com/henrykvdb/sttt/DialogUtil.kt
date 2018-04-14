@@ -46,81 +46,63 @@ private const val DATE_FIRST_LAUNCH = "date_firstlaunch"
 private const val LAUNCH_COUNT = "launch_count"
 
 // Prevent dialog destroy when orientation changes
-fun keepDialog(dialog: AlertDialog): AlertDialog {
-    try {
-        val lp = WindowManager.LayoutParams()
-        lp.copyFrom(dialog.window!!.attributes)
-        lp.width = WindowManager.LayoutParams.WRAP_CONTENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        dialog.window!!.attributes = lp
-    } catch (t: Throwable) {
-        //NOP
+fun keepDialog(dialog: AlertDialog) = dialog.apply {
+    dialog.window?.attributes = WindowManager.LayoutParams().apply {
+        dialog.window?.attributes.let { copyFrom(it) }
+        width = WindowManager.LayoutParams.WRAP_CONTENT
+        height = WindowManager.LayoutParams.WRAP_CONTENT
     }
-
-    return dialog
 }
 
-fun newTitle(context: Context, title: String): View {
-    val v = View.inflate(context, R.layout.dialog_title, null)
-    (v.findViewById<View>(R.id.action_bar_title) as TextView).text = title
-    return v
+fun Context.newTitle(title: String): View = View.inflate(this, R.layout.dialog_title, null).apply {
+    (findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
-fun newLoadingTitle(context: Context, title: String): View {
-    val v = View.inflate(context, R.layout.dialog_title_load, null)
-    (v.findViewById<View>(R.id.action_bar_title) as TextView).text = title
-    return v
+fun Context.newLoadingTitle(title: String): View = View.inflate(this, R.layout.dialog_title_load, null).apply {
+    (findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
-fun feedbackSender(context: Context) {
-    var deviceInfo = ("\n /** please do not remove this block, technical info: "
+fun Context.feedbackSender() {
+    // @formatter:off
+    val deviceInfo = ("\n /** please do not remove this block, technical info: "
             + "os version: ${System.getProperty("os.version")}(${android.os.Build.VERSION.INCREMENTAL})"
-            + ", API: ${android.os.Build.VERSION.SDK_INT}")
-    try {
-        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        deviceInfo += ", app version: ${pInfo.versionName}"
-    } catch (e: PackageManager.NameNotFoundException) {
-        e.printStackTrace()
-    }
-    deviceInfo += "**/"
+            + ", API: ${android.os.Build.VERSION.SDK_INT}"
+            + try { ", app version: ${packageManager.getPackageInfo(packageName, 0).versionName}" }
+              catch (e: PackageManager.NameNotFoundException) { "" } + "**/")
+    // @formatter:on
 
-    val send = Intent(Intent.ACTION_SENDTO)
-    send.data = Uri.parse(
-            "mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${Uri.encode(deviceInfo)}")
-    context.startActivity(Intent.createChooser(send, context.getString(R.string.send_feedback)))
+    startActivity(Intent.createChooser(Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${Uri.encode(deviceInfo)}")
+    }, getString(R.string.send_feedback)))
 }
 
-fun shareDialog(context: Context) {
-    val i = Intent(Intent.ACTION_SEND)
-    i.type = "text/plain"
-    i.putExtra(Intent.EXTRA_SUBJECT, context.resources.getString(R.string.app_name_long))
-    i.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.lets_play_together) + " " + context.getString(R.string.market_url))
-    context.startActivity(Intent.createChooser(i, context.getString(R.string.share_with)))
-}
+fun Context.shareDialog() = with(Intent(Intent.ACTION_SEND)) {
+    type = "text/plain"
+    putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.app_name_long))
+    putExtra(Intent.EXTRA_TEXT, getString(R.string.lets_play_together) + " " + getString(R.string.market_url))
+}.let { startActivity(Intent.createChooser(it, getString(R.string.share_with))) }
 
 @SuppressLint("SetTextI18n")
-fun aboutDialog(context: Context) {
-    val layout = View.inflate(context, R.layout.dialog_about, null)
+fun Context.aboutDialog() {
+    val layout = View.inflate(this, R.layout.dialog_about, null)
 
-    try {
-        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        (layout.findViewById<View>(R.id.versionName_view) as TextView).text = context.resources.getText(R.string.app_name_long).toString() + "\n" + context.getString(R.string.version) + " " + pInfo.versionName
+    (layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
+        resources.getText(R.string.app_name_long).toString() + "\n" + getString(R.string.version) + " " +
+                packageManager.getPackageInfo(packageName, 0).versionName
     } catch (e: PackageManager.NameNotFoundException) {
-        (layout.findViewById<View>(R.id.versionName_view) as TextView).text = context.resources.getText(R.string.app_name_long)
+        resources.getText(R.string.app_name_long)
     }
 
-    keepDialog(AlertDialog.Builder(context)
+    keepDialog(AlertDialog.Builder(this)
             .setView(layout)
-            .setPositiveButton(context.getString(R.string.close)) { dialog1, _ -> dialog1.dismiss() }
+            .setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
             .show())
 }
 
-fun rateDialog(context: Context) {
-    val prefs = context.getSharedPreferences("APP_RATER", 0)
-
-    if (prefs.getBoolean(DONT_SHOW_AGAIN, false))
-        return
-
+@Suppress("DEPRECATION")
+fun Context.rateDialog() {
+    val prefs = getSharedPreferences("APP_RATER", 0)
+    if (prefs.getBoolean(DONT_SHOW_AGAIN, false)) return
     val editor = prefs.edit()
 
     // Increment launch counter
@@ -128,27 +110,23 @@ fun rateDialog(context: Context) {
     editor.putLong(LAUNCH_COUNT, launchCount)
 
     // Get date of first launch
-    var dateFirstLaunch: Long? = prefs.getLong(DATE_FIRST_LAUNCH, 0)
+    var dateFirstLaunch: Long = prefs.getLong(DATE_FIRST_LAUNCH, 0)
     if (dateFirstLaunch == 0L) {
         dateFirstLaunch = System.currentTimeMillis()
         editor.putLong(DATE_FIRST_LAUNCH, dateFirstLaunch)
     }
 
     // Wait at least n days before opening
-    if (launchCount >= LAUNCHES_UNTIL_PROMPT && System.currentTimeMillis() >= dateFirstLaunch!! + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000) {
+    if (launchCount >= LAUNCHES_UNTIL_PROMPT && System.currentTimeMillis() >= dateFirstLaunch + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000) {
         @SuppressLint("InlinedApi") val dialogClickListener = DialogInterface.OnClickListener { _, which ->
             when (which) {
                 DialogInterface.BUTTON_POSITIVE -> {
                     editor.putBoolean(DONT_SHOW_AGAIN, true)
                     editor.apply()
-                    val goToMarket = Intent(Intent.ACTION_VIEW,
-                            Uri.parse("market://details?id=" + context.packageName))
-                    goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-                    goToMarket.addFlags(if (Build.VERSION.SDK_INT >= 21) Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-                    else Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
-                    context.startActivity(goToMarket)
-                }
-                DialogInterface.BUTTON_NEUTRAL -> {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+                        addFlags(if (Build.VERSION.SDK_INT >= 21) Intent.FLAG_ACTIVITY_NEW_DOCUMENT else Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
+                    })
                 }
                 DialogInterface.BUTTON_NEGATIVE -> {
                     editor.putBoolean(DONT_SHOW_AGAIN, true)
@@ -157,37 +135,37 @@ fun rateDialog(context: Context) {
             }
         }
 
-        keepDialog(AlertDialog.Builder(context)
-                .setMessage(context.getString(R.string.rate_message))
-                .setCustomTitle(newTitle(context, context.getString(R.string.rate_app)))
-                .setPositiveButton(context.getString(R.string.rate), dialogClickListener)
-                .setNeutralButton(context.getString(R.string.later), dialogClickListener)
-                .setNegativeButton(context.getString(R.string.no_thanks), dialogClickListener)
+        keepDialog(AlertDialog.Builder(this)
+                .setMessage(getString(R.string.rate_message))
+                .setCustomTitle(newTitle(getString(R.string.rate_app)))
+                .setPositiveButton(getString(R.string.rate), dialogClickListener)
+                .setNeutralButton(getString(R.string.later), dialogClickListener)
+                .setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
                 .show())
     }
 
     editor.apply()
 }
 
-fun newLocal(callback: (Boolean) -> Unit, context: Context) {
+fun Context.newLocalDialog() {
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
         when (which) {
-            DialogInterface.BUTTON_POSITIVE -> callback.invoke(true)
             DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
+            DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+                    GameState.Builder().swapped(false).build()))
         }
     }
 
-    keepDialog(AlertDialog.Builder(context)
-            .setCustomTitle(newTitle(context, context.getString(R.string.new_local_title)))
-            .setMessage(context.getString(R.string.new_local_desc))
-            .setPositiveButton(context.getString(R.string.start), dialogClickListener)
-            .setNegativeButton(context.getString(R.string.close), dialogClickListener).show())
+    keepDialog(AlertDialog.Builder(this)
+            .setCustomTitle(newTitle(getString(R.string.new_local_title)))
+            .setMessage(getString(R.string.new_local_desc))
+            .setPositiveButton(getString(R.string.start), dialogClickListener)
+            .setNegativeButton(getString(R.string.close), dialogClickListener).show())
 }
 
-fun newAi(callback: (GameState) -> Unit, context: Context) {
+fun Context.newAiDialog() {
     val swapped = BooleanArray(1)
-
-    val layout = View.inflate(context, R.layout.dialog_ai, null)
+    val layout = View.inflate(this, R.layout.dialog_ai, null)
     val beginner = layout.findViewById<RadioGroup>(R.id.start_radio_group)
     beginner.setOnCheckedChangeListener { _, checkedId ->
         swapped[0] = checkedId != R.id.start_you_radiobtn && (checkedId == R.id.start_ai || Random().nextBoolean())
@@ -195,20 +173,21 @@ fun newAi(callback: (GameState) -> Unit, context: Context) {
 
     val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
         val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
+        val bot = if (progress > 0) MMBot(progress) else RandomBot()
         when (which) {
-            DialogInterface.BUTTON_POSITIVE -> callback.invoke(GameState.Builder()
-                    .ai(if (progress > 0) MMBot(progress) else RandomBot())
-                    .swapped(swapped[0]).build())
+            DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+                    GameState.Builder().ai(bot).swapped(swapped[0]).build()))
             DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
         }
     }
 
-    keepDialog(AlertDialog.Builder(context)
-            .setView(layout).setCustomTitle(newTitle(context, context.getString(R.string.new_ai_title)))
-            .setPositiveButton(context.getString(R.string.start), dialogClickListener)
-            .setNegativeButton(context.getString(R.string.close), dialogClickListener).show())
+    keepDialog(AlertDialog.Builder(this)
+            .setView(layout).setCustomTitle(newTitle(getString(R.string.new_ai_title)))
+            .setPositiveButton(getString(R.string.start), dialogClickListener)
+            .setNegativeButton(getString(R.string.close), dialogClickListener).show())
 }
 
+@Suppress("DEPRECATION")
 class LinkView(context: Context, attrs: AttributeSet) : TextView(context, attrs) {
     init {
         movementMethod = LinkMovementMethod.getInstance()
