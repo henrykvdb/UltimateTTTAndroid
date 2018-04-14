@@ -24,14 +24,13 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.res.Resources
-import android.util.Log
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.JSONBoard
 import com.flaghacker.sttt.common.toJSON
 import com.henrykvdb.sttt.GameState
-import com.henrykvdb.sttt.LOG_TAG
 import com.henrykvdb.sttt.R
 import com.henrykvdb.sttt.Source
+import com.henrykvdb.sttt.log
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Closeable
@@ -72,7 +71,8 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
     override fun connect(adr: String) {
         val device = btAdapter.getRemoteDevice(adr)
-        callback.toast(device?.name?.let { res.getString(R.string.connecting_to, it) } ?: res.getString(R.string.connecting))
+        callback.toast(device?.name?.let { res.getString(R.string.connecting_to, it) }
+                ?: res.getString(R.string.connecting))
         close()
 
         device?.let {
@@ -82,11 +82,8 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     }
 
     override fun close() {
-        Log.e(LOG_TAG,"btthread close beforeclose ${btThread?.isAlive} ${btThread?.state} $btThread")
         btThread?.close()
-        Log.e(LOG_TAG,"btthread close afterclose ${btThread?.isAlive} ${btThread?.state} $btThread")
         btThread?.join()
-        Log.e(LOG_TAG,"btthread close afterjoin ${btThread?.isAlive} ${btThread?.state} $btThread")
     }
 
     private abstract class CloseableThread : Thread(), Closeable
@@ -100,19 +97,19 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 this@BtGame.state = RemoteState.LISTENING
                 serverSocket = btAdapter.listenUsingRfcommWithServiceRecord("SuperTTT", UUID)
             } catch (e: IOException) {
-                Log.e(LOG_TAG, "listen() failed", e)
+                log(e.toString())
                 interrupt()
             }
         }
 
         override fun run() {
-            Log.e(LOG_TAG, "BEGIN ListenThread" + this)
+            log("BEGIN ListenThread" + this)
 
             while (this@BtGame.state != RemoteState.CONNECTED && !isInterrupted) {
                 try {
                     socket = serverSocket?.accept() //Blocking call
                 } catch (e: IOException) {
-                    Log.e(LOG_TAG, "accept() failed", e)
+                    log(e.toString())
                     interrupt()
                 }
 
@@ -124,10 +121,10 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 serverSocket?.close()
                 socket?.close()
             } catch (e: IOException) {
-                Log.e(LOG_TAG, "Could not close sockets when closing ListenThread")
+                log("Could not close sockets when closing ListenThread")
             }
 
-            Log.e(LOG_TAG, "END ListenThread $this")
+            log("END ListenThread $this")
         }
 
         override fun close() {
@@ -151,7 +148,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
         }
 
         override fun run() {
-            Log.e(LOG_TAG, "BEGIN connectingThread" + this)
+            log("BEGIN connectingThread" + this)
 
             try {
                 socket?.connect() //Blocking call
@@ -161,22 +158,22 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 }
             } catch (e: IOException) {
                 callback.toast(res.getString(R.string.unable_to_connect))
-                Log.e(LOG_TAG, "Unable to connect to device", e)
+                log(e.toString())
             }
 
             try {
                 this@BtGame.state = RemoteState.NONE
                 socket?.close()
             } catch (e2: IOException) {
-                Log.e(LOG_TAG, "unable to interrupt() socket during connection failure", e2)
+                log(e2.toString())
             }
 
-            Log.e(LOG_TAG, "END connectingThread" + this)
+            log("END connectingThread" + this)
         }
     }
 
     private fun connected(socket: BluetoothSocket, isHost: Boolean) {
-        Log.e(LOG_TAG, "BEGIN connected" + this)
+        log("BEGIN connected" + this)
 
         try {
             inStream = socket.inputStream
@@ -197,7 +194,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 }.toString().toByteArray(Charsets.UTF_8))
             }
         } catch (e: IOException) {
-            Log.e(LOG_TAG, "connected sockets not created", e)
+            log(e.toString())
             Thread.currentThread().interrupt()
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -215,7 +212,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                     RemoteMessageType.BOARD_UPDATE -> {
                         val newBoard = JSONBoard.fromJSON(JSONObject(json.getString("board")))
                         if (isValidBoard(boards.peek(), newBoard)) {
-                            Log.e(LOG_TAG, "We received a valid board")
+                            log("We received a valid board")
                             boards.push(newBoard)
                             callback.move(newBoard.lastMove()!!)
                         } else {
@@ -235,11 +232,11 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                     }
                 }
             } catch (e: IOException) {
-                Log.e(LOG_TAG, "disconnected", e)
+                log(e.toString())
                 callback.toast(res.getString(R.string.connection_lost))
                 Thread.currentThread().interrupt()
             } catch (e: JSONException) {
-                Log.e(LOG_TAG, "JSON read parsing failed")
+                log("JSON read parsing failed")
                 callback.toast(res.getString(R.string.json_parsing_failed))
                 Thread.currentThread().interrupt()
             }
@@ -257,7 +254,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             e.printStackTrace()
         }
 
-        Log.e(LOG_TAG, "END connected" + this)
+        log("END connected" + this)
     }
 
     override fun sendUndo(force: Boolean) {
@@ -268,7 +265,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 put("force", force)
             }.toString().toByteArray(Charsets.UTF_8))
         } catch (e: IOException) {
-            Log.e(LOG_TAG, "Exception in sendUndo", e)
+            log(e.toString())
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -282,7 +279,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 put("board", board.toJSON().toString())
             }.toString().toByteArray(Charsets.UTF_8))
         } catch (e: IOException) {
-            Log.e(LOG_TAG, "Exception in sendBoard()", e)
+            log(e.toString())
         } catch (e: JSONException) {
             e.printStackTrace()
         }

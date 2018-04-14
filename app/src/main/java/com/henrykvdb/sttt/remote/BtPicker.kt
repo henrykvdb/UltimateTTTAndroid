@@ -26,13 +26,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.henrykvdb.sttt.LOG_TAG
 import com.henrykvdb.sttt.R
 import com.henrykvdb.sttt.keepDialog
+import com.henrykvdb.sttt.log
 import com.henrykvdb.sttt.newLoadingTitle
 import java.util.*
 
@@ -92,12 +91,11 @@ class BtPicker(private val context: Context, private val btAdapter: BluetoothAda
                     }
                 })
             }
-        }
-        else devicesLayout.addView(TextView(context).apply { text = context.resources.getText(R.string.none_found) })
+        } else devicesLayout.addView(TextView(context).apply { text = context.resources.getText(R.string.none_found) })
     }
 
     private fun doDiscovery() {
-        Log.d(LOG_TAG, "doDiscovery()")
+        log("doDiscovery()")
         devices.clear()
         updateLayout()
 

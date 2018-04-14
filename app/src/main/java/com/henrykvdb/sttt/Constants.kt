@@ -39,6 +39,3 @@ const val KEEP_BT_ON_KEY = "KEEP_BT_ON_KEY"
 
 //Notification ID's
 const val REMOTE_STILL_RUNNING = 1
-
-//Misc
-const val LOG_TAG = "DEBUGLOG"

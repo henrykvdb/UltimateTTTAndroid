@@ -63,6 +63,8 @@ import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 
+fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT",text) else 0
+
 @SuppressLint("ShowToast")
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     //Game fields
@@ -206,14 +208,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun unbindRemoteService(stop: Boolean) {
         if (remoteServiceBound) {
-            Log.e("BTS", "Unbinding")
+            log("Unbinding")
             btDialog?.dismiss()
             remoteServiceBound = false
             unbindService(btServerConn)
         }
 
         if (stop && remoteServiceStarted) {
-            Log.e("BTS", "Stopping")
+            log("Stopping")
             remoteServiceStarted = false
             stopService(Intent(this, RemoteService::class.java))
             turnLocal()
@@ -272,7 +274,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private val btServerConn = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            Log.e(LOG_TAG, "remoteService Connected")
+            log("remoteService Connected")
 
             remoteService = (service as RemoteService.LocalBinder).getService()
             remoteServiceBound = true
@@ -291,7 +293,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            Log.e(LOG_TAG, "remoteService Disconnected")
+            log("remoteService Disconnected")
             remoteServiceBound = false
         }
     }
@@ -410,7 +412,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     playerLock.notify() //TODO fix #0
                 }
             } catch (t: Throwable) {
-                Log.e("RUN", "Error closing thread $t")
+                log("Error closing thread $t")
             }
         }
     }
