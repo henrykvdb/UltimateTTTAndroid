@@ -26,6 +26,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.support.v7.widget.AppCompatTextView
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
@@ -188,7 +189,7 @@ fun Context.newAiDialog() {
 }
 
 @Suppress("DEPRECATION")
-class LinkView(context: Context, attrs: AttributeSet) : TextView(context, attrs) {
+class LinkView(context: Context, attrs: AttributeSet) : AppCompatTextView(context, attrs) {
     init {
         movementMethod = LinkMovementMethod.getInstance()
         text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
