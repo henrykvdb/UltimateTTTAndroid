@@ -103,10 +103,10 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
         }
 
         override fun run() {
-            log("BEGIN ListenThread" + this)
-
+            log("BEGIN ListenThread $this")
             while (this@BtGame.state != RemoteState.CONNECTED && !isInterrupted) {
                 try {
+                    log("reeeeee $this")
                     socket = serverSocket?.accept() //Blocking call
                 } catch (e: IOException) {
                     log(e.toString())
@@ -114,6 +114,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 }
 
                 if (!isInterrupted) socket?.let { connected(it, true) } //Manage connection, blocking call
+                else interrupt()
             }
 
             try {
@@ -123,11 +124,11 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             } catch (e: IOException) {
                 log("Could not close sockets when closing ListenThread")
             }
-
             log("END ListenThread $this")
         }
 
         override fun close() {
+            interrupt()
             serverSocket?.close()
             socket?.close()
         }
@@ -135,7 +136,6 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
     private inner class ConnectingThread(device: BluetoothDevice) : CloseableThread() {
         private var socket: BluetoothSocket? = null
-        override fun close() = socket?.close() ?: Unit
 
         init {
             try {
@@ -143,19 +143,16 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 btAdapter.cancelDiscovery()
                 socket = device.createRfcommSocketToServiceRecord(UUID)
             } catch (e: IOException) {
-                throw e
+                log(e.toString())
+                interrupt()
             }
         }
 
         override fun run() {
             log("BEGIN connectingThread" + this)
-
             try {
                 socket?.connect() //Blocking call
-
-                if (!isInterrupted) {
-                    socket?.let { connected(it, false) } //Manage connection, blocking call
-                }
+                if (!isInterrupted) socket?.let { connected(it, false) } //Manage connection, blocking call
             } catch (e: IOException) {
                 callback.toast(res.getString(R.string.unable_to_connect))
                 log(e.toString())
@@ -167,8 +164,12 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             } catch (e2: IOException) {
                 log(e2.toString())
             }
-
             log("END connectingThread" + this)
+        }
+
+        override fun close() {
+            interrupt()
+            socket?.close()
         }
     }
 

@@ -40,7 +40,6 @@ class RemoteService : Service() {
     }
 
     fun remoteGame() = remoteGame
-
     fun getType() = type
     fun setType(type: RemoteType) {
         remoteGame.close()
@@ -50,6 +49,11 @@ class RemoteService : Service() {
             RemoteType.BLUETOOTH -> BtGame(callback, resources)
             RemoteType.NONE -> DummyRemoteGame
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        remoteGame.close()
     }
 
     private val callback = object : RemoteCallback {
