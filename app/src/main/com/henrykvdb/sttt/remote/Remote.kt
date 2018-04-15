@@ -74,3 +74,8 @@ object DummyRemoteGame : RemoteGame {
     override fun sendUndo(force: Boolean) = Unit
     override fun sendBoard(board: Board) = Unit
 }
+
+fun isValidBoard(cBoard: Board, newBoard: Board): Boolean {
+    if (!cBoard.availableMoves().contains(newBoard.lastMove()!!)) return false
+    return newBoard == cBoard.copy().apply { play(newBoard.lastMove()!!) }
+}
