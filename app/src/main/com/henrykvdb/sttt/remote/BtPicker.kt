@@ -52,29 +52,25 @@ class BtPicker(private val context: Context, private val btAdapter: BluetoothAda
     private val btReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
+                BluetoothDevice.ACTION_ACL_CONNECTED -> alertDialog.dismiss()
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> doDiscovery()
                 BluetoothDevice.ACTION_FOUND -> {
                     val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                    var add = true
-
-                    if (device.name != null) devices.forEach { d -> add = d.address != device.address && add }
-                    if (add) {
+                    if(devices.none { it.address == device.address }){
                         devices.add(device)
                         updateLayout()
                     }
                 }
-                BluetoothDevice.ACTION_ACL_CONNECTED -> alertDialog.dismiss()
-                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> doDiscovery()
             }
         }
     }
 
     init {
-        IntentFilter().apply {
+        context.registerReceiver(btReceiver,IntentFilter().apply {
             addAction(BluetoothDevice.ACTION_FOUND)
             addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-            context.registerReceiver(btReceiver, this)
-        }
+        })
         doDiscovery()
     }
 
