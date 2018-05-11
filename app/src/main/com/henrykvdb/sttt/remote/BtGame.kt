@@ -214,7 +214,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                         if (isValidBoard(boards.peek(), newBoard)) {
                             log("We received a valid board")
                             boards.push(newBoard)
-                            callback.move(newBoard.lastMove()!!)
+                            callback.move(newBoard.lastMove!!)
                         } else {
                             callback.toast(res.getString(R.string.desync_message))
                             Thread.currentThread().interrupt()

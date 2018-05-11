@@ -42,8 +42,8 @@ class GameState private constructor(val players: Players, val boards: LinkedList
         else -> Source.LOCAL
     }
 
-    fun nextSource() = if (board().nextPlayer() == Player.PLAYER) players.first else players.second
-    fun otherSource() = if (board().nextPlayer() == Player.PLAYER) players.second else players.first
+    fun nextSource() = if (board().nextPlayer == Player.PLAYER) players.first else players.second
+    fun otherSource() = if (board().nextPlayer == Player.PLAYER) players.second else players.first
 
     companion object {
         private const val serialVersionUID = -3051602110955747927L

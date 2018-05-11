@@ -131,24 +131,24 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         //Set the helper text
         nextPlayerView?.let {
             it.text = null
-            if (!board.isDone()) {
+            if (!board.isDone) {
                 if (gameState.type != Source.LOCAL) {
-                    it.setTextColor(if (board.nextPlayer() == Player.PLAYER) Color.BLUE else Color.RED)
+                    it.setTextColor(if (board.nextPlayer == Player.PLAYER) Color.BLUE else Color.RED)
                     val yourTurn = gameState.nextSource() == Source.LOCAL
                     it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
                 }
             } else {
-                if (board.wonBy() == Player.NEUTRAL) {
+                if (board.wonBy == Player.NEUTRAL) {
                     it.setTextColor(Color.BLACK)
                     it.text = resources.getText(R.string.tie_message)
                 } else {
                     if (gameState.type == Source.LOCAL) {
-                        it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
-                        it.text = resources.getString(R.string.game_winner, if (board.wonBy() == Player.PLAYER) "X" else "O")
+                        it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
+                        it.text = resources.getString(R.string.game_winner, if (board.wonBy == Player.PLAYER) "X" else "O")
                     } else {
-                        it.setTextColor(if (board.wonBy() == Player.PLAYER) Color.BLUE else Color.RED)
+                        it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
                         val youWon =
-                                if (board.wonBy() == Player.PLAYER) gameState.players.first == Source.LOCAL
+                                if (board.wonBy == Player.PLAYER) gameState.players.first == Source.LOCAL
                                 else gameState.players.second == Source.LOCAL
                         it.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
                     }
@@ -162,8 +162,8 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         //Bigger macro separate lines
         drawGridBarriers(canvas, fieldSize, ds.gridColor, bigGridStroke)
 
-        if (board.isDone()) {
-            when (board.wonBy()) {
+        if (board.isDone) {
+            when (board.wonBy) {
                 Player.PLAYER -> drawTile(canvas, true, true, fieldSize, ds.xColor - ds.symbolTransparency, wonSymbolStroke, tileSize)
                 Player.ENEMY -> drawTile(canvas, false, true, fieldSize, ds.oColor - ds.symbolTransparency, wonSymbolStroke, tileSize * oBorder / xBorder)
                 Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
@@ -176,7 +176,7 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         val ym = om / 3
 
         val macroOwner = board.macro(om)
-        val won = board.wonBy() != Player.NEUTRAL
+        val won = board.wonBy != Player.NEUTRAL
 
         //Translate to macro
         val xmt = macroSizeFull * xm + whiteSpace
@@ -197,23 +197,23 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
 
             //Color tile if available
             paint.style = Paint.Style.FILL
-            paint.color = if (board.nextPlayer() == Player.PLAYER) ds.xColor else ds.oColor
+            paint.color = if (board.nextPlayer == Player.PLAYER) ds.xColor else ds.oColor
             paint.alpha = 50
-            if (board.availableMoves().contains(tile.toByte())) {
+            if (board.availableMoves.contains(tile.toByte())) {
                 canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
             }
 
             //Draw the correct symbol on the tile
             if (player == Player.PLAYER) {
                 drawTile(canvas, true, false, tileSize, when {
-                    tile.toByte() == board.lastMove() -> ds.xColorLight
+                    tile.toByte() == board.lastMove -> ds.xColorLight
                     won -> ds.xColorDarkest
                     macroOwner == Player.NEUTRAL -> ds.xColor
                     else -> ds.xColorDarker
                 }, tileSymbolStroke, xBorder)
             } else if (player == Player.ENEMY) {
                 drawTile(canvas, false, false, tileSize, when {
-                    tile.toByte() == board.lastMove() -> ds.oColorLight
+                    tile.toByte() == board.lastMove -> ds.oColorLight
                     won -> ds.oColorDarkest
                     macroOwner == Player.NEUTRAL -> ds.oColor
                     else -> ds.oColorDarker

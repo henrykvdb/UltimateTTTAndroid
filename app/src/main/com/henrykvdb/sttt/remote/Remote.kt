@@ -76,6 +76,6 @@ object DummyRemoteGame : RemoteGame {
 }
 
 fun isValidBoard(cBoard: Board, newBoard: Board): Boolean {
-    if (!cBoard.availableMoves().contains(newBoard.lastMove()!!)) return false
-    return newBoard == cBoard.copy().apply { play(newBoard.lastMove()!!) }
+    if (!cBoard.availableMoves.contains(newBoard.lastMove!!)) return false
+    return newBoard == cBoard.copy().apply { play(newBoard.lastMove!!) }
 }

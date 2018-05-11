@@ -287,7 +287,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if (remoteConnected) {
                     //Fetch latest board
                     val newBoard = remote!!.lastBoard
-                    if (newBoard != gs.board()) newBoard.lastMove()?.let { gameThread.play(Source.REMOTE, it) }
+                    if (newBoard != gs.board()) newBoard.lastMove?.let { gameThread.play(Source.REMOTE, it) }
 
                     //Update subtitle
                     setSubTitle(getString(R.string.connected_to, remote?.remoteName)) //TODO fix null after onpause
@@ -365,7 +365,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             running = true
             log("$this started")
 
-            while (!gs.board().isDone() && running) {
+            while (!gs.board().isDone && running) {
                 timer = Timer(5000)
                 timer.start()
 
@@ -376,7 +376,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     val newBoard = gs.board().copy()
                     newBoard.play(move)
 
-                    if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.LOCAL))
+                    if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer == Player.PLAYER == (gs.players.first == Source.LOCAL))
                         remote?.sendBoard(newBoard)
                     gs.pushBoard(newBoard)
                     boardView.drawState(gs)
@@ -386,8 +386,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         private fun waitForMove(player: Source): Byte? {
-            playerMove.set(Pair<Byte, Source>(null, null))
-            while ((!gs.board().availableMoves().contains(playerMove.get().first)           //Impossible move
+            playerMove.set(Pair(-1, Source.LOCAL))
+            while ((!gs.board().availableMoves.contains(playerMove.get().first)           //Impossible move
                             || player != playerMove.get().second                            //Wrong player
                             || playerMove.get() == null                                     //No Pair
                             || playerMove.get().first == null                               //No move
@@ -512,7 +512,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 else if (beginner == R.id.start_other) start = false
 
                 //Create the actual requested gamestate
-                val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer() == Player.PLAYER)
+                val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer == Player.PLAYER)
                 val gsBuilder = GameState.Builder().bt().swapped(swapped)
                 if (!newBoard) gsBuilder.board(gs.board())
 
