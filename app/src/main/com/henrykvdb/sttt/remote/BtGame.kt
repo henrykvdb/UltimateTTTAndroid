@@ -106,7 +106,6 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             log("BEGIN ListenThread $this")
             while (this@BtGame.state != RemoteState.CONNECTED && !isInterrupted) {
                 try {
-                    log("reeeeee $this")
                     socket = serverSocket?.accept() //Blocking call
                 } catch (e: IOException) {
                     log(e.toString())
@@ -227,9 +226,9 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                         callback.newGame(GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
                     }
                     RemoteMessageType.UNDO -> {
-                        val force = json.getBoolean("force")
-                        callback.undo(force)
-                        if (force) boards.pop()
+                        val ask = json.getBoolean("ask")
+                        callback.undo(ask)
+                        if (ask) boards.pop()
                     }
                 }
             } catch (e: IOException) {
@@ -258,12 +257,12 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
         log("END connected" + this)
     }
 
-    override fun sendUndo(force: Boolean) {
+    override fun sendUndo(ask: Boolean) {
         try {
-            if (force) boards.pop()
+            if (ask) boards.pop()
             outStream?.write(JSONObject().apply {
                 put("message", RemoteMessageType.UNDO.ordinal)
-                put("force", force)
+                put("ask", ask)
             }.toString().toByteArray(Charsets.UTF_8))
         } catch (e: IOException) {
             log(e.toString())

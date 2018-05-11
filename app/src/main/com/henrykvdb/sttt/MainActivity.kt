@@ -52,7 +52,6 @@ import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.Timer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.henrykvdb.sttt.remote.BtPicker
 import com.henrykvdb.sttt.remote.RemoteService
 import com.henrykvdb.sttt.remote.RemoteState
@@ -93,8 +92,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setSupportActionBar(toolbar)
 
         //Disable crash reporting and firebase analytics on debug builds
-        Fabric.with(this, Crashlytics.Builder().core(CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build()).build())
-        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(!BuildConfig.DEBUG)
+        val crashlyticsCore = CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build()
+        Fabric.with(this, Crashlytics.Builder().core(crashlyticsCore).build())
 
         //Make it easier to open the drawer
         try {
@@ -131,12 +130,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         })
 
         //Register the reciever that handles bt state changes
-        registerReceiver(btStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED).apply {
+        registerReceiver(btStateReceiver, IntentFilter().apply {
+            addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
             addAction(INTENT_STOP_BT_SERVICE)
         })
 
         if (savedInstanceState == null) {
-            keepBtOn = btAdapter != null && btAdapter!!.isEnabled
+            keepBtOn = btAdapter?.isEnabled ?: false
             gs = GameState.Builder().swapped(false).build()
             rateDialog()
         } else {
@@ -192,19 +192,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onDestroy() {
+        super.onDestroy()
         unregisterReceiver(remoteReceiver)
         unregisterReceiver(btStateReceiver)
 
         if (!isChangingConfigurations) {
             unbindRemoteService(true)
-            if (!keepBtOn) btAdapter!!.disable()
+            if (!keepBtOn) btAdapter?.disable()
         }
 
         //Close notification
-        val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-        notificationManager.cancel(REMOTE_STILL_RUNNING)
-
-        super.onDestroy()
+        NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
     }
 
     private fun unbindRemoteService(stop: Boolean) {
@@ -265,11 +263,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private val remoteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent): Unit = when (intent.action) {
             INTENT_MOVE -> gameThread.play(Source.REMOTE, intent.getSerializableExtra(INTENT_DATA) as Byte)
-            INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA, false))
+            INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA, true))
             INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA))
             INTENT_TURNLOCAL -> turnLocal()
             INTENT_NEWGAME -> {
-                btDialog?.apply { setOnDismissListener { };dismiss() }
+                btDialog?.setOnDismissListener { }
+                btDialog?.dismiss()
                 newGame(intent.getSerializableExtra(INTENT_DATA) as GameState)
             }
             else -> throw IllegalStateException(intent.action)
@@ -322,7 +321,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun newGame(gs: GameState) {
+        if (gs.type != Source.REMOTE && btDialog?.isShowing == false)
+            remote?.close()
         gameThread.close()
+
         boardView.drawState(gs)
         this.gs = gs
 
@@ -332,11 +334,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             Source.AI -> getString(R.string.ai_game)
         })
 
-        if (gs.type == Source.REMOTE) {
-            val remoteName = remote?.remoteName
-            if (remoteName != null) setSubTitle(getString(R.string.connected_to, remoteName))
-            else setSubTitle(getString(R.string.connected))
-        } else setSubTitle(null)
+        val remoteName = remote?.remoteName
+        setSubTitle(when {
+            gs.type != Source.REMOTE -> null
+            remoteName != null -> getString(R.string.connected_to, remoteName)
+            else -> getString(R.string.connected)
+        })
 
         gameThread = GameThread()
         gameThread.start()
@@ -360,14 +363,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         override fun run() {
             name = "GameThread"
             running = true
+            log("$this started")
 
             while (!gs.board().isDone() && running) {
                 timer = Timer(5000)
                 timer.start()
-                val next = gs.nextSource()
-                val move = if (next == Source.AI) gs.extraBot.move(gs.board(), timer) else {
-                    waitForMove(next)
-                }
+
+                val nextSource = gs.nextSource()
+                val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board(), timer) else waitForMove(nextSource)
+
                 if (running) move?.let {
                     val newBoard = gs.board().copy()
                     newBoard.play(move)
@@ -375,19 +379,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer() == Player.PLAYER == (gs.players.first == Source.LOCAL))
                         remote?.sendBoard(newBoard)
                     gs.pushBoard(newBoard)
-                    boardView!!.drawState(gs)
+                    boardView.drawState(gs)
                 }
             }
+            log("$this stopped")
         }
 
         private fun waitForMove(player: Source): Byte? {
             playerMove.set(Pair<Byte, Source>(null, null))
-            while ((!gs.board().availableMoves().contains(playerMove.get().first)         //Impossible move
+            while ((!gs.board().availableMoves().contains(playerMove.get().first)           //Impossible move
                             || player != playerMove.get().second                            //Wrong player
                             || playerMove.get() == null                                     //No Pair
                             || playerMove.get().first == null                               //No move
                             || playerMove.get().second == null)                             //No source
-                    && !Thread.interrupted()) {
+                    && !Thread.interrupted() && running) {
                 synchronized(playerLock) {
                     try {
                         playerLock.wait() //TODO fix #2
@@ -448,23 +453,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         if (gs.type == Source.REMOTE && remoteConnected)
-            remote?.sendUndo(false)
+            remote?.sendUndo(ask = true)
         else if (gs.otherSource() == Source.AI)
-            repeat(2) { undo(true) }
-        else undo(true)
+            undo(count = 2)
+        else undo()
 
         return true
     }
 
-    fun undo(force: Boolean) {
-        if (!force && remoteConnected && gs.type == Source.REMOTE) {
+    fun undo(ask: Boolean = false, count: Int = 1) {
+        if (ask && remoteConnected && gs.type == Source.REMOTE) {
             askUser(getString(R.string.undo_request, remote?.remoteName), { allow ->
                 if (allow) {
-                    undo(true)
-                    remote?.sendUndo(true)
+                    undo()
+                    remote?.sendUndo(false)
                 }
             })
-        } else newGame(GameState.Builder().gs(gs).build().apply { popBoard() })
+        } else newGame(GameState.Builder().gs(gs).build().apply { repeat(count) { popBoard() } })
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -489,7 +494,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return
         } else remoteService?.setType(RemoteType.BLUETOOTH)
 
-        if (btAdapter!!.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+        if (btAdapter.scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             remote?.listen(GameState.Builder().bt().build())
 
             val layout = View.inflate(this, R.layout.dialog_bt_host, null)
@@ -522,7 +527,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     .setView(layout)
                     .setCustomTitle(newTitle(getString(R.string.host_bluetooth_game)))
                     .setNegativeButton(getString(R.string.close)) { _, _ -> btDialog?.dismiss() }
-                    .setOnDismissListener({ remote?.close() }) //TODO fix, onconnect dialog gets dismissed lmao
+                    .setOnDismissListener({ remote?.close() })
                     .show())
         } else {
             val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
@@ -538,14 +543,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else remoteService?.setType(RemoteType.BLUETOOTH)
 
         // If BT is not on, request that it be enabled first.
-        if (!btAdapter!!.isEnabled) {
+        if (!btAdapter.isEnabled) {
             val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT)
         } else {
             //If we don't have the COARSE LOCATION permission, request it
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOC)
-            else btDialog = BtPicker(this, btAdapter!!, { adr -> remote?.connect(adr) }).alertDialog
+            else btDialog = BtPicker(this, btAdapter, { adr -> remote?.connect(adr) }).alertDialog
         }
     }
 
@@ -561,18 +566,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun askUser(message: String, callBack: (Boolean) -> Unit) {
-        if (askDialog?.isShowing == true) askDialog!!.dismiss()
-
         val dialogClickListener = DialogInterface.OnClickListener { _, which ->
             if (which == DialogInterface.BUTTON_POSITIVE) callBack.invoke(true)
             else if (which == DialogInterface.BUTTON_NEGATIVE) callBack.invoke(false)
         }
 
-        askDialog = AlertDialog.Builder(this).setMessage(message)
+        if (askDialog?.isShowing == true) askDialog!!.dismiss()
+        askDialog = keepDialog(AlertDialog.Builder(this).setMessage(message)
                 .setPositiveButton(getString(R.string.yes), dialogClickListener)
                 .setNegativeButton(getString(R.string.no), dialogClickListener)
-                .setOnDismissListener { callBack.invoke(false) }.show()
-
-        keepDialog(askDialog!!)
+                .setOnDismissListener { callBack.invoke(false) }.show())
     }
 }

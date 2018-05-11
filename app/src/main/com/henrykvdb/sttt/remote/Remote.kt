@@ -56,7 +56,7 @@ interface RemoteGame {
     fun connect(adr: String)
     fun close()
 
-    fun sendUndo(force: Boolean)
+    fun sendUndo(ask: Boolean)
     fun sendBoard(board: Board)
 }
 
@@ -71,7 +71,7 @@ object DummyRemoteGame : RemoteGame {
     override fun connect(adr: String) = Unit
     override fun close() = Unit
 
-    override fun sendUndo(force: Boolean) = Unit
+    override fun sendUndo(ask: Boolean) = Unit
     override fun sendBoard(board: Board) = Unit
 }
 
