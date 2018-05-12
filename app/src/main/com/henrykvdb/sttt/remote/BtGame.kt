@@ -203,10 +203,10 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             Thread.currentThread().interrupt()
         }
 
-        loop@while (state == RemoteState.CONNECTED && !Thread.interrupted()) {
+        while (state == RemoteState.CONNECTED && !Thread.interrupted()) {
             try {
                 val scanner = Scanner(inStream, Charsets.UTF_8.name()).useDelimiter("\n")
-                val json = if (scanner.hasNext()) JSONObject(scanner.next()) else continue@loop
+                val json = if (scanner.hasNext()) JSONObject(scanner.next()) else throw IOException("stream finished")
 
                 when (RemoteMessageType.values()[json.getInt("message")]) {
                     RemoteMessageType.BOARD_UPDATE -> {
