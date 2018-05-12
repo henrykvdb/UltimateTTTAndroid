@@ -466,7 +466,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             askUser(getString(R.string.undo_request, remote?.remoteName), { allow ->
                 if (allow) {
                     undo()
-                    remote?.sendUndo(false)
+                    remote?.sendUndo(ask = false)
                 }
             })
         } else newGame(GameState.Builder().gs(gs).build().apply { repeat(count) { popBoard() } })
@@ -514,7 +514,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 //Create the actual requested gamestate
                 val swapped = if (newBoard) !start else start xor (gs.board().nextPlayer == Player.PLAYER)
                 val gsBuilder = GameState.Builder().bt().swapped(swapped)
-                if (!newBoard) gsBuilder.board(gs.board())
+                if (!newBoard) gsBuilder.boards(gs.boards)
 
                 remote?.listen(gsBuilder.build())
             }

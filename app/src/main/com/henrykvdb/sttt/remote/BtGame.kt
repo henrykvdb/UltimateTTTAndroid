@@ -31,6 +31,7 @@ import com.henrykvdb.sttt.GameState
 import com.henrykvdb.sttt.R
 import com.henrykvdb.sttt.Source
 import com.henrykvdb.sttt.log
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.Closeable
@@ -185,13 +186,14 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
             if (isHost) {
                 callback.newGame(requestState)
-                boards = LinkedList(listOf(requestState.board()))
-
-                outStream?.write(JSONObject().apply {
+                boards = LinkedList(requestState.boards)
+                JSONObject().apply {
                     put("message", RemoteMessageType.SETUP.ordinal)
                     put("start", requestState.players.first == Source.REMOTE)
-                    put("board", requestState.board().toJSON().toString())
-                }.toString().toByteArray(Charsets.UTF_8))
+                    put("boards", JSONArray().apply {
+                        boards.forEach { put(it.toJSON()) }
+                    })
+                }.writeToStream()
             }
         } catch (e: IOException) {
             log(e.toString())
@@ -201,12 +203,10 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
             Thread.currentThread().interrupt()
         }
 
-        val buffer = ByteArray(1024)
-        while (state == RemoteState.CONNECTED && !Thread.interrupted()) {
+        loop@while (state == RemoteState.CONNECTED && !Thread.interrupted()) {
             try {
-                //TODO improve reading of the stream, replace buffer
-                inStream?.read(buffer)
-                val json = JSONObject(String(buffer, Charsets.UTF_8))
+                val scanner = Scanner(inStream, Charsets.UTF_8.name()).useDelimiter("\n")
+                val json = if (scanner.hasNext()) JSONObject(scanner.next()) else continue@loop
 
                 when (RemoteMessageType.values()[json.getInt("message")]) {
                     RemoteMessageType.BOARD_UPDATE -> {
@@ -221,14 +221,21 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                         }
                     }
                     RemoteMessageType.SETUP -> {
-                        val board = JSONBoard.fromJSON(JSONObject(json.getString("board")))
-                        boards = LinkedList(listOf(board))
-                        callback.newGame(GameState.Builder().bt().board(board).swapped(!json.getBoolean("start")).build())
+                        val boards = mutableListOf<Board>()
+                        val jsonBoards = json.getJSONArray("boards")
+
+                        for (i in 0 until jsonBoards.length())
+                            boards.add(JSONBoard.fromJSON(jsonBoards[i] as JSONObject))
+
+                        this.boards = LinkedList(boards)
+                        callback.newGame(GameState.Builder().bt().boards(boards).swapped(!json.getBoolean("start")).build())
                     }
                     RemoteMessageType.UNDO -> {
                         val ask = json.getBoolean("ask")
-                        callback.undo(ask)
-                        if (ask) boards.pop()
+                        if (boards.size > 1) {
+                            callback.undo(ask)
+                            if (!ask) boards.pop()
+                        }
                     }
                 }
             } catch (e: IOException) {
@@ -236,7 +243,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
                 callback.toast(res.getString(R.string.connection_lost))
                 Thread.currentThread().interrupt()
             } catch (e: JSONException) {
-                log("JSON read parsing failed")
+                log("JSON read parsing failed $e")
                 callback.toast(res.getString(R.string.json_parsing_failed))
                 Thread.currentThread().interrupt()
             }
@@ -258,12 +265,13 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     }
 
     override fun sendUndo(ask: Boolean) {
+        if (boards.size <= 1) return
+        if (!ask) boards.pop()
         try {
-            if (ask) boards.pop()
-            outStream?.write(JSONObject().apply {
+            JSONObject().apply {
                 put("message", RemoteMessageType.UNDO.ordinal)
                 put("ask", ask)
-            }.toString().toByteArray(Charsets.UTF_8))
+            }.writeToStream()
         } catch (e: IOException) {
             log(e.toString())
         } catch (e: JSONException) {
@@ -274,16 +282,18 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
     override fun sendBoard(board: Board) {
         try {
             boards.push(board)
-            outStream?.write(JSONObject().apply {
+            JSONObject().apply {
                 put("message", RemoteMessageType.BOARD_UPDATE.ordinal)
                 put("board", board.toJSON().toString())
-            }.toString().toByteArray(Charsets.UTF_8))
+            }.writeToStream()
         } catch (e: IOException) {
             log(e.toString())
         } catch (e: JSONException) {
             e.printStackTrace()
         }
     }
+
+    private fun JSONObject.writeToStream() = outStream?.write("${toString()}\n".toByteArray(Charsets.UTF_8))
 
     override val localName get() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
     override val remoteName get() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
