@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         //Add ads in portrait
         if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
-            MobileAds.initialize(applicationContext, getString(R.string.banner_ad_unit_id))
+            MobileAds.initialize(applicationContext, getString(R.string.admob_banner_id))
             adView?.loadAd(AdRequest.Builder().build())
         }
 

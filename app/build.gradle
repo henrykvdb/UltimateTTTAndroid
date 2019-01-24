@@ -5,14 +5,16 @@ apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
+
     defaultConfig {
-        applicationId "com.henrykvdb.sttt"
+        applicationId 'com.henrykvdb.sttt'
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 24
-        versionName "2.1.7"
+        versionName '2.1.7'
     }
+
     buildTypes {
         release {
             debuggable = false
@@ -21,6 +23,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     sourceSets {
         main {
             kotlin.srcDirs = ["src/main"]
@@ -37,9 +40,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
 
-    implementation 'com.google.firebase:firebase-core:15.0.2'
-    implementation 'com.google.firebase:firebase-ads:15.0.1'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.2'
+    implementation 'com.google.firebase:firebase-core:16.0.6'
+    implementation 'com.google.firebase:firebase-ads:17.1.2'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.8'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

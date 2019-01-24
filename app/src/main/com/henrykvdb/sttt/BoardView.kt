@@ -30,7 +30,8 @@ import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
 
-@Suppress("unused") typealias ds = DrawSettings
+@Suppress("unused")
+typealias ds = DrawSettings
 
 object DrawSettings {
     //PLAYER color settings (X)
@@ -50,19 +51,19 @@ object DrawSettings {
     const val symbolTransparency = 60 and 0xff shl 24
 
     //Symbol stroke width
-    const val tileSymbolStroke = 16f / 984
-    const val macroSymbolStroke = 40f / 984
-    const val wonSymbolStroke = 120f / 984
+    const val tileSymbolStrokeRel = 16f / 984
+    const val macroSymbolStrokeRel = 40f / 984
+    const val wonSymbolStrokeRel = 120f / 984
 
     //Grid-line settings
     const val gridColor = Color.BLACK
-    const val bigGridStroke = 8f / 984
-    const val smallGridStroke = 1f / 984
+    const val bigGridStrokeRel = 8f / 984
+    const val smallGridStrokeRel = 1f / 984
 
     //Other settings
-    const val whiteSpace = 0.02f
-    const val borderX = 0.10f / 9
-    const val borderO = 0.15f / 9
+    const val whiteSpaceRel = 0.02f
+    const val borderXRel = 0.10f / 9
+    const val borderORel = 0.15f / 9
 }
 
 class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
@@ -110,19 +111,19 @@ class BoardView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         fieldSize = Math.min(width, height).toFloat()
 
         macroSizeFull = fieldSize / 3
-        whiteSpace = fieldSize * ds.whiteSpace
+        whiteSpace = fieldSize * ds.whiteSpaceRel
 
         macroSizeSmall = macroSizeFull - 2 * whiteSpace
         tileSize = macroSizeSmall / 3
 
-        xBorder = fieldSize * ds.borderX
-        oBorder = fieldSize * ds.borderO
+        xBorder = fieldSize * ds.borderXRel
+        oBorder = fieldSize * ds.borderORel
 
-        bigGridStroke = (fieldSize * ds.bigGridStroke).toInt()
-        smallGridStroke = (fieldSize * ds.smallGridStroke).toInt()
-        tileSymbolStroke = (fieldSize * ds.tileSymbolStroke).toInt()
-        macroSymbolStroke = (fieldSize * ds.macroSymbolStroke).toInt()
-        wonSymbolStroke = (fieldSize * ds.wonSymbolStroke).toInt()
+        bigGridStroke = (fieldSize * ds.bigGridStrokeRel).toInt()
+        smallGridStroke = (fieldSize * ds.smallGridStrokeRel).toInt()
+        tileSymbolStroke = (fieldSize * ds.tileSymbolStrokeRel).toInt()
+        macroSymbolStroke = (fieldSize * ds.macroSymbolStrokeRel).toInt()
+        wonSymbolStroke = (fieldSize * ds.wonSymbolStrokeRel).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {

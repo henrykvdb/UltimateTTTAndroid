@@ -6,7 +6,8 @@
 	<string name="github_url">github.com/henrykvdb/SuperTTTAndroid</string>
 
     <!-- FireBase -->
-    <string name="banner_ad_unit_id">ca-app-pub-6464324284979557/5400944625</string>
+    <string name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
+    <string name="admob_banner_id">ca-app-pub-6464324284979557/5400944625</string>
 
     <!--  Single word -->
     <string name="difficulty">Difficulty</string>
