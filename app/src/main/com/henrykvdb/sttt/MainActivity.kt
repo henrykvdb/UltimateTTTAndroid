@@ -474,7 +474,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			R.id.nav_bt_host -> hostBt()
 			R.id.nav_bt_join -> joinBt()
 			R.id.nav_other_feedback -> feedbackSender()
-			R.id.nav_other_tutorial -> aboutDialog()//startActivity(Intent(this, TutorialActivity::class.java))
+			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
 			R.id.nav_other_share -> shareDialog()
 			R.id.nav_other_about -> aboutDialog()
 			else -> return false

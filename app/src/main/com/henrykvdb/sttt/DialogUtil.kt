@@ -118,8 +118,8 @@ fun Context.triggerDialogs() {
 	}
 
 	// Open tutorial if conditions are met
-	//if (launchCount == 1L)
-	//	startActivity(Intent(this, TutorialActivity::class.java))
+	if (launchCount == 1L)
+		startActivity(Intent(this, TutorialActivity::class.java))
 
 	// Open rate dialog if conditions are met
 	if (System.currentTimeMillis() >= dateFirstLaunch + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000
