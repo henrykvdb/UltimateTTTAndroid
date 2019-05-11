@@ -68,7 +68,7 @@ object DrawSettings {
 
 class BoardView : View {
 	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-	constructor(context: Context) : super(context)
+	//constructor(context: Context) : super(context)
 
 	private val path = Path()
 	private val paint = Paint()
@@ -180,7 +180,7 @@ class BoardView : View {
 		val ym = om / 3
 
 		val macroOwner = board.macro(om)
-		val won = board.wonBy != Player.NEUTRAL
+		val realWin = board.wonBy?:Player.NEUTRAL != Player.NEUTRAL
 
 		//Translate to macro
 		val xmt = macroSizeFull * xm + whiteSpace
@@ -211,14 +211,14 @@ class BoardView : View {
 			if (player == Player.PLAYER) {
 				drawTile(canvas, true, false, tileSize, when {
 					tile.toByte() == board.lastMove -> ds.xColorLight
-					won -> ds.xColorDarkest
+					realWin -> ds.xColorDarkest
 					macroOwner == Player.NEUTRAL -> ds.xColor
 					else -> ds.xColorDarker
 				}, tileSymbolStroke, xBorder)
 			} else if (player == Player.ENEMY) {
 				drawTile(canvas, false, false, tileSize, when {
 					tile.toByte() == board.lastMove -> ds.oColorLight
-					won -> ds.oColorDarkest
+					realWin -> ds.oColorDarkest
 					macroOwner == Player.NEUTRAL -> ds.oColor
 					else -> ds.oColorDarker
 				}, tileSymbolStroke, oBorder)
@@ -229,12 +229,12 @@ class BoardView : View {
 
 		//Draw x and y over macros
 		if (macroOwner == Player.PLAYER) {
-			drawTile(canvas, true, !won, macroSizeSmall,
-					if (won) ds.xColorDarker - ds.symbolTransparency else ds.xColor - ds.symbolTransparency,
+			drawTile(canvas, true, !realWin, macroSizeSmall,
+					if (realWin) ds.xColorDarker - ds.symbolTransparency else ds.xColor - ds.symbolTransparency,
 					macroSymbolStroke, xBorder)
 		} else if (macroOwner == Player.ENEMY) {
-			drawTile(canvas, false, !won, macroSizeSmall,
-					if (won) ds.oColorDarker - ds.symbolTransparency else ds.oColor - ds.symbolTransparency,
+			drawTile(canvas, false, !realWin, macroSizeSmall,
+					if (realWin) ds.oColorDarker - ds.symbolTransparency else ds.oColor - ds.symbolTransparency,
 					macroSymbolStroke, oBorder)
 		}
 
