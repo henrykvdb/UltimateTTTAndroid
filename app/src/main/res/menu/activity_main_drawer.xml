@@ -31,6 +31,10 @@
                     android:icon="@drawable/ic_menu_feedback"
                     android:title="@string/feedback"/>
             <item
+                android:id="@+id/nav_other_tutorial"
+                android:icon="@drawable/ic_menu_tutorial"
+                android:title="@string/tutorial"/>
+            <item
                     android:id="@+id/nav_other_share"
                     android:icon="@drawable/ic_menu_share"
                     android:title="@string/share"/>

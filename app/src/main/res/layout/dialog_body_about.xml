@@ -13,6 +13,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/nav_header_vertical_spacing"
             android:text="@string/app_name_long"
+			android:textColor="@color/textDark"
             android:drawableStart="@mipmap/ic_launcher"
             android:gravity="center_vertical"
             android:textStyle="normal|bold"
@@ -21,6 +22,7 @@
             android:id="@+id/versionName_view"/>
     <TextView
             android:text="@string/author_credit"
+			android:textColor="@color/textDark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat"
@@ -29,11 +31,13 @@
             android:paddingBottom="6dp"/>
     <com.henrykvdb.sttt.LinkView
             android:text="@string/special_thanks"
+			android:textColor="@color/textLight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 			android:paddingBottom="6dp"/>
 	<TextView
 			android:text="@string/open_source_title"
+			android:textColor="@color/textDark"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textAppearance="@style/TextAppearance.AppCompat"

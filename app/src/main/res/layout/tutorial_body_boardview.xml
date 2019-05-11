@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  xmlns:tools="http://schemas.android.com/tools"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+			  android:background="@color/tutorialBackground"
+			  android:orientation="vertical"
+			  android:paddingLeft="@dimen/activity_horizontal_margin"
+			  android:paddingTop="24dp"
+			  android:paddingRight="@dimen/activity_horizontal_margin"
+			  android:paddingBottom="70dp">
+
+	<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			tools:ignore="UselessParent">
+
+		<TextView
+				android:id="@+id/title"
+				android:textSize="28sp"
+				android:textStyle="bold"
+				android:gravity="center"
+				android:textColor="@color/textDark"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_alignParentTop="true"/>
+
+		<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_below="@id/title"
+				android:layout_above="@id/description"
+				android:gravity="center">
+			<com.henrykvdb.sttt.BoardView
+					android:id="@+id/boardView"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"/>
+		</LinearLayout>
+
+		<TextView
+				android:id="@+id/description"
+				android:textSize="16sp"
+				android:gravity="center"
+				android:textColor="@color/textLight"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_alignParentBottom="true"/>
+	</RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  xmlns:tools="http://schemas.android.com/tools"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+			  android:background="@color/tutorialBackground"
+			  android:orientation="vertical"
+			  android:paddingLeft="@dimen/activity_horizontal_margin"
+			  android:paddingTop="24dp"
+			  android:paddingRight="@dimen/activity_horizontal_margin"
+			  android:paddingBottom="70dp">
+
+	<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			tools:ignore="UselessParent">
+
+		<TextView
+				android:id="@+id/title"
+				android:text="Ways to play"
+				android:textSize="28sp"
+				android:textStyle="bold"
+				android:gravity="center"
+				android:textColor="@color/textDark"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_alignParentTop="true"/>
+
+		<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_below="@id/title"
+				android:layout_above="@id/description"
+				android:gravity="center">
+			<LinearLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:orientation="vertical"
+					android:gravity="start">
+				<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:paddingTop="@dimen/nav_header_vertical_spacing"
+						android:drawablePadding="@dimen/nav_header_vertical_spacing"
+						android:text="Against friends"
+						android:textColor="@color/textDark"
+						android:drawableStart="@drawable/ic_menu_human"
+						android:gravity="start"
+						android:textSize="20sp"/>
+				<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:paddingTop="@dimen/nav_header_vertical_spacing"
+						android:drawablePadding="@dimen/nav_header_vertical_spacing"
+						android:text=" Against the computer"
+						android:textColor="@color/textDark"
+						android:drawableStart="@drawable/ic_menu_ai"
+						android:gravity="start"
+						android:textSize="20sp"/>
+				<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:paddingTop="@dimen/nav_header_vertical_spacing"
+						android:drawablePadding="@dimen/nav_header_vertical_spacing"
+						android:text=" Over bluetooth"
+						android:textColor="@color/textDark"
+						android:drawableStart="@drawable/ic_menu_bluetooth"
+						android:gravity="start"
+						android:textSize="20sp"/>
+			</LinearLayout>
+		</LinearLayout>
+
+		<TextView
+				android:id="@+id/description"
+				android:textSize="16sp"
+				android:gravity="center"
+				android:text="Challenge your friends both locally and over Bluetooth. Try to beat the computer on the hardest difficulty."
+				android:textColor="@color/textLight"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_alignParentBottom="true"/>
+	</RelativeLayout>
+</LinearLayout>

@@ -14,6 +14,7 @@
 				  android:paddingBottom="0dp">
 		<TextView
 				android:text="@string/joinable_devices"
+				android:textColor="@color/textDark"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:textAppearance="@style/TextAppearance.AppCompat"

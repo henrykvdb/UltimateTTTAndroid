@@ -3,5 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#33B5E5</color>
-	<color name="dialogTitle">#000</color>
+    <color name="textDark">#202020</color>
+    <color name="textLight">#737373</color>
+    <color name="tutorialBackground">#FAFAFA</color>
 </resources>

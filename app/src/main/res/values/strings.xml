@@ -14,6 +14,7 @@
     <string name="current_board">Current</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="feedback">Feedback</string>
+	<string name="tutorial">Tutorial</string>
 	<string name="version">Version</string>
     <string name="new_board">New</string>
     <string name="random">Random</string>

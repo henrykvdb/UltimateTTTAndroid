@@ -11,6 +11,7 @@
               android:id="@+id/new_ai_layout">
     <TextView
             android:text="@string/difficulty"
+            android:textColor="@color/textDark"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat"
@@ -35,6 +36,7 @@
             android:id="@+id/start_radio_group">
         <RadioButton
                 android:text="@string/you"
+                android:textColor="@color/textDark"
                 android:id="@+id/start_you_radiobtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -43,6 +45,7 @@
                 android:checked="true"/>
         <RadioButton
                 android:text="@string/ai"
+                android:textColor="@color/textDark"
                 android:id="@+id/start_ai"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -50,6 +53,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat"/>
         <RadioButton
                 android:text="@string/random"
+                android:textColor="@color/textDark"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
