@@ -48,23 +48,23 @@ private const val LAUNCH_COUNT = "launch_count"
 
 // Prevent dialog destroy when orientation changes
 fun keepDialog(dialog: AlertDialog) = dialog.apply {
-    dialog.window?.attributes = WindowManager.LayoutParams().apply {
-        dialog.window?.attributes.let { copyFrom(it) }
-        width = WindowManager.LayoutParams.WRAP_CONTENT
-        height = WindowManager.LayoutParams.WRAP_CONTENT
-    }
+	dialog.window?.attributes = WindowManager.LayoutParams().apply {
+		dialog.window?.attributes.let { copyFrom(it) }
+		width = WindowManager.LayoutParams.WRAP_CONTENT
+		height = WindowManager.LayoutParams.WRAP_CONTENT
+	}
 }
 
 fun Context.newTitle(title: String): View = View.inflate(this, R.layout.dialog_title, null).apply {
-    (findViewById<View>(R.id.action_bar_title) as TextView).text = title
+	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
 fun Context.newLoadingTitle(title: String): View = View.inflate(this, R.layout.dialog_title_load, null).apply {
-    (findViewById<View>(R.id.action_bar_title) as TextView).text = title
+	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
 fun Context.feedbackSender() {
-    // @formatter:off
+	// @formatter:off
     val deviceInfo = ("\n /** please do not remove this block, technical info: "
             + "os version: ${System.getProperty("os.version")}(${android.os.Build.VERSION.INCREMENTAL})"
             + ", API: ${android.os.Build.VERSION.SDK_INT}"
@@ -72,127 +72,141 @@ fun Context.feedbackSender() {
               catch (e: PackageManager.NameNotFoundException) { "" } + "**/")
     // @formatter:on
 
-    startActivity(Intent.createChooser(Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${Uri.encode(deviceInfo)}")
-    }, getString(R.string.send_feedback)))
+	startActivity(Intent.createChooser(Intent(Intent.ACTION_SENDTO).apply {
+		data = Uri.parse("mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${Uri.encode(deviceInfo)}")
+	}, getString(R.string.send_feedback)))
 }
 
 fun Context.shareDialog() = with(Intent(Intent.ACTION_SEND)) {
-    type = "text/plain"
-    putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.app_name_long))
-    putExtra(Intent.EXTRA_TEXT, getString(R.string.lets_play_together) + " " + getString(R.string.market_url))
+	type = "text/plain"
+	putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.app_name_long))
+	putExtra(Intent.EXTRA_TEXT, getString(R.string.lets_play_together) + " " + getString(R.string.market_url))
 }.let { startActivity(Intent.createChooser(it, getString(R.string.share_with))) }
 
 @SuppressLint("SetTextI18n")
 fun Context.aboutDialog() {
-    val layout = View.inflate(this, R.layout.dialog_about, null)
+	val layout = View.inflate(this, R.layout.dialog_body_about, null)
 
-    (layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
-        resources.getText(R.string.app_name_long).toString() + "\n" + getString(R.string.version) + " " +
-                packageManager.getPackageInfo(packageName, 0).versionName
-    } catch (e: PackageManager.NameNotFoundException) {
-        resources.getText(R.string.app_name_long)
-    }
+	(layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
+		resources.getText(R.string.app_name_long).toString() + "\n" + getString(R.string.version) + " " +
+				packageManager.getPackageInfo(packageName, 0).versionName
+	} catch (e: PackageManager.NameNotFoundException) {
+		resources.getText(R.string.app_name_long)
+	}
 
-    keepDialog(AlertDialog.Builder(this)
-            .setView(layout)
-            .setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
-            .show())
+	keepDialog(AlertDialog.Builder(this)
+			.setView(layout)
+			.setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
+			.show())
 }
 
 @Suppress("DEPRECATION")
-fun Context.rateDialog() {
-    val prefs = getSharedPreferences("APP_RATER", 0)
-    if (prefs.getBoolean(DONT_SHOW_AGAIN, false)) return
-    val editor = prefs.edit()
+fun Context.triggerDialogs() {
+	val prefs = getSharedPreferences("APP_RATER", 0)
+	if (prefs.getBoolean(DONT_SHOW_AGAIN, false)) return
+	val editor = prefs.edit()
 
-    // Increment launch counter
-    val launchCount = prefs.getLong(LAUNCH_COUNT, 0) + 1
-    editor.putLong(LAUNCH_COUNT, launchCount)
+	// Increment launch counter
+	val launchCount = prefs.getLong(LAUNCH_COUNT, 0) + 1
+	editor.putLong(LAUNCH_COUNT, launchCount)
 
-    // Get date of first launch
-    var dateFirstLaunch: Long = prefs.getLong(DATE_FIRST_LAUNCH, 0)
-    if (dateFirstLaunch == 0L) {
-        dateFirstLaunch = System.currentTimeMillis()
-        editor.putLong(DATE_FIRST_LAUNCH, dateFirstLaunch)
-    }
+	// Get date of first launch
+	var dateFirstLaunch = prefs.getLong(DATE_FIRST_LAUNCH, 0)
+	if (dateFirstLaunch == 0L) {
+		dateFirstLaunch = System.currentTimeMillis()
+		editor.putLong(DATE_FIRST_LAUNCH, dateFirstLaunch)
+	}
 
-    // Wait at least n days before opening
-    if (launchCount >= LAUNCHES_UNTIL_PROMPT && System.currentTimeMillis() >= dateFirstLaunch + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000) {
-        @SuppressLint("InlinedApi") val dialogClickListener = DialogInterface.OnClickListener { _, which ->
-            when (which) {
-                DialogInterface.BUTTON_POSITIVE -> {
-                    editor.putBoolean(DONT_SHOW_AGAIN, true)
-                    editor.apply()
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-                        addFlags(if (Build.VERSION.SDK_INT >= 21) Intent.FLAG_ACTIVITY_NEW_DOCUMENT else Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
-                    })
-                }
-                DialogInterface.BUTTON_NEGATIVE -> {
-                    editor.putBoolean(DONT_SHOW_AGAIN, true)
-                    editor.apply()
-                }
-            }
-        }
+	// Open tutorial if conditions are met
+	//if (launchCount == 1L)
+	//	startActivity(Intent(this, TutorialActivity::class.java))
 
-        keepDialog(AlertDialog.Builder(this)
-                .setMessage(getString(R.string.rate_message))
-                .setCustomTitle(newTitle(getString(R.string.rate_app)))
-                .setPositiveButton(getString(R.string.rate), dialogClickListener)
-                .setNeutralButton(getString(R.string.later), dialogClickListener)
-                .setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
-                .show())
-    }
+	// Open rate dialog if conditions are met
+	if (System.currentTimeMillis() >= dateFirstLaunch + DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000
+			&& launchCount >= LAUNCHES_UNTIL_PROMPT)
+		newRateDialog()
 
-    editor.apply()
+	editor.apply()
+}
+
+fun Context.newRateDialog() {
+	val editor = getSharedPreferences("APP_RATER", 0).edit()
+	@SuppressLint("InlinedApi") val dialogClickListener = DialogInterface.OnClickListener { _, which ->
+		when (which) {
+			DialogInterface.BUTTON_POSITIVE -> {
+				editor.putBoolean(DONT_SHOW_AGAIN, true)
+				editor.apply()
+				startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+					addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+					addFlags(if (Build.VERSION.SDK_INT >= 21) Intent.FLAG_ACTIVITY_NEW_DOCUMENT else Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
+				})
+			}
+			DialogInterface.BUTTON_NEGATIVE -> {
+				editor.putBoolean(DONT_SHOW_AGAIN, true)
+				editor.apply()
+			}
+		}
+	}
+
+	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
+	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.rate_message)
+	keepDialog(AlertDialog.Builder(this)
+			.setView(layout)
+			.setCustomTitle(newTitle(getString(R.string.rate_app)))
+			.setPositiveButton(getString(R.string.rate), dialogClickListener)
+			.setNeutralButton(getString(R.string.later), dialogClickListener)
+			.setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
+			.show())
 }
 
 fun Context.newLocalDialog() {
-    val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
-        when (which) {
-            DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-            DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
-                    GameState.Builder().swapped(false).build()))
-        }
-    }
+	val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+		when (which) {
+			DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
+			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+					GameState.Builder().swapped(false).build()))
+		}
+	}
 
-    keepDialog(AlertDialog.Builder(this)
-            .setCustomTitle(newTitle(getString(R.string.new_local_title)))
-            .setMessage(getString(R.string.new_local_desc))
-            .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.close), dialogClickListener).show())
+	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
+	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_desc)
+	keepDialog(AlertDialog.Builder(this)
+			.setCustomTitle(newTitle(getString(R.string.new_local_title)))
+			.setView(layout)
+			.setPositiveButton(getString(R.string.start), dialogClickListener)
+			.setNegativeButton(getString(R.string.close), dialogClickListener).show())
 }
 
 fun Context.newAiDialog() {
-    val swapped = BooleanArray(1)
-    val layout = View.inflate(this, R.layout.dialog_ai, null)
-    val beginner = layout.findViewById<RadioGroup>(R.id.start_radio_group)
-    beginner.setOnCheckedChangeListener { _, checkedId ->
-        swapped[0] = checkedId != R.id.start_you_radiobtn && (checkedId == R.id.start_ai || Random().nextBoolean())
-    }
+	val swapped = BooleanArray(1)
+	val layout = View.inflate(this, R.layout.dialog_body_ai, null)
+	val beginner = layout.findViewById<RadioGroup>(R.id.start_radio_group)
+	beginner.setOnCheckedChangeListener { _, checkedId ->
+		swapped[0] = checkedId != R.id.start_you_radiobtn && (checkedId == R.id.start_ai || Random().nextBoolean())
+	}
 
-    val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
-        val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
-        val bot = if (progress > 0) MMBot(progress) else RandomBot()
-        when (which) {
-            DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
-                    GameState.Builder().ai(bot).swapped(swapped[0]).build()))
-            DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-        }
-    }
+	val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+		val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
+		val bot = if (progress > 0) MMBot(progress) else RandomBot()
+		when (which) {
+			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+					GameState.Builder().ai(bot).swapped(swapped[0]).build()))
+			DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
+		}
+	}
 
-    keepDialog(AlertDialog.Builder(this)
-            .setView(layout).setCustomTitle(newTitle(getString(R.string.new_ai_title)))
-            .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.close), dialogClickListener).show())
+	keepDialog(AlertDialog.Builder(this)
+			.setView(layout)
+			.setCustomTitle(newTitle(getString(R.string.new_ai_title)))
+			.setPositiveButton(getString(R.string.start), dialogClickListener)
+			.setNegativeButton(getString(R.string.close), dialogClickListener).show())
 }
 
 @Suppress("DEPRECATION")
 class LinkView(context: Context, attrs: AttributeSet) : AppCompatTextView(context, attrs) {
-    init {
-        movementMethod = LinkMovementMethod.getInstance()
-        text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
-        else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
-    }
+	init {
+		movementMethod = LinkMovementMethod.getInstance()
+		text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
+		else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
+	}
 }
