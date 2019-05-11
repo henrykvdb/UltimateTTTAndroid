@@ -6,8 +6,8 @@ android:
   - tools
   - platform-tools
   - tools
-  - build-tools-27.0.3
-  - android-27
+  - build-tools-28.0.3
+  - android-28
   - extra-android-m2repository
   - extra-google-m2repository
 script:
@@ -21,7 +21,6 @@ deploy:
   api_key:
     secure: egsMVumEi6L09AE7352Ufnx91ysPAeeL1PB1XcSW178W+/8IsqN1DMyts2EQPIKLumgCzvMsTfXGCMvQv1tcbZDsCYDjUntpwN9MNy3mrQXXVXZsOtlWFgWt7XDFhAyBvUUdLUyaDfyMIMx/IxWgWiXXtAsv1frvTjuO0GuxBcfn06WY53atIZBBmvKy54aDQQ97i/5uxojkbbuUjBl+sRi1tjb9A5u8lJKXvN7DBcaXAsPEB9KswZ3yfmVMYyla4uXFw/vopXhrrmRIFGaqnOP5eYysdJuQY1l8AxwiWoLzDLsxim61xFDpZB7ylIaVAqI0+7Xu1fBpNFrxedOvvPuWTSDa1OouP8SVLKatPxf2E1V0vFlQPvO9HaQdggrMhpFQM6vvG0KjcoOD6Z3CzpJFF2bjqqiCCWJ0GoByxJAjmZhrCxD76Ii5xfHRVXv8DS1uC/R6O9Ltpj9OD9BI/N71PS5T7nu0dd+5FIyMoXQoLZNuMP+b/3jWgEHIx9jTop9asqXS2HLCs03XVaX7Wzttj6G5JS6rHGFtfc8euyIJbdGqY6TOq6iKgq9IynKMqeSlfj2u0Jig04gDMdrqMQbbf/kkiUZWd3wN2iga4IffivEa0FqhCAIZzDlc7ffhFqNdjjEF0+xRKjqF2mxyfAosgoUqgTA3MLI00AQpbig=
   file: STTT.apk
-  file_glob: 'true'
   skip_cleanup: true
   on:
     repo: henrykvdb/SuperTTTAndroid
