@@ -3,23 +3,23 @@ jdk: oraclejdk8
 sudo: required
 android:
   components:
-  - tools
-  - platform-tools
-  - tools
-  - build-tools-28.0.3
-  - android-28
-  - extra-android-m2repository
-  - extra-google-m2repository
+    - tools
+    - platform-tools
+    - tools
+    - build-tools-28.0.3
+    - android-28
+    - extra-android-m2repository
+    - extra-google-m2repository
 script:
-- "./gradlew build --stacktrace"
+  - "./gradlew build --stacktrace"
 before_deploy:
-- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk
-  key -keystore keystore.jks -storepass $storepass -keypass $keypass
-- "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/release/app-release-unsigned.apk STTT.apk"
+  - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk
+    key -keystore keystore.jks -storepass $storepass -keypass $keypass
+  - "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/release/app-release-unsigned.apk STTT.apk"
 deploy:
   provider: releases
   api_key:
-    secure: egsMVumEi6L09AE7352Ufnx91ysPAeeL1PB1XcSW178W+/8IsqN1DMyts2EQPIKLumgCzvMsTfXGCMvQv1tcbZDsCYDjUntpwN9MNy3mrQXXVXZsOtlWFgWt7XDFhAyBvUUdLUyaDfyMIMx/IxWgWiXXtAsv1frvTjuO0GuxBcfn06WY53atIZBBmvKy54aDQQ97i/5uxojkbbuUjBl+sRi1tjb9A5u8lJKXvN7DBcaXAsPEB9KswZ3yfmVMYyla4uXFw/vopXhrrmRIFGaqnOP5eYysdJuQY1l8AxwiWoLzDLsxim61xFDpZB7ylIaVAqI0+7Xu1fBpNFrxedOvvPuWTSDa1OouP8SVLKatPxf2E1V0vFlQPvO9HaQdggrMhpFQM6vvG0KjcoOD6Z3CzpJFF2bjqqiCCWJ0GoByxJAjmZhrCxD76Ii5xfHRVXv8DS1uC/R6O9Ltpj9OD9BI/N71PS5T7nu0dd+5FIyMoXQoLZNuMP+b/3jWgEHIx9jTop9asqXS2HLCs03XVaX7Wzttj6G5JS6rHGFtfc8euyIJbdGqY6TOq6iKgq9IynKMqeSlfj2u0Jig04gDMdrqMQbbf/kkiUZWd3wN2iga4IffivEa0FqhCAIZzDlc7ffhFqNdjjEF0+xRKjqF2mxyfAosgoUqgTA3MLI00AQpbig=
+    secure: "dFQfBYSYQi4L5jIUoQYXplN0q5EbnCQYOpKUt1yiUvB7fXx9yx5Dc6mEIYU35i5wkyMy4kxbCc9pk0hgs3VQiUdSvk+2R9BMjJ3laRtrJEHjbbCsPSfoDK7SAgfkf+uuAgOVbedjjff5qT5Z+XEsv/ECJWI5p2rSaFGrWy5L29YFTClV0VkmRcQH6OsHC/Egqx+sQ2+HG1imJw5kPxEkGafeEQW7GMcwQ4PnDFfpoNYWcrUVNS5rZin6Es0W7AxZPC5eW9SVU2b6DJYqVxn4epMMT2EKaGbTe3zJNyrRRZ94X8hyICsPdqdjyw+zrASmSLLpw35FZuxyHAj6lzoMeloE7ZlxKdH3zmEoPF1TNg2/PZ50UbIqjJ2/TfbhXJDOn2ml6JOWSC2ECaZmGgU5WhWTW69JTeAxeekxmJ1QAHXwnFF+VA6+gy4Mex1adaHhJ5EJFfP+3XdGcUVVka5ZwPMUJihBdMmE0VQJON0TaoQR4c/x6DP6/XCK9764x0U6lOxfqFmuGHxhkrX4APzEGRxiuYC03mRmCIbQL3S4f+Rjh31yvw2gSnCaPqobpmXWc5SjN/Jo1nq1FPSLGC9pHlcojy0LfYBz90KNeo0FtwCl0rcYOX/PCXWbDYokV/zoej4Yh46n1Hcj2MYhAKVMHdJ8odsd5z0DPVKq7fLLRT0="
   file: STTT.apk
   skip_cleanup: true
   on:
@@ -28,8 +28,8 @@ deploy:
     tags: true
 env:
   global:
-  - secure: WJvHRfpbt9eivAT8yYiPcTz5sPZ/Ys7SbMXWCZzCnlL6WJv40mIRZ+RN/mQZ9iqKf4QqG8h4x5zs5ix3XdI0WEs4VQZDKduUdvnRjKquGWJaMJBbOT/eWeq1AuLzgX4j7UHZkY2Df55ZAw9Mrst8M5m/zUw21b5qkfYXQa8Z1QxjMZ937xGheFZJAjN2JiMQobi2OvmP+gckEk1HCuIRVelaM7xT+Fg1nXU0iWAB8uZpRRbfcbsHhcrXbyJEzGDFiPxcLCt7a14ycunrLsdZ2CK6YPJXRTqacDCt8Uo7xZ4yxZYggdpw5eksaYkOBwo9w9LdYuT3uO/EIOEyKwpEs98I+XJj4osORgGM/BRD2HhZiiZ+BX0LTiIC3hUXhhyPXl/MVoLKig+xS9kd02NlwBcjX1+V5G0hcFSFPQIuQ8hQknXPsoJZqmB+gEnQEwWQnBOGkx8hKIqCUazaLMUAa9iam8AF3iNbc5GyOT7dbYZcJVNWMdBfLZMWW8W2/89seHa/fQ8QMDQDKZmWCMkQw3zY0RTpPDTBcMfe6gb/CWlqyedW4dhbClDic4tRK8DcjKsgZ3OiMk0voSLiAmIWyZIFfL//W/uNG39ITMHE2k1x30lnSeGk8uTJh5HQ8FIzAklUaQV6wtYMPY+9IgDUjPaud8leFGHQGXPyzlyO5NM=
-  - secure: BO3hw7AkSOph4gqCylDistm29vxWyWoLF973VdyTZjTF+RIpQiMXgP91/26pio/1vZNRwLNpWzvK5w/3lbnDEnqGX/Z7unbLMA9ErYN6s6l69uaEpBwkRaTqtUE5ohZecKRHK3cWx8g20cxvuPPb0ON1NYeYJUzHYw4MihKKfoYjbcY9FChqwyKmmLo8SHBwdB46CYPDEjvijaY7MFMqxCtFTvXnfOBEgrUj7tnits9mZhocS55SuFLC4GBfw7dzV/CwtnY4KVqV9rW4jd8ceQS4LV9n6UPMh8Tt5L34JFCvJ5WtliISRMxFunpZ0cU9gG77oZIy56vqzJA+VydcqDvE5fFxrfzF51BAgsUj3Yk6io11bqbdaMiaTgHUqGDtceqV5CO44PC6RBKlogPi0+CS6v3yF96Ul17bCR0HfD0fy05F9CyMD1A9DuZIh5APpPZkZvXHDhzeWwKDpsdjoW9kzRmfdhN9333yV+5X08sOSB5qG36QbpWL1z7fb0e64dpr9gi7Y4pxUN1RtYPN7eNFjqt9CrS7mtuK3KC16WNTgXThx9kFIlu08S0B+gjwomv2bJhtvev0MVUvOPPm0d7JLwgeTtDg1KnvN5AsOVAunNd/C5hyMVkv/mSh4szBmxGa54DxPaJ2hDrG24WapAdr0AOLNz8gtHtZyYqGeSU=
+    - secure: WJvHRfpbt9eivAT8yYiPcTz5sPZ/Ys7SbMXWCZzCnlL6WJv40mIRZ+RN/mQZ9iqKf4QqG8h4x5zs5ix3XdI0WEs4VQZDKduUdvnRjKquGWJaMJBbOT/eWeq1AuLzgX4j7UHZkY2Df55ZAw9Mrst8M5m/zUw21b5qkfYXQa8Z1QxjMZ937xGheFZJAjN2JiMQobi2OvmP+gckEk1HCuIRVelaM7xT+Fg1nXU0iWAB8uZpRRbfcbsHhcrXbyJEzGDFiPxcLCt7a14ycunrLsdZ2CK6YPJXRTqacDCt8Uo7xZ4yxZYggdpw5eksaYkOBwo9w9LdYuT3uO/EIOEyKwpEs98I+XJj4osORgGM/BRD2HhZiiZ+BX0LTiIC3hUXhhyPXl/MVoLKig+xS9kd02NlwBcjX1+V5G0hcFSFPQIuQ8hQknXPsoJZqmB+gEnQEwWQnBOGkx8hKIqCUazaLMUAa9iam8AF3iNbc5GyOT7dbYZcJVNWMdBfLZMWW8W2/89seHa/fQ8QMDQDKZmWCMkQw3zY0RTpPDTBcMfe6gb/CWlqyedW4dhbClDic4tRK8DcjKsgZ3OiMk0voSLiAmIWyZIFfL//W/uNG39ITMHE2k1x30lnSeGk8uTJh5HQ8FIzAklUaQV6wtYMPY+9IgDUjPaud8leFGHQGXPyzlyO5NM=
+    - secure: BO3hw7AkSOph4gqCylDistm29vxWyWoLF973VdyTZjTF+RIpQiMXgP91/26pio/1vZNRwLNpWzvK5w/3lbnDEnqGX/Z7unbLMA9ErYN6s6l69uaEpBwkRaTqtUE5ohZecKRHK3cWx8g20cxvuPPb0ON1NYeYJUzHYw4MihKKfoYjbcY9FChqwyKmmLo8SHBwdB46CYPDEjvijaY7MFMqxCtFTvXnfOBEgrUj7tnits9mZhocS55SuFLC4GBfw7dzV/CwtnY4KVqV9rW4jd8ceQS4LV9n6UPMh8Tt5L34JFCvJ5WtliISRMxFunpZ0cU9gG77oZIy56vqzJA+VydcqDvE5fFxrfzF51BAgsUj3Yk6io11bqbdaMiaTgHUqGDtceqV5CO44PC6RBKlogPi0+CS6v3yF96Ul17bCR0HfD0fy05F9CyMD1A9DuZIh5APpPZkZvXHDhzeWwKDpsdjoW9kzRmfdhN9333yV+5X08sOSB5qG36QbpWL1z7fb0e64dpr9gi7Y4pxUN1RtYPN7eNFjqt9CrS7mtuK3KC16WNTgXThx9kFIlu08S0B+gjwomv2bJhtvev0MVUvOPPm0d7JLwgeTtDg1KnvN5AsOVAunNd/C5hyMVkv/mSh4szBmxGa54DxPaJ2hDrG24WapAdr0AOLNz8gtHtZyYqGeSU=
 before_install:
-- openssl aes-256-cbc -K $encrypted_bce35d79349a_key -iv $encrypted_bce35d79349a_iv
-  -in keystore.jks.enc -out keystore.jks -d
+  - openssl aes-256-cbc -K $encrypted_bce35d79349a_key -iv $encrypted_bce35d79349a_iv
+    -in keystore.jks.enc -out keystore.jks -d
