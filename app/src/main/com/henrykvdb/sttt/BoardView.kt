@@ -66,12 +66,9 @@ object DrawSettings {
 	const val borderORel = 0.15f / 9
 }
 
-class BoardView : View {
-	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-	//constructor(context: Context) : super(context)
-
+class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+	private val paint = Paint().apply { isAntiAlias=true }
 	private val path = Path()
-	private val paint = Paint()
 
 	private var gameState = GameState.Builder().build()
 	private var nextPlayerView: TextView? = null

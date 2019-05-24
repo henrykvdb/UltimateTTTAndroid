@@ -40,7 +40,6 @@ import java.util.*
 
 private val UUID = java.util.UUID.fromString("8158f052-fa77-4d08-8f1a-f598c31e2422")
 
-@SuppressLint("HardwareIds")
 class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 	//Final fields
 	private val btAdapter = BluetoothAdapter.getDefaultAdapter()!!
@@ -296,7 +295,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
 	private fun JSONObject.writeToStream() = outStream?.write("${toString()}\n".toByteArray(Charsets.UTF_8))
 
-	override val localName get() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
+	override val localName @SuppressLint("HardwareIds") get() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
 	override val remoteName get() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
 	override val lastBoard: Board get() = boards.last
 }

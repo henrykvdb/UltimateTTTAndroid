@@ -12,6 +12,7 @@ import com.flaghacker.sttt.common.Coord
 import com.github.paolorotolo.appintro.AppIntro
 import com.github.paolorotolo.appintro.AppIntroFragment
 import com.github.paolorotolo.appintro.model.SliderPage
+import java.util.*
 
 
 class TutorialActivity : AppIntro() {
@@ -44,27 +45,21 @@ class TutorialActivity : AppIntro() {
 			}
 		}
 
-		//TODO add to api itself
-		fun Board.playAll(vararg moves: Coord) {
+		val rand = Random()
+		fun Board.randomMoves(count: Int) = apply { repeat(count) { play(randomAvailableMove(rand)) } }
+		fun Board.toGameState() = GameState.Builder().board(this).build()
+		fun playedBoard(vararg moves: Coord) = Board().apply {
 			for (move in moves)
 				play(move)
 		}
 
-		fun playedBoard(vararg moves: Coord) = Board().apply { playAll(*moves) }
-
 		//Add explanation
-		val board = GameState.Builder().build()
-		val colors = GameState.Builder().board(playedBoard(40, 41, 51, 57)).build()
-		val win = GameState.Builder().board(playedBoard(37, 16, 71, 76, 36, 6, 62, 73, 17, 78, 61, 63, 7, 67, 44, 77,
-				46, 9, 4, 38, 26, 79, 64, 12, 27, 8, 40, 15, 60, 2, 22, 35, 18)).build()
-		val available = GameState.Builder().board(playedBoard(40, 41, 51, 57, 29)).build()
-		val freemoves = GameState.Builder().board(playedBoard(40, 44, 76, 43, 67, 42, 58)).build()
-
-		addSlide(BoardSlide("How to win", "Win 3 small tic tac toe grids in a row in order to win the game", win))
-		addSlide(BoardSlide("The board", "The board consists of 9 small tic tac toe grids, arranged inside a tic tac toe grid", board))
-		addSlide(BoardSlide("The colors", "The available moves for the next player are indicated in that player's color. The last move is indicated by a lighter color", colors))
-		addSlide(BoardSlide("Available moves", "You decide where the opponent can play next. Example: If you play top right in a small grid, the opponent plays in the top right grid", available))
-		addSlide(BoardSlide("Free moves", "If you send the opponent to a grid that's already full or won he can play anywhere he wants", freemoves))
+		addSlide(BoardSlide("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid", playedBoard(40).randomMoves(6).toGameState()))
+		addSlide(BoardSlide("Win grids", "Win grids by getting three in a row, like you would in regular tic tac toe", Board("XXx".padStart(45).padEnd(81)).toGameState()))
+		addSlide(BoardSlide("How to win", "Win 3 grids in a row in order to win the game", playedBoard(37, 16, 71, 76, 36, 6, 62, 73, 17, 78, 61, 63, 7, 67, 44, 77, 46, 9, 4, 38, 26, 79, 64, 12, 27, 8, 40, 15, 60, 2, 22, 35, 18).toGameState()))
+		addSlide(BoardSlide("The colors", "The allowed moves for the next player are indicated in that player's color. The last move is colored slightly lighter", playedBoard(40, 41, 51, 57).toGameState()))
+		addSlide(BoardSlide("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", playedBoard(40, 41, 51, 57, 29).toGameState()))
+		addSlide(BoardSlide("Free moves", "If you get sent to a full or won grid you can play anywhere you want", playedBoard(40, 44, 76, 43, 67, 42, 58).toGameState()))
 
 		class ModeSlide : Fragment() {
 			override fun onCreate(savedInstanceState: Bundle?) {

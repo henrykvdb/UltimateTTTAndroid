@@ -137,8 +137,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			keepBtOn = btAdapter?.isEnabled ?: false
 			gs = GameState.Builder().swapped(false).build()
 			triggerDialogs()
-			//Force tutorial:
-			//startActivity(Intent(this, TutorialActivity::class.java))
 		} else {
 			remoteServiceStarted = savedInstanceState.getBoolean(BTSERVICE_STARTED_KEY)
 			keepBtOn = savedInstanceState.getBoolean(KEEP_BT_ON_KEY)
@@ -162,10 +160,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			remoteServiceStarted = true
 		}
 
-		if (!remoteServiceBound) {
-			bindService(Intent(this, RemoteService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
-		} else throw IllegalStateException("BtService already bound") //TODO remove
-
+		bindService(Intent(this, RemoteService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
 		newGame(gs)
 	}
 
