@@ -19,23 +19,14 @@
 package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.AlertDialog
-import android.app.PendingIntent
+import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import com.google.android.material.navigation.NavigationView
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.util.Pair
 import android.view.Menu
@@ -45,12 +36,20 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import com.crashlytics.android.BuildConfig
 import com.crashlytics.android.Crashlytics
 import com.crashlytics.android.core.CrashlyticsCore
 import com.flaghacker.sttt.common.Player
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.android.material.navigation.NavigationView
 import com.henrykvdb.sttt.remote.BtPicker
 import com.henrykvdb.sttt.remote.RemoteService
 import com.henrykvdb.sttt.remote.RemoteState
@@ -152,8 +151,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		isInBackground = false
 
 		//Cancel notification saying that the RemoteService is still running in the background
-		val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-		notificationManager.cancel(REMOTE_STILL_RUNNING)
+        NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
 
 		if (!remoteServiceStarted) {
 			startService(Intent(this, RemoteService::class.java))
@@ -242,18 +240,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			RemoteType.NONE, null -> R.drawable.ic_icon
 		}
 
-		val notification = NotificationCompat.Builder(this, "sttt")
+        val channel_id = createNotificationChannel(this)
+		val notification = NotificationCompat.Builder(this, channel_id ?: "sttt")
 				.setSmallIcon(R.drawable.ic_icon)
 				.setContentTitle(getString(R.string.app_name_long))
+                .setContentText(text)
 				.setContentIntent(reopenPendingIntent)
-				.setContentText(text)
 				.setStyle(NotificationCompat.BigTextStyle().bigText(text))
 				.addAction(drawable, getString(R.string.close), closeRemoteIntent)
-				.setOngoing(true).build()
-
-		val notificationManager = NotificationManagerCompat.from(this)
-		notificationManager.notify(REMOTE_STILL_RUNNING, notification)
+				.setAutoCancel(true).build()
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(REMOTE_STILL_RUNNING, notification)
 	}
+
+    fun createNotificationChannel(context: Context): String? {
+        // NotificationChannels are required for Notifications on O (API 26) and above.
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannel = NotificationChannel("sttt",
+                    context.getString(R.string.app_name_long), NotificationManager.IMPORTANCE_LOW)
+            val notificationManager = (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+            notificationManager.createNotificationChannel(notificationChannel)
+            "Channel_id"
+        } else { // Returns null for pre-O (26) devices.
+            null
+        }
+    }
 
 	private val remoteReceiver = object : BroadcastReceiver() {
 		override fun onReceive(context: Context, intent: Intent): Unit = when (intent.action) {
@@ -308,8 +319,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 				}
 				INTENT_STOP_BT_SERVICE -> {
 					unbindRemoteService(true)
-					val notificationManager = NotificationManagerCompat.from(this@MainActivity)
-					notificationManager.cancel(REMOTE_STILL_RUNNING)
+                    NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
 				}
 			}
 		}
