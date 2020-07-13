@@ -24,7 +24,6 @@ import android.bluetooth.BluetoothAdapter
 import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -39,8 +38,6 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import com.crashlytics.android.BuildConfig
@@ -151,7 +148,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		isInBackground = false
 
 		//Cancel notification saying that the RemoteService is still running in the background
-        NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
+		closeBtNotification(this@MainActivity)
 
 		if (!remoteServiceStarted) {
 			startService(Intent(this, RemoteService::class.java))
@@ -175,7 +172,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		isInBackground = true
 
 		//Notification telling the user that BtService is still open
-		if (!killService && remoteConnected) remoteRunningNotification()
+		if (!killService && remoteConnected) openBtNotification(this)
 
 		//Unbind remoteService and stop if needed
 		unbindRemoteService(killService)
@@ -195,7 +192,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		}
 
 		//Close notification
-		NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
+		closeBtNotification(this)
 	}
 
 	private fun unbindRemoteService(stop: Boolean) {
@@ -213,58 +210,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			turnLocal()
 		}
 	}
-
-	private fun remoteRunningNotification() {
-		//This intent reopens the app
-		val reopenIntent = Intent(this, MainActivity::class.java)
-		reopenIntent.action = Intent.ACTION_MAIN
-		reopenIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-		val reopenPendingIntent = PendingIntent.getActivity(this, 0, reopenIntent, PendingIntent.FLAG_ONE_SHOT)
-
-		//This intent shuts down the remoteService
-		val type = remoteService?.getType()
-		val closeRemoteIntent = PendingIntent.getBroadcast(this, 1, when (type) {
-			RemoteType.BLUETOOTH -> Intent(INTENT_STOP_BT_SERVICE)
-			RemoteType.NONE, null -> Intent()
-		}, PendingIntent.FLAG_ONE_SHOT)
-
-		//Text to be displayed
-		val text = when (type) {
-			RemoteType.BLUETOOTH -> getString(R.string.bt_running_notification)
-			RemoteType.NONE, null -> ""
-		}
-
-		//Drawalbe to be displayed
-		val drawable = when (type) {
-			RemoteType.BLUETOOTH -> R.drawable.ic_menu_bluetooth
-			RemoteType.NONE, null -> R.drawable.ic_icon
-		}
-
-        val channel_id = createNotificationChannel(this)
-		val notification = NotificationCompat.Builder(this, channel_id ?: "sttt")
-				.setSmallIcon(R.drawable.ic_icon)
-				.setContentTitle(getString(R.string.app_name_long))
-                .setContentText(text)
-				.setContentIntent(reopenPendingIntent)
-				.setStyle(NotificationCompat.BigTextStyle().bigText(text))
-				.addAction(drawable, getString(R.string.close), closeRemoteIntent)
-				.setAutoCancel(true).build()
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(REMOTE_STILL_RUNNING, notification)
-	}
-
-    fun createNotificationChannel(context: Context): String? {
-        // NotificationChannels are required for Notifications on O (API 26) and above.
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel("sttt",
-                    context.getString(R.string.app_name_long), NotificationManager.IMPORTANCE_LOW)
-            val notificationManager = (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            notificationManager.createNotificationChannel(notificationChannel)
-            "Channel_id"
-        } else { // Returns null for pre-O (26) devices.
-            null
-        }
-    }
 
 	private val remoteReceiver = object : BroadcastReceiver() {
 		override fun onReceive(context: Context, intent: Intent): Unit = when (intent.action) {
@@ -319,7 +264,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 				}
 				INTENT_STOP_BT_SERVICE -> {
 					unbindRemoteService(true)
-                    NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
+					closeBtNotification(this@MainActivity)
 				}
 			}
 		}
@@ -353,7 +298,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 	private fun turnLocal() {
 		if (gs.type == Source.REMOTE) {
 			newGame(GameState.Builder().boards(gs.boards).build())
-			NotificationManagerCompat.from(this@MainActivity).cancel(REMOTE_STILL_RUNNING)
+			closeBtNotification(this@MainActivity)
 		}
 	}
 
