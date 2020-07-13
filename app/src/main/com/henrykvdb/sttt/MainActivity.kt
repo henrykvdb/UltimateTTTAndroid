@@ -28,15 +28,14 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.IBinder
-import android.support.design.widget.NavigationView
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.ViewDragHelper
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
+import com.google.android.material.navigation.NavigationView
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.util.Pair
 import android.view.Menu
@@ -46,6 +45,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import com.crashlytics.android.BuildConfig
 import com.crashlytics.android.Crashlytics
 import com.crashlytics.android.core.CrashlyticsCore
 import com.flaghacker.sttt.common.Player
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		//Make it easier to open the drawer
 		try {
 			val draggerObj = drawer_layout.javaClass.getDeclaredField("mLeftDragger")
-					.apply { isAccessible = true }.get(drawer_layout) as ViewDragHelper
+					.apply { isAccessible = true }.get(drawer_layout) as androidx.customview.widget.ViewDragHelper
 			val edgeSize = draggerObj.javaClass.getDeclaredField("mEdgeSize")
 			edgeSize.isAccessible = true
 			edgeSize.setInt(draggerObj, edgeSize.getInt(draggerObj) * 4)
@@ -259,7 +259,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		override fun onReceive(context: Context, intent: Intent): Unit = when (intent.action) {
 			INTENT_MOVE -> gameThread.play(Source.REMOTE, intent.getSerializableExtra(INTENT_DATA) as Byte)
 			INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA, true))
-			INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA))
+			INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA)!!)
 			INTENT_TURNLOCAL -> turnLocal()
 			INTENT_NEWGAME -> {
 				btDialog?.setOnDismissListener { }

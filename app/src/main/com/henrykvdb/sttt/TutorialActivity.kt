@@ -1,8 +1,7 @@
 package com.henrykvdb.sttt
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +29,7 @@ class TutorialActivity : AppIntro() {
 		}))
 
 		//Class used for custom slides with a BoardView in them
-		class BoardSlide(val title: String, val description: String, val gameState: GameState) : Fragment() {
+		class BoardSlide(val title: String, val description: String, val gameState: GameState) : androidx.fragment.app.Fragment() {
 			override fun onCreate(savedInstanceState: Bundle?) {
 				super.onCreate(savedInstanceState)
 				retainInstance = true
@@ -61,7 +60,7 @@ class TutorialActivity : AppIntro() {
 		addSlide(BoardSlide("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", playedBoard(40, 41, 51, 57, 29).toGameState()))
 		addSlide(BoardSlide("Free moves", "If you get sent to a full or won grid you can play anywhere you want", playedBoard(40, 44, 76, 43, 67, 42, 58).toGameState()))
 
-		class ModeSlide : Fragment() {
+		class ModeSlide : androidx.fragment.app.Fragment() {
 			override fun onCreate(savedInstanceState: Bundle?) {
 				super.onCreate(savedInstanceState)
 				retainInstance = true
@@ -79,12 +78,12 @@ class TutorialActivity : AppIntro() {
 		setSeparatorColor(ContextCompat.getColor(this, R.color.colorAccent))
 	}
 
-	override fun onSkipPressed(currentFragment: Fragment) {
+	override fun onSkipPressed(currentFragment: androidx.fragment.app.Fragment) {
 		super.onSkipPressed(currentFragment)
 		onDonePressed(currentFragment)
 	}
 
-	override fun onDonePressed(currentFragment: Fragment) {
+	override fun onDonePressed(currentFragment: androidx.fragment.app.Fragment) {
 		super.onDonePressed(currentFragment)
 		finish()
 	}

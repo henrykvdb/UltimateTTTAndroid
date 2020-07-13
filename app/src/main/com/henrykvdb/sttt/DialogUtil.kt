@@ -25,7 +25,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.support.v7.widget.AppCompatTextView
+import androidx.appcompat.widget.AppCompatTextView
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
