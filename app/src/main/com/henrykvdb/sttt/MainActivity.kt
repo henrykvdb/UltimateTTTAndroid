@@ -150,8 +150,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		closeBtNotification(this@MainActivity)
 
 		if (!remoteServiceStarted) {
-			startService(Intent(this, RemoteService::class.java))
-			remoteServiceStarted = true
+			try {
+				startService(Intent(this, RemoteService::class.java))
+				remoteServiceStarted = true
+			} catch (e: IllegalStateException) {
+				//App tried to start a service while in the background, ignore
+				log(e.toString())
+			}
 		}
 
 		bindService(Intent(this, RemoteService::class.java), btServerConn, Context.BIND_AUTO_CREATE)
