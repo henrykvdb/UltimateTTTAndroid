@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt
+package com.henrykvdb.sttt.remote
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +8,10 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.henrykvdb.sttt.INTENT_STOP_BT_SERVICE
+import com.henrykvdb.sttt.MainActivity
+import com.henrykvdb.sttt.R
+import com.henrykvdb.sttt.REMOTE_STILL_RUNNING
 
 fun openBtNotification(context: Context) {
     val openIntent = Intent(context, MainActivity::class.java).apply {

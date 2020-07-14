@@ -46,10 +46,7 @@ import com.flaghacker.sttt.common.Player
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
-import com.henrykvdb.sttt.remote.BtPicker
-import com.henrykvdb.sttt.remote.RemoteService
-import com.henrykvdb.sttt.remote.RemoteState
-import com.henrykvdb.sttt.remote.RemoteType
+import com.henrykvdb.sttt.remote.*
 import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.Closeable
