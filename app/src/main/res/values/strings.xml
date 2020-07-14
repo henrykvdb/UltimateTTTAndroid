@@ -80,4 +80,9 @@
 	<string name="app_icon">app icon</string>
 	<string name="you_won">You won!</string>
 	<string name="ai_game">AI Game</string>
+    <string name="ways_to_play">Ways to play</string>
+    <string name="ways_local">Against friends</string>
+    <string name="ways_computer">Against the computer</string>
+    <string name="ways_bluetooth">Over bluetooth</string>
+    <string name="tut_ways_description">Challenge your friends both locally and over Bluetooth. Practice against the computer and try to beat it on the hardest difficulty</string>
 </resources>

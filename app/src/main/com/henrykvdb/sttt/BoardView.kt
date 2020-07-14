@@ -29,6 +29,8 @@ import android.widget.TextView
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
+import kotlin.math.min
+import kotlin.math.sqrt
 
 @Suppress("unused")
 typealias ds = DrawSettings
@@ -108,7 +110,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 	}
 
 	private fun setVars() {
-		fieldSize = Math.min(width, height).toFloat()
+		fieldSize = min(width, height).toFloat()
 
 		macroSizeFull = fieldSize / 3
 		whiteSpace = fieldSize * ds.whiteSpaceRel
@@ -165,8 +167,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
 		if (board.isDone) {
 			when (board.wonBy) {
-				Player.PLAYER -> drawTile(canvas, true, true, fieldSize, ds.xColor - ds.symbolTransparency, wonSymbolStroke, tileSize)
-				Player.ENEMY -> drawTile(canvas, false, true, fieldSize, ds.oColor - ds.symbolTransparency, wonSymbolStroke, tileSize * oBorder / xBorder)
+				Player.PLAYER -> drawTile(canvas, isX = true, grayBack = true, size = fieldSize, color = ds.xColor - ds.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize)
+				Player.ENEMY -> drawTile(canvas, isX = false, grayBack = true, size = fieldSize, color = ds.oColor - ds.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize * oBorder / xBorder)
 				Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
 			}
 		}
@@ -206,19 +208,19 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
 			//Draw the correct symbol on the tile
 			if (player == Player.PLAYER) {
-				drawTile(canvas, true, false, tileSize, when {
+				drawTile(canvas, isX = true, grayBack = false, size = tileSize, color = when {
 					tile.toByte() == board.lastMove -> ds.xColorLight
 					realWin -> ds.xColorDarkest
 					macroOwner == Player.NEUTRAL -> ds.xColor
 					else -> ds.xColorDarker
-				}, tileSymbolStroke, xBorder)
+				}, strokeWidth = tileSymbolStroke, border = xBorder)
 			} else if (player == Player.ENEMY) {
-				drawTile(canvas, false, false, tileSize, when {
+				drawTile(canvas, isX = false, grayBack = false, size = tileSize, color = when {
 					tile.toByte() == board.lastMove -> ds.oColorLight
 					realWin -> ds.oColorDarkest
 					macroOwner == Player.NEUTRAL -> ds.oColor
 					else -> ds.oColorDarker
-				}, tileSymbolStroke, oBorder)
+				}, strokeWidth = tileSymbolStroke, border = oBorder)
 			}
 
 			canvas.translate(-xt, -yt)
@@ -317,14 +319,14 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 	private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
 		val dx = x1 - x2
 		val dy = y1 - y2
-		val distanceInPx = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+		val distanceInPx = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
 		return distanceInPx / resources.displayMetrics.density
 	}
 
 	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 		val parentWidth = MeasureSpec.getSize(widthMeasureSpec)
 		val parentHeight = MeasureSpec.getSize(heightMeasureSpec)
-		val fieldSize = Math.min(parentWidth, parentHeight)
+		val fieldSize = min(parentWidth, parentHeight)
 
 		this.setMeasuredDimension(fieldSize, fieldSize)
 	}

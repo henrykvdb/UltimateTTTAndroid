@@ -146,7 +146,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 		}
 
 		override fun run() {
-			log("BEGIN connectingThread" + this)
+			log("BEGIN connectingThread $this")
 			try {
 				socket?.connect() //Blocking call
 				if (!isInterrupted) socket?.let { connected(it, false) } //Manage connection, blocking call
@@ -161,7 +161,7 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 			} catch (e2: IOException) {
 				log(e2.toString())
 			}
-			log("END connectingThread" + this)
+			log("END connectingThread $this")
 		}
 
 		override fun close() {
@@ -205,13 +205,13 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 
 		while (state == RemoteState.CONNECTED && !Thread.interrupted()) {
 			try {
-				val scanner = Scanner(inStream, Charsets.UTF_8.name()).useDelimiter("\n")
+				val scanner = Scanner(inStream!!, Charsets.UTF_8.name()).useDelimiter("\n")
 				val json = if (scanner.hasNext()) JSONObject(scanner.next()) else throw IOException("stream finished")
 
 				when (RemoteMessageType.values()[json.getInt("message")]) {
 					RemoteMessageType.BOARD_UPDATE -> {
 						val newBoard = Board(json.getString("board"))
-						if (isValidBoard(boards.peek(), newBoard)) {
+						if (isValidBoard(boards.peek()!!, newBoard)) {
 							log("We received a valid board")
 							boards.push(newBoard)
 							callback.move(newBoard.lastMove!!)
