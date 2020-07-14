@@ -498,8 +498,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			startActivityForResult(enableIntent, REQUEST_ENABLE_BT)
 		} else {
 			//If we don't have the COARSE LOCATION permission, request it
-			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION))
-				ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOC)
+			if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION))
+				ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_COARSE_LOC)
 			else btDialog = BtPicker(this, btAdapter) { adr -> remote?.connect(adr) }.alertDialog
 		}
 	}
