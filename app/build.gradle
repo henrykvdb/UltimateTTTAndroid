@@ -11,8 +11,8 @@ android {
         applicationId 'com.henrykvdb.sttt'
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 26
-        versionName '2.2.1'
+        versionCode 28
+        versionName '2.2.2'
         resConfigs "en"
     }
 
