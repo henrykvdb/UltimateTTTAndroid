@@ -31,7 +31,7 @@
 				android:layout_below="@id/title"
 				android:layout_above="@id/description"
 				android:gravity="center">
-			<com.henrykvdb.sttt.BoardView
+			<sttt.BoardView
 					android:id="@+id/boardView"
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"/>

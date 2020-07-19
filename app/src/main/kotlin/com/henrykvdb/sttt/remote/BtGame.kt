@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt.remote
+package sttt.remote
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -25,10 +25,10 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.res.Resources
 import com.flaghacker.sttt.common.Board
-import com.henrykvdb.sttt.GameState
+import sttt.GameState
 import com.henrykvdb.sttt.R
-import com.henrykvdb.sttt.Source
-import com.henrykvdb.sttt.log
+import sttt.Source
+import sttt.log
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

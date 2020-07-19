@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package sttt
 
 //Intents
 const val INTENT_TOAST = "INTENT_TOAST"       //String: text to toast

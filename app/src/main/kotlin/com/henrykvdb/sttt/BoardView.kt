@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package sttt
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -29,6 +29,7 @@ import android.widget.TextView
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
+import com.henrykvdb.sttt.R
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -113,19 +114,19 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		fieldSize = min(width, height).toFloat()
 
 		macroSizeFull = fieldSize / 3
-		whiteSpace = fieldSize * ds.whiteSpaceRel
+		whiteSpace = fieldSize * DrawSettings.whiteSpaceRel
 
 		macroSizeSmall = macroSizeFull - 2 * whiteSpace
 		tileSize = macroSizeSmall / 3
 
-		xBorder = fieldSize * ds.borderXRel
-		oBorder = fieldSize * ds.borderORel
+		xBorder = fieldSize * DrawSettings.borderXRel
+		oBorder = fieldSize * DrawSettings.borderORel
 
-		bigGridStroke = (fieldSize * ds.bigGridStrokeRel).toInt()
-		smallGridStroke = (fieldSize * ds.smallGridStrokeRel).toInt()
-		tileSymbolStroke = (fieldSize * ds.tileSymbolStrokeRel).toInt()
-		macroSymbolStroke = (fieldSize * ds.macroSymbolStrokeRel).toInt()
-		wonSymbolStroke = (fieldSize * ds.wonSymbolStrokeRel).toInt()
+		bigGridStroke = (fieldSize * DrawSettings.bigGridStrokeRel).toInt()
+		smallGridStroke = (fieldSize * DrawSettings.smallGridStrokeRel).toInt()
+		tileSymbolStroke = (fieldSize * DrawSettings.tileSymbolStrokeRel).toInt()
+		macroSymbolStroke = (fieldSize * DrawSettings.macroSymbolStrokeRel).toInt()
+		wonSymbolStroke = (fieldSize * DrawSettings.wonSymbolStrokeRel).toInt()
 	}
 
 	override fun onDraw(canvas: Canvas) {
@@ -163,12 +164,12 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		for (om in 0 until 9) drawMacro(canvas, board, om.toByte())
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, ds.gridColor, bigGridStroke)
+		drawGridBarriers(canvas, fieldSize, DrawSettings.gridColor, bigGridStroke)
 
 		if (board.isDone) {
 			when (board.wonBy) {
-				Player.PLAYER -> drawTile(canvas, isX = true, grayBack = true, size = fieldSize, color = ds.xColor - ds.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize)
-				Player.ENEMY -> drawTile(canvas, isX = false, grayBack = true, size = fieldSize, color = ds.oColor - ds.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize * oBorder / xBorder)
+				Player.PLAYER -> drawTile(canvas, isX = true, grayBack = true, size = fieldSize, color = DrawSettings.xColor - DrawSettings.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize)
+				Player.ENEMY -> drawTile(canvas, isX = false, grayBack = true, size = fieldSize, color = DrawSettings.oColor - DrawSettings.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize * oBorder / xBorder)
 				Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
 			}
 		}
@@ -187,7 +188,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		canvas.translate(xmt, ymt)
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, ds.gridColor, smallGridStroke)
+		drawGridBarriers(canvas, macroSizeSmall, DrawSettings.gridColor, smallGridStroke)
 
 		//Loop through tiles of the macro
 		for (tile in 9 * om until 9 * om + 9) {
@@ -200,7 +201,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
 			//Color tile if available
 			paint.style = Paint.Style.FILL
-			paint.color = if (board.nextPlayer == Player.PLAYER) ds.xColor else ds.oColor
+			paint.color = if (board.nextPlayer == Player.PLAYER) DrawSettings.xColor else DrawSettings.oColor
 			paint.alpha = 50
 			if (board.availableMoves.contains(tile.toByte())) {
 				canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
@@ -209,17 +210,17 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 			//Draw the correct symbol on the tile
 			if (player == Player.PLAYER) {
 				drawTile(canvas, isX = true, grayBack = false, size = tileSize, color = when {
-					tile.toByte() == board.lastMove -> ds.xColorLight
-					realWin -> ds.xColorDarkest
-					macroOwner == Player.NEUTRAL -> ds.xColor
-					else -> ds.xColorDarker
+					tile.toByte() == board.lastMove -> DrawSettings.xColorLight
+					realWin -> DrawSettings.xColorDarkest
+					macroOwner == Player.NEUTRAL -> DrawSettings.xColor
+					else -> DrawSettings.xColorDarker
 				}, strokeWidth = tileSymbolStroke, border = xBorder)
 			} else if (player == Player.ENEMY) {
 				drawTile(canvas, isX = false, grayBack = false, size = tileSize, color = when {
-					tile.toByte() == board.lastMove -> ds.oColorLight
-					realWin -> ds.oColorDarkest
-					macroOwner == Player.NEUTRAL -> ds.oColor
-					else -> ds.oColorDarker
+					tile.toByte() == board.lastMove -> DrawSettings.oColorLight
+					realWin -> DrawSettings.oColorDarkest
+					macroOwner == Player.NEUTRAL -> DrawSettings.oColor
+					else -> DrawSettings.oColorDarker
 				}, strokeWidth = tileSymbolStroke, border = oBorder)
 			}
 
@@ -229,11 +230,11 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		//Draw x and y over macros
 		if (macroOwner == Player.PLAYER) {
 			drawTile(canvas, true, !realWin, macroSizeSmall,
-					if (realWin) ds.xColorDarker - ds.symbolTransparency else ds.xColor - ds.symbolTransparency,
+					if (realWin) DrawSettings.xColorDarker - DrawSettings.symbolTransparency else DrawSettings.xColor - DrawSettings.symbolTransparency,
 					macroSymbolStroke, xBorder)
 		} else if (macroOwner == Player.ENEMY) {
 			drawTile(canvas, false, !realWin, macroSizeSmall,
-					if (realWin) ds.oColorDarker - ds.symbolTransparency else ds.oColor - ds.symbolTransparency,
+					if (realWin) DrawSettings.oColorDarker - DrawSettings.symbolTransparency else DrawSettings.oColor - DrawSettings.symbolTransparency,
 					macroSymbolStroke, oBorder)
 		}
 
@@ -243,7 +244,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 	private fun drawTile(canvas: Canvas, isX: Boolean, grayBack: Boolean, size: Float, color: Int, strokeWidth: Int, border: Float) {
 		if (grayBack) {
 			paint.style = Paint.Style.FILL
-			paint.color = ds.unavailableColor
+			paint.color = DrawSettings.unavailableColor
 			canvas.drawRect(0f, 0f, size, size, paint)
 		}
 

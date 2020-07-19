@@ -16,10 +16,10 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt.remote
+package sttt.remote
 
 import com.flaghacker.sttt.common.Board
-import com.henrykvdb.sttt.GameState
+import sttt.GameState
 
 /**States the RemoteGame implementation can have*/
 enum class RemoteState {

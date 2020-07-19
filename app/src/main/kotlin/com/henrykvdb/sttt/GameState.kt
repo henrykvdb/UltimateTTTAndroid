@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package sttt
 
 import com.flaghacker.sttt.bots.RandomBot
 import com.flaghacker.sttt.common.Board

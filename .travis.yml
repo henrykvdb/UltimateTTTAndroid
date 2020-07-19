@@ -6,16 +6,16 @@ android:
     - tools
     - platform-tools
     - tools
-    - build-tools-29.0.3
-    - android-29
+    - build-tools-31.0.0
+    - android-30
     - extra-android-m2repository
     - extra-google-m2repository
 script:
-  - "./gradlew build --stacktrace"
+  - "./gradlew clean build --stacktrace"
 before_deploy:
   - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 app/build/outputs/apk/release/app-release-unsigned.apk
     key -keystore keystore.jks -storepass $storepass -keypass $keypass
-  - "${ANDROID_HOME}build-tools/25.0.2/zipalign 4 app/build/outputs/apk/release/app-release-unsigned.apk STTT.apk"
+  - "${ANDROID_HOME}build-tools/31.0.0/zipalign 4 app/build/outputs/apk/release/app-release-unsigned.apk STTT.apk"
 deploy:
   provider: releases
   api_key:

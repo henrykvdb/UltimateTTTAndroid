@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt.remote
+package sttt.remote
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -30,9 +30,9 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.henrykvdb.sttt.R
-import com.henrykvdb.sttt.keepDialog
-import com.henrykvdb.sttt.log
-import com.henrykvdb.sttt.newLoadingTitle
+import sttt.keepDialog
+import sttt.log
+import sttt.newLoadingTitle
 import java.util.*
 
 class BtPicker(private val context: Context, private val btAdapter: BluetoothAdapter, private val addressCallback: (String) -> Unit) {
@@ -56,8 +56,8 @@ class BtPicker(private val context: Context, private val btAdapter: BluetoothAda
 				BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> doDiscovery()
 				BluetoothDevice.ACTION_FOUND -> {
 					val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-					if (devices.none { it.address == device.address }) {
-						devices.add(device)
+					if (devices.none { it.address == device?.address }) {
+						devices.add(device!!)
 						updateLayout()
 					}
 				}

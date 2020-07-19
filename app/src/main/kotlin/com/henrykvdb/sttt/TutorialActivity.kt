@@ -1,4 +1,4 @@
-package com.henrykvdb.sttt
+package sttt
 
 import android.os.Bundle
 import androidx.core.content.ContextCompat
@@ -6,13 +6,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Coord
-import com.github.paolorotolo.appintro.AppIntro
-import com.github.paolorotolo.appintro.AppIntroFragment
-import com.github.paolorotolo.appintro.model.SliderPage
+import com.github.appintro.AppIntro
+import com.github.appintro.AppIntroCustomLayoutFragment
+import com.github.appintro.AppIntroFragment
+import com.github.appintro.model.SliderPage
+import com.henrykvdb.sttt.R
 import java.util.*
-
 
 class TutorialActivity : AppIntro() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,9 +22,11 @@ class TutorialActivity : AppIntro() {
 
 		//Add the main slide
 		addSlide(AppIntroFragment.newInstance(SliderPage().apply {
-			bgColor = ContextCompat.getColor(this@TutorialActivity, R.color.tutorialBackground)
+			backgroundColor = ContextCompat.getColor(this@TutorialActivity,
+				R.color.tutorialBackground
+			)
 			titleColor = ContextCompat.getColor(this@TutorialActivity, R.color.textDark)
-			descColor = ContextCompat.getColor(this@TutorialActivity, R.color.textLight)
+			descriptionColor = ContextCompat.getColor(this@TutorialActivity, R.color.textLight)
 			title = "Tutorial"
 			description = "This will go over the basic rules"
 			imageDrawable = R.drawable.ic_icon_color
@@ -78,12 +82,12 @@ class TutorialActivity : AppIntro() {
 		setSeparatorColor(ContextCompat.getColor(this, R.color.colorAccent))
 	}
 
-	override fun onSkipPressed(currentFragment: androidx.fragment.app.Fragment) {
+	override fun onSkipPressed(currentFragment: Fragment?) {
 		super.onSkipPressed(currentFragment)
-		onDonePressed(currentFragment)
+		finish()
 	}
 
-	override fun onDonePressed(currentFragment: androidx.fragment.app.Fragment) {
+	override fun onDonePressed(currentFragment: Fragment?) {
 		super.onDonePressed(currentFragment)
 		finish()
 	}

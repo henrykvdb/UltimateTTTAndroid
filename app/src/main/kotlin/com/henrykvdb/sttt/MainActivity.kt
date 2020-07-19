@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package sttt
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -40,15 +40,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import com.crashlytics.android.Crashlytics
-import com.crashlytics.android.core.CrashlyticsCore
 import com.flaghacker.sttt.common.Player
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
-import com.henrykvdb.sttt.remote.*
-import io.fabric.sdk.android.Fabric
-import kotlinx.android.synthetic.main.activity_main.*
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.henrykvdb.sttt.BuildConfig
+import com.henrykvdb.sttt.R
+import com.henrykvdb.sttt.databinding.ActivityMainBinding
+import sttt.remote.*
 import java.io.Closeable
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -77,19 +77,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 	private var askDialog: AlertDialog? = null
 	private var isInBackground = false
 
+	private lateinit var binding: ActivityMainBinding
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setContentView(R.layout.activity_main)
-		setSupportActionBar(toolbar)
+		binding = ActivityMainBinding.inflate(layoutInflater)
+		setContentView(binding.root)
+		setSupportActionBar(binding.toolbar)
 
 		//Disable crash reporting and firebase analytics on debug builds
-		val crashlyticsCore = CrashlyticsCore.Builder().disabled(BuildConfig.DEBUG).build()
-		Fabric.with(this, Crashlytics.Builder().core(crashlyticsCore).build())
+		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
 
 		//Make it easier to open the drawer
 		try {
-			val draggerObj = drawer_layout.javaClass.getDeclaredField("mLeftDragger")
-					.apply { isAccessible = true }.get(drawer_layout) as androidx.customview.widget.ViewDragHelper
+			val draggerObj = binding.drawerLayout.javaClass.getDeclaredField("mLeftDragger")
+					.apply { isAccessible = true }.get(binding.drawerLayout) as androidx.customview.widget.ViewDragHelper
 			val edgeSize = draggerObj.javaClass.getDeclaredField("mEdgeSize")
 			edgeSize.isAccessible = true
 			edgeSize.setInt(draggerObj, edgeSize.getInt(draggerObj) * 4)
@@ -99,15 +101,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 		//Add listener to open and closeGame drawer
 		val toggle = ActionBarDrawerToggle(
-				this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-		drawer_layout.addDrawerListener(toggle)
+				this, binding.drawerLayout, binding.toolbar,
+			R.string.navigation_drawer_open,
+			R.string.navigation_drawer_close
+		)
+		binding.drawerLayout.addDrawerListener(toggle)
 		toggle.syncState()
-		navigation_view.setNavigationItemSelectedListener(this)
+		binding.navigationView.setNavigationItemSelectedListener(this)
 
 		//Add ads in portrait
 		if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
-			MobileAds.initialize(applicationContext, getString(R.string.admob_banner_id))
-			adView?.loadAd(AdRequest.Builder().build())
+			MobileAds.initialize(this) {}
+			binding.adView?.loadAd(AdRequest.Builder().build())
 		}
 
 		//Register receiver to get updates from the remote game
@@ -136,7 +141,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		}
 
 		//Add listener to the BoardView
-		boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, next_move_textview)
+		binding.boardView.setup({ coord -> gameThread.play(Source.LOCAL, coord) }, binding.nextMoveTextview)
 	}
 
 	override fun onStart() {
@@ -276,7 +281,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			remote?.close()
 		gameThread.close()
 
-		boardView.drawState(gs)
+		binding.boardView.drawState(gs)
 		this.gs = gs
 
 		setTitle(when (gs.type) {
@@ -326,7 +331,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 					if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer == Player.PLAYER == (gs.players.first == Source.LOCAL))
 						remote?.sendBoard(newBoard)
 					gs.pushBoard(newBoard)
-					boardView.drawState(gs)
+					binding.boardView.drawState(gs)
 				}
 			}
 			log("$this stopped")
@@ -431,7 +436,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			else -> return false
 		}
 
-		drawer_layout.closeDrawer(GravityCompat.START)
+		binding.drawerLayout.closeDrawer(GravityCompat.START)
 		return true
 	}
 

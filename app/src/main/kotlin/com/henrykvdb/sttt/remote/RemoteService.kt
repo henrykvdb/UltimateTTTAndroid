@@ -16,13 +16,14 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt.remote
+package sttt.remote
 
 import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import com.henrykvdb.sttt.*
+import sttt.*
 
 enum class RemoteType {
 	NONE,
@@ -57,10 +58,14 @@ class RemoteService : Service() {
 	}
 
 	private val callback = object : RemoteCallback {
-		override fun newGame(gs: GameState) = this@RemoteService.sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA, gs))
-		override fun undo(force: Boolean) = this@RemoteService.sendBroadcast(Intent(INTENT_UNDO).putExtra(INTENT_DATA, force))
-		override fun toast(text: String) = this@RemoteService.sendBroadcast(Intent(INTENT_TOAST).putExtra(INTENT_DATA, text))
-		override fun move(move: Byte) = this@RemoteService.sendBroadcast(Intent(INTENT_MOVE).putExtra(INTENT_DATA, move))
+		override fun newGame(gs: GameState) = this@RemoteService.sendBroadcast(Intent(INTENT_NEWGAME).putExtra(
+			INTENT_DATA, gs))
+		override fun undo(force: Boolean) = this@RemoteService.sendBroadcast(Intent(INTENT_UNDO).putExtra(
+			INTENT_DATA, force))
+		override fun toast(text: String) = this@RemoteService.sendBroadcast(Intent(INTENT_TOAST).putExtra(
+			INTENT_DATA, text))
+		override fun move(move: Byte) = this@RemoteService.sendBroadcast(Intent(INTENT_MOVE).putExtra(
+			INTENT_DATA, move))
 		override fun turnLocal() = this@RemoteService.sendBroadcast(Intent(INTENT_TURNLOCAL))
 	}
 }

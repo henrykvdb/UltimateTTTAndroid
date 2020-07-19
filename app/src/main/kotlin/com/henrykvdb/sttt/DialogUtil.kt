@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.henrykvdb.sttt
+package sttt
 
 import android.app.AlertDialog
 import android.content.Context
@@ -36,6 +36,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
+import com.henrykvdb.sttt.R
 import java.util.*
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
@@ -58,7 +59,8 @@ fun Context.newTitle(title: String): View = View.inflate(this, R.layout.dialog_t
 	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
-fun Context.newLoadingTitle(title: String): View = View.inflate(this, R.layout.dialog_title_load, null).apply {
+fun Context.newLoadingTitle(title: String): View = View.inflate(this,
+	R.layout.dialog_title_load, null).apply {
 	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
@@ -159,7 +161,8 @@ fun Context.newLocalDialog() {
 	val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
 		when (which) {
 			DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(
+				INTENT_DATA,
 					GameState.Builder().swapped(false).build()))
 		}
 	}
@@ -185,7 +188,8 @@ fun Context.newAiDialog() {
 		val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
 		val bot = if (progress > 0) MMBot(progress) else RandomBot()
 		when (which) {
-			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,
+			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(Intent(INTENT_NEWGAME).putExtra(
+				INTENT_DATA,
 					GameState.Builder().ai(bot).swapped(swapped[0]).build()))
 			DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
 		}

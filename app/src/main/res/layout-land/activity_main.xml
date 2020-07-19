@@ -57,7 +57,7 @@
 						android:layout_height="wrap_content"
 						android:visibility="invisible"/>
 
-				<com.henrykvdb.sttt.BoardView
+				<sttt.BoardView
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
 						android:id="@+id/boardView"/>
