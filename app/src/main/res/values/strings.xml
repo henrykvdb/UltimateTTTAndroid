@@ -18,6 +18,7 @@
 	<string name="version">Version</string>
     <string name="new_board">New</string>
     <string name="random">Random</string>
+    <string name="cancel">Cancel</string>
 	<string name="later">Later</string>
     <string name="share">Share</string>
     <string name="other">Other</string>

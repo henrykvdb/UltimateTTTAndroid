@@ -473,7 +473,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			btDialog = keepDialog(AlertDialog.Builder(this)
 					.setView(layout)
 					.setCustomTitle(newTitle(getString(R.string.host_bluetooth_game)))
-					.setNegativeButton(getString(R.string.close)) { _, _ -> btDialog?.dismiss() }
+					.setNegativeButton(getString(R.string.cancel)) { _, _ -> btDialog?.dismiss() }
 					.setOnDismissListener { remote?.close() }
 					.show())
 		} else {
