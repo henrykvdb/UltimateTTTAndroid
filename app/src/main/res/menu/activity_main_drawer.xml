@@ -1,27 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="@string/local">
+    <item android:title="@string/new_game">
         <menu>
             <item
-                    android:id="@+id/nav_local_human"
+                android:id="@+id/nav_start_ai"
+                android:icon="@drawable/ic_menu_ai"
+                android:title="@string/computer"/>
+            <item
+                    android:id="@+id/nav_start_local"
                     android:icon="@drawable/ic_menu_human"
-                    android:title="@string/human"/>
+                    android:title="@string/local"/>
             <item
-                    android:id="@+id/nav_local_ai"
-                    android:icon="@drawable/ic_menu_ai"
-                    android:title="@string/ai"/>
-        </menu>
-    </item>
-    <item android:title="@string/bluetooth">
-        <menu>
-			<item
-					android:id="@+id/nav_bt_host"
-					android:icon="@drawable/ic_menu_bluetooth_host"
-					android:title="@string/host"/>
-            <item
-                    android:id="@+id/nav_bt_join"
-                    android:icon="@drawable/ic_menu_bluetooth"
-                    android:title="@string/join"/>
+                android:id="@+id/nav_start_online"
+                android:icon="@drawable/ic_menu_online"
+                android:title="@string/online"/>
         </menu>
     </item>
     <item android:title="@string/other">

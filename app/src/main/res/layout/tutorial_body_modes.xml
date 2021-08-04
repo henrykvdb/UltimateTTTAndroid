@@ -64,7 +64,7 @@
 						android:drawablePadding="@dimen/nav_header_vertical_spacing"
 						android:text="@string/ways_bluetooth"
 						android:textColor="@color/textDark"
-						android:drawableStart="@drawable/ic_menu_bluetooth"
+						android:drawableStart="@drawable/ic_menu_online"
 						android:gravity="start"
 						android:textSize="20sp"/>
 			</LinearLayout>

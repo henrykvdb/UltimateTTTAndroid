@@ -1,4 +1,4 @@
-/*
+package unused/*
  * This file is part of Super Tic Tac Toe.
  * Copyright (C) 2018 Henryk Van der Bruggen <henrykdev@gmail.com>
  *
@@ -14,7 +14,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
- */
+ *//*
+
 
 package sttt.remote
 
@@ -25,10 +26,10 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.res.Resources
 import com.flaghacker.sttt.common.Board
-import sttt.GameState
+import com.henrykvdb.sttt.GameState
 import com.henrykvdb.sttt.R
-import sttt.Source
-import sttt.log
+import com.henrykvdb.sttt.Source
+import com.henrykvdb.sttt.log
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -298,4 +299,4 @@ class BtGame(val callback: RemoteCallback, val res: Resources) : RemoteGame {
 	override val localName @SuppressLint("HardwareIds") get() = listOfNotNull(btAdapter.name, btAdapter.address, "ERROR").first()
 	override val remoteName get() = if (state == RemoteState.CONNECTED) connectedDeviceName else null
 	override val lastBoard: Board get() = boards.last
-}
+}*/

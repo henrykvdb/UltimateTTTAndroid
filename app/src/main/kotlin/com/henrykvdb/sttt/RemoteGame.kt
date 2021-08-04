@@ -16,25 +16,9 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package sttt.remote
+package com.henrykvdb.sttt
 
 import com.flaghacker.sttt.common.Board
-import sttt.GameState
-
-/**States the RemoteGame implementation can have*/
-enum class RemoteState {
-	NONE,
-	LISTENING,
-	CONNECTING,
-	CONNECTED
-}
-
-/**Types of messages the RemoteGame implementation can send*/
-enum class RemoteMessageType {
-	UNDO,
-	SETUP,
-	BOARD_UPDATE;
-}
 
 /**Callback used to callback data from the remoteGame to the RemoteService*/
 interface RemoteCallback {
@@ -45,34 +29,13 @@ interface RemoteCallback {
 	fun turnLocal()
 }
 
-/**Interface all remoteGame games must extend*/
-interface RemoteGame {
-	val remoteName: String?
-	val localName: String
-	val state: RemoteState
-	val lastBoard: Board
+class RemoteGame(){
+	fun listen(gs: GameState){}
+	fun connect(remoteId: Int){}
+	fun close(){}
 
-	fun listen(gs: GameState)
-	fun connect(adr: String)
-	fun close()
-
-	fun sendUndo(ask: Boolean)
-	fun sendBoard(board: Board)
-}
-
-/** Dummy implementation of remote game. Does nothing */
-object DummyRemoteGame : RemoteGame {
-	override val remoteName: String? = null
-	override val localName = ""
-	override val state = RemoteState.NONE
-	override val lastBoard get() = throw IllegalStateException()
-
-	override fun listen(gs: GameState) = Unit
-	override fun connect(adr: String) = Unit
-	override fun close() = Unit
-
-	override fun sendUndo(ask: Boolean) = Unit
-	override fun sendBoard(board: Board) = Unit
+	fun sendUndo(ask: Boolean){}
+	fun sendBoard(board: Board){}
 }
 
 fun isValidBoard(cBoard: Board, newBoard: Board): Boolean {

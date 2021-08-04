@@ -36,6 +36,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
+import com.henrykvdb.sttt.GameState
 import com.henrykvdb.sttt.R
 import java.util.*
 

@@ -10,9 +10,9 @@ import androidx.fragment.app.Fragment
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Coord
 import com.github.appintro.AppIntro
-import com.github.appintro.AppIntroCustomLayoutFragment
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.model.SliderPage
+import com.henrykvdb.sttt.GameState
 import com.henrykvdb.sttt.R
 import java.util.*
 

@@ -1,4 +1,5 @@
-package sttt.remote
+package unused/*
+package com.henrykvdb.sttt.remote
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,7 +10,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import sttt.INTENT_STOP_BT_SERVICE
-import sttt.MainActivity
+import com.henrykvdb.sttt.MainActivity
 import com.henrykvdb.sttt.R
 import sttt.REMOTE_STILL_RUNNING
 
@@ -44,4 +45,4 @@ fun openBtNotification(context: Context) {
 
 fun closeBtNotification(context: Context) {
     NotificationManagerCompat.from(context).cancel(REMOTE_STILL_RUNNING)
-}
+}*/

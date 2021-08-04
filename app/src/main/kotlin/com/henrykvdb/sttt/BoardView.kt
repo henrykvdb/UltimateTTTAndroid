@@ -29,7 +29,9 @@ import android.widget.TextView
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
+import com.henrykvdb.sttt.GameState
 import com.henrykvdb.sttt.R
+import com.henrykvdb.sttt.Source
 import kotlin.math.min
 import kotlin.math.sqrt
 

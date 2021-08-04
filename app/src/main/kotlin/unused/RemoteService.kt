@@ -1,4 +1,4 @@
-/*
+package unused/*
  * This file is part of Super Tic Tac Toe.
  * Copyright (C) 2018 Henryk Van der Bruggen <henrykdev@gmail.com>
  *
@@ -14,7 +14,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
- */
+ *//*
+
 
 package sttt.remote
 
@@ -68,4 +69,4 @@ class RemoteService : Service() {
 			INTENT_DATA, move))
 		override fun turnLocal() = this@RemoteService.sendBroadcast(Intent(INTENT_TURNLOCAL))
 	}
-}
+}*/
