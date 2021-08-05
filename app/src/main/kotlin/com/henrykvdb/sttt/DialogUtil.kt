@@ -25,20 +25,29 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import androidx.appcompat.widget.AppCompatTextView
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
-import android.view.View
-import android.view.WindowManager
+import android.view.*
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
+import com.flaghacker.sttt.common.Player
+import com.google.android.material.tabs.TabLayout
 import com.henrykvdb.sttt.GameState
+import com.henrykvdb.sttt.MainActivity
 import com.henrykvdb.sttt.R
 import java.util.*
+
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
 private const val LAUNCHES_UNTIL_RATE = 3  //Min number of launches before asking for rating
@@ -47,21 +56,7 @@ private const val DONT_SHOW_AGAIN = "dontshowagain"
 private const val DATE_FIRST_LAUNCH = "date_firstlaunch"
 private const val LAUNCH_COUNT = "launch_count"
 
-// Prevent dialog destroy when orientation changes
-fun keepDialog(dialog: AlertDialog) = dialog.apply {
-	dialog.window?.attributes = WindowManager.LayoutParams().apply {
-		copyFrom(dialog.window?.attributes)
-		width = WindowManager.LayoutParams.WRAP_CONTENT
-		height = WindowManager.LayoutParams.WRAP_CONTENT
-	}
-}
-
 fun Context.newTitle(title: String): View = View.inflate(this, R.layout.dialog_title, null).apply {
-	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
-}
-
-fun Context.newLoadingTitle(title: String): View = View.inflate(this,
-	R.layout.dialog_title_load, null).apply {
 	(findViewById<View>(R.id.action_bar_title) as TextView).text = title
 }
 
@@ -95,10 +90,10 @@ fun Context.aboutDialog() {
 		resources.getText(R.string.app_name_long)
 	}
 
-	keepDialog(AlertDialog.Builder(this)
+	AlertDialog.Builder(this)
 			.setView(layout)
 			.setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
-			.show())
+			.show()
 }
 
 fun Context.triggerDialogs() {
@@ -149,13 +144,13 @@ fun Context.newRateDialog() {
 
 	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
 	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.rate_message)
-	keepDialog(AlertDialog.Builder(this)
+	AlertDialog.Builder(this)
 			.setView(layout)
 			.setCustomTitle(newTitle(getString(R.string.rate_app)))
 			.setPositiveButton(getString(R.string.rate), dialogClickListener)
 			.setNeutralButton(getString(R.string.later), dialogClickListener)
 			.setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
-			.show())
+			.show()
 }
 
 fun Context.newLocalDialog() {
@@ -170,12 +165,85 @@ fun Context.newLocalDialog() {
 
 	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
 	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_desc)
-	keepDialog(AlertDialog.Builder(this)
+	AlertDialog.Builder(this)
 			.setCustomTitle(newTitle(getString(R.string.new_local_title)))
 			.setView(layout)
 			.setPositiveButton(getString(R.string.start), dialogClickListener)
-			.setNegativeButton(getString(R.string.close), dialogClickListener).show())
+			.setNegativeButton(getString(R.string.close), dialogClickListener).show()
 }
+
+class RemoteHostFragment(private val main: MainActivity) : Fragment() {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View{
+		val layout = inflater.inflate(R.layout.dialog_body_host, container, false)
+		(layout.findViewById<View>(R.id.bt_host_desc) as TextView).text = getString(R.string.host_desc, "remote?.localName") //TODO
+
+		val onCheckedChangeListener = RadioGroup.OnCheckedChangeListener { _, _ ->
+			//Get board type
+			val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
+
+			//Get the beginning player
+			val beginner = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).checkedRadioButtonId
+			var start = Random().nextBoolean()
+			if (beginner == R.id.start_you)
+				start = true
+			else if (beginner == R.id.start_other) start = false
+
+			//Create the actual requested gamestate
+			val swapped = if (newBoard) !start else start xor (main.gs.board().nextPlayer == Player.PLAYER)
+			val gsBuilder = GameState.Builder().remote(9999).swapped(swapped) //TODO
+			if (!newBoard) gsBuilder.boards(main.gs.boards)
+
+			main.remote.listen(gsBuilder.build())
+		}
+
+		(layout.findViewById<View>(R.id.start_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
+		(layout.findViewById<View>(R.id.board_radio_group) as RadioGroup).setOnCheckedChangeListener(onCheckedChangeListener)
+		return layout
+	}
+}
+
+class RemoteJoinFragment(private val main: MainActivity) : Fragment() {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View{
+		val layout = inflater.inflate(R.layout.dialog_body_join, container, false) //TODO ADD JOIN FRAGMENT
+		return layout
+	}
+}
+
+fun FragmentActivity.newRemoteDialog(hostFragment: RemoteHostFragment,joinFragment: RemoteJoinFragment) {
+	val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+		when (which) {
+			DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
+			DialogInterface.BUTTON_POSITIVE -> sendBroadcast(
+				Intent(INTENT_NEWGAME).putExtra(
+					INTENT_DATA,
+					GameState.Builder().swapped(false).build() //TODO IMPLEMENT BUTTONS THAT DO SOMETHING
+				)
+			)
+		}
+	}
+
+	val layout = View.inflate(this, R.layout.dialog_body_internet, null)
+	val viewPager = layout.findViewById<ViewPager2>(R.id.pager)
+	viewPager.registerOnPageChangeCallback(	object : ViewPager2.OnPageChangeCallback(){
+		override fun onPageScrollStateChanged(state: Int) {
+			super.onPageScrollStateChanged(state)
+			if(viewPager.scrollState ==  ViewPager2.SCROLL_STATE_IDLE) {
+				layout.findViewById<TabLayout>(R.id.remote_tabs).getTabAt(viewPager.currentItem)?.select()
+			}
+		}
+	})
+
+	viewPager.adapter = object : FragmentStateAdapter(this) {
+		override fun getItemCount() = 2
+		override fun createFragment(position: Int) = if (position == 0) hostFragment else joinFragment
+	}
+
+	AlertDialog.Builder(this)
+			.setView(layout)
+			.setPositiveButton(getString(R.string.start), dialogClickListener)
+			.setNegativeButton(getString(R.string.close), dialogClickListener).show()
+}
+
 
 fun Context.newAiDialog() {
 	val swapped = BooleanArray(1)
@@ -196,11 +264,11 @@ fun Context.newAiDialog() {
 		}
 	}
 
-	keepDialog(AlertDialog.Builder(this)
+	AlertDialog.Builder(this)
 			.setView(layout)
 			.setCustomTitle(newTitle(getString(R.string.new_ai_title)))
 			.setPositiveButton(getString(R.string.start), dialogClickListener)
-			.setNegativeButton(getString(R.string.close), dialogClickListener).show())
+			.setNegativeButton(getString(R.string.close), dialogClickListener).show()
 }
 
 @Suppress("DEPRECATION")

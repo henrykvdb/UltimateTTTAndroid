@@ -47,8 +47,8 @@ fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 	//Game fields
 	private var gameThread = GameThread()
-	private lateinit var gs: GameState
-	private val remote = RemoteGame()
+	lateinit var gs: GameState
+	val remote = RemoteGame()
 
 	//Misc fields
 	private var askDialog: AlertDialog? = null
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		when (item.itemId) {
 			R.id.nav_start_ai -> newAiDialog()
 			R.id.nav_start_local -> newLocalDialog()
-			R.id.nav_start_online -> TODO()
+			R.id.nav_start_online -> newRemoteDialog(RemoteHostFragment(this),RemoteJoinFragment(this))
 			R.id.nav_other_feedback -> feedbackSender()
 			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
 			R.id.nav_other_share -> shareDialog()
@@ -272,9 +272,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		}
 
 		if (askDialog?.isShowing == true) askDialog!!.dismiss()
-		askDialog = keepDialog(AlertDialog.Builder(this).setMessage(message)
+		askDialog = AlertDialog.Builder(this).setMessage(message)
 				.setPositiveButton(getString(R.string.yes), dialogClickListener)
 				.setNegativeButton(getString(R.string.no), dialogClickListener)
-				.setOnDismissListener { callBack.invoke(false) }.show())
+				.setOnDismissListener { callBack.invoke(false) }.show()
 	}
 }

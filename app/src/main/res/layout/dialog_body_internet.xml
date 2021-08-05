@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:id="@+id/bt_host_layout">
+	<LinearLayout android:orientation="vertical"
+				  android:layout_height="wrap_content"
+				  android:layout_width="match_parent"
+				  android:paddingLeft="0dp"
+				  android:paddingRight="0dp"
+				  android:paddingTop="0dp"
+				  android:paddingBottom="8dp">
+
+		<com.google.android.material.tabs.TabLayout
+			android:id="@+id/remote_tabs"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:paddingBottom="10dp"
+			app:tabIndicatorAnimationDuration="150"
+			app:tabIndicatorFullWidth="false">
+
+			<com.google.android.material.tabs.TabItem
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Host" />
+
+			<com.google.android.material.tabs.TabItem
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Join" />
+		</com.google.android.material.tabs.TabLayout>
+
+		<androidx.viewpager2.widget.ViewPager2
+			android:id="@+id/pager"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent" />
+	</LinearLayout>
+</ScrollView>

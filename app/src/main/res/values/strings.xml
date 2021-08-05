@@ -50,8 +50,8 @@
 	<string name="unable_to_connect">Unable to connect to device</string>
 	<string name="bt_not_available">Bluetooth is not available</string>
 	<string name="drawer_subtitle">Tic Tac Toe with a unique twist</string>
-    <string name="join_bluetooth_game">Join Bluetooth game</string>
-	<string name="host_bluetooth_game">Host Bluetooth game</string>
+    <string name="join_internet_game">Join Internet game</string>
+	<string name="host_internet_game">Host Internet game</string>
 	<string name="desync_message">Games got desynchronized</string>
 	<string name="json_parsing_failed">JSON parsing failed</string>
 	<string name="open_source_title">It\'s open source:</string>
