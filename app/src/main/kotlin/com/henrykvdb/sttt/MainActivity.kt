@@ -47,8 +47,8 @@ fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 	//Game fields
 	private var gameThread = GameThread()
-	lateinit var gs: GameState
-	val remote = RemoteGame()
+	private lateinit var gs: GameState
+	private val remote = RemoteGame()
 
 	//Misc fields
 	private var askDialog: AlertDialog? = null
@@ -146,15 +146,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			running = true
 			log("$this started")
 
-			while (!gs.board().isDone && running) {
+			while (!gs.board.isDone && running) {
 				val nextSource = gs.nextSource()
-				val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board()) else waitForMove(nextSource)
+				val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board) else waitForMove(nextSource)
 
 				if (running) move?.let {
-					val newBoard = gs.board().copy()
+					val newBoard = gs.board.copy()
 					newBoard.play(move)
 
-					if (gs.players.contains(Source.REMOTE) && gs.board().nextPlayer == Player.PLAYER == (gs.players.first == Source.LOCAL))
+					if (gs.players.contains(Source.REMOTE) && gs.board.nextPlayer == Player.PLAYER == (gs.players.first == Source.LOCAL))
 						remote.sendBoard(newBoard)
 					gs.pushBoard(newBoard)
 					binding.boardView.drawState(gs)
@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 		private fun waitForMove(player: Source): Byte? {
 			playerMove.set(Pair(-1, Source.LOCAL))
-			while ((!gs.board().availableMoves.contains(playerMove.get().first)             //Impossible move
+			while ((!gs.board.availableMoves.contains(playerMove.get().first)             //Impossible move
 							|| player != playerMove.get().second                            //Wrong player
 							|| playerMove.get() == null                                     //No Pair
 							|| playerMove.get().first == null                               //No move
@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 		when (item.itemId) {
 			R.id.nav_start_ai -> newAiDialog()
 			R.id.nav_start_local -> newLocalDialog()
-			R.id.nav_start_online -> newRemoteDialog(RemoteHostFragment(this),RemoteJoinFragment(this))
+			R.id.nav_start_online -> newRemoteDialog(gs)
 			R.id.nav_other_feedback -> feedbackSender()
 			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
 			R.id.nav_other_share -> shareDialog()

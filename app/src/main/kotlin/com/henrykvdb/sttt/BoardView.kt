@@ -132,7 +132,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 	}
 
 	override fun onDraw(canvas: Canvas) {
-		val board = gameState.board()
+		val board = gameState.board
 
 		//Set the helper text
 		nextPlayerView?.let {
@@ -141,7 +141,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 				if (gameState.type != Source.LOCAL) {
 					it.setTextColor(if (board.nextPlayer == Player.PLAYER) Color.BLUE else Color.RED)
 					val yourTurn = gameState.nextSource() == Source.LOCAL
-					it.text = resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
+					it.text =
+						resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
 				}
 			} else {
 				if (board.wonBy == Player.NEUTRAL) {
@@ -150,13 +151,17 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 				} else {
 					if (gameState.type == Source.LOCAL) {
 						it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
-						it.text = resources.getString(R.string.game_winner, if (board.wonBy == Player.PLAYER) "X" else "O")
+						it.text = resources.getString(
+							R.string.game_winner,
+							if (board.wonBy == Player.PLAYER) "X" else "O"
+						)
 					} else {
 						it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
 						val youWon =
-								if (board.wonBy == Player.PLAYER) gameState.players.first == Source.LOCAL
-								else gameState.players.second == Source.LOCAL
-						it.text = resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+							if (board.wonBy == Player.PLAYER) gameState.players.first == Source.LOCAL
+							else gameState.players.second == Source.LOCAL
+						it.text =
+							resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
 					}
 				}
 			}
@@ -170,8 +175,24 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
 		if (board.isDone) {
 			when (board.wonBy) {
-				Player.PLAYER -> drawTile(canvas, isX = true, grayBack = true, size = fieldSize, color = DrawSettings.xColor - DrawSettings.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize)
-				Player.ENEMY -> drawTile(canvas, isX = false, grayBack = true, size = fieldSize, color = DrawSettings.oColor - DrawSettings.symbolTransparency, strokeWidth = wonSymbolStroke, border = tileSize * oBorder / xBorder)
+				Player.PLAYER -> drawTile(
+					canvas,
+					isX = true,
+					grayBack = true,
+					size = fieldSize,
+					color = DrawSettings.xColor - DrawSettings.symbolTransparency,
+					strokeWidth = wonSymbolStroke,
+					border = tileSize
+				)
+				Player.ENEMY -> drawTile(
+					canvas,
+					isX = false,
+					grayBack = true,
+					size = fieldSize,
+					color = DrawSettings.oColor - DrawSettings.symbolTransparency,
+					strokeWidth = wonSymbolStroke,
+					border = tileSize * oBorder / xBorder
+				)
 				Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
 			}
 		}

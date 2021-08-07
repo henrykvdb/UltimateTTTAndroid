@@ -7,18 +7,41 @@
 			android:id="@+id/bt_join_layout">
 	<LinearLayout android:orientation="vertical"
 				  android:layout_height="wrap_content"
-				  android:layout_width="wrap_content"
+				  android:layout_width="match_parent"
 				  android:paddingLeft="24dp"
 				  android:paddingRight="24dp"
 				  android:paddingTop="9dp"
 				  android:paddingBottom="0dp">
+
 		<TextView
-				android:text="@string/joinable_devices"
-				android:textColor="@color/textDark"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:textAppearance="@style/TextAppearance.AppCompat"
-				android:textStyle="normal|bold"/>
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="Host code"
+			android:textAppearance="@style/TextAppearance.AppCompat"
+			android:textColor="@color/textDark"
+			android:textStyle="normal|bold" />
+
+		<EditText
+			android:id="@+id/remote_join_edit"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:ems="10"
+			android:inputType="number"
+			android:maxLength="4"
+			android:minHeight="48dp"
+			android:selectAllOnFocus="true"
+			android:singleLine="true"
+			android:text="0000" />
+
+		<TextView
+			android:id="@+id/textView2"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="10dp"
+			android:textColor="@color/textLight"
+			android:textStyle="normal|bold"
+			android:text="Enter the host code of your opponent"/>
+
 		<LinearLayout android:layout_width="fill_parent"
 					  android:layout_height="wrap_content"
 					  android:id="@+id/devices"

@@ -84,6 +84,7 @@
 				android:id="@+id/bt_host_desc"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
+				android:text="@string/no_host_desc"
 				android:textStyle="normal|bold"/>
 	</LinearLayout>
 </ScrollView>

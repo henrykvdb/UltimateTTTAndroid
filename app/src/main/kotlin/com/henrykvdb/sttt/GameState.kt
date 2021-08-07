@@ -32,7 +32,7 @@ enum class Source {
 }
 
 class GameState private constructor(val players: Players, val boards: LinkedList<Board>, val extraBot: Bot, val remoteId: Int) : Serializable {
-	fun board() = boards.peek()!!
+	val board get() = boards.peek()!!
 	fun pushBoard(board: Board) = boards.push(board)
 	fun popBoard() = boards.pop() ?: null
 
@@ -42,8 +42,8 @@ class GameState private constructor(val players: Players, val boards: LinkedList
 		else -> Source.LOCAL
 	}
 
-	fun nextSource() = if (board().nextPlayer == Player.PLAYER) players.first else players.second
-	fun otherSource() = if (board().nextPlayer == Player.PLAYER) players.second else players.first
+	fun nextSource() = if (board.nextPlayer == Player.PLAYER) players.first else players.second
+	fun otherSource() = if (board.nextPlayer == Player.PLAYER) players.second else players.first
 	class Players(val first: Source, val second: Source) : Serializable {
 		operator fun contains(source: Source) = (first == source || second == source)
 		fun swap() = Players(second, first)
