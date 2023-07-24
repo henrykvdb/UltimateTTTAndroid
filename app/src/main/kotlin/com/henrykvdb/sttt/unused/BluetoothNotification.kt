@@ -1,4 +1,4 @@
-package unused/*
+package com.henrykvdb.sttt.unused/*
 package com.henrykvdb.sttt.remote
 
 import android.app.NotificationChannel

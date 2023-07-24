@@ -35,7 +35,7 @@ import com.henrykvdb.sttt.Source
 import kotlin.math.min
 import kotlin.math.sqrt
 
-@Suppress("unused")
+@Suppress("com/henrykvdb/sttt/unused")
 typealias ds = DrawSettings
 
 object DrawSettings {
@@ -193,7 +193,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 					strokeWidth = wonSymbolStroke,
 					border = tileSize * oBorder / xBorder
 				)
-				Player.NEUTRAL -> Unit //Nobody won, so no need to draw anything
+				else -> Unit //Nobody won, so no need to draw anything
 			}
 		}
 	}

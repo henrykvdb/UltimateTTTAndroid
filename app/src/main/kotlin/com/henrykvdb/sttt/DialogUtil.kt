@@ -67,7 +67,7 @@ fun Context.feedbackSender() {
 			+ "os version: ${System.getProperty("os.version")}(${Build.VERSION.INCREMENTAL})"
 			+ ", API: ${Build.VERSION.SDK_INT}"
 			+ try {
-		", app version: ${packageManager.getPackageInfo(packageName, 0).versionName}"
+		", app version: ${BuildConfig.VERSION_NAME}"
 	} catch (e: PackageManager.NameNotFoundException) {
 		""
 	} + "**/")
@@ -97,7 +97,7 @@ fun Context.aboutDialog() {
 	(layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
 		resources.getText(R.string.app_name_long)
 			.toString() + "\n" + getString(R.string.version) + " " +
-				packageManager.getPackageInfo(packageName, 0).versionName
+				BuildConfig.VERSION_NAME
 	} catch (e: PackageManager.NameNotFoundException) {
 		resources.getText(R.string.app_name_long)
 	}

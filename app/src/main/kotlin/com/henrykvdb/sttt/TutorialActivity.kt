@@ -21,22 +21,19 @@ class TutorialActivity : AppIntro() {
 		super.onCreate(savedInstanceState)
 
 		//Add the main slide
-		addSlide(AppIntroFragment.newInstance(SliderPage().apply {
-			backgroundColor = ContextCompat.getColor(this@TutorialActivity,
-				R.color.tutorialBackground
-			)
-			titleColor = ContextCompat.getColor(this@TutorialActivity, R.color.textDark)
-			descriptionColor = ContextCompat.getColor(this@TutorialActivity, R.color.textLight)
+		addSlide(AppIntroFragment.createInstance(SliderPage().apply {
+			backgroundColorRes = R.color.tutorialBackground
+			titleColorRes = R.color.textDark
+			descriptionColorRes = R.color.textLight
 			title = "Tutorial"
 			description = "This will go over the basic rules"
 			imageDrawable = R.drawable.ic_icon_color
 		}))
 
 		//Class used for custom slides with a BoardView in them
-		class BoardSlide(val title: String, val description: String, val gameState: GameState) : androidx.fragment.app.Fragment() {
+		class BoardSlide(val title: String, val description: String, val gameState: GameState) : Fragment() {
 			override fun onCreate(savedInstanceState: Bundle?) {
 				super.onCreate(savedInstanceState)
-				retainInstance = true
 			}
 
 			override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -64,10 +61,9 @@ class TutorialActivity : AppIntro() {
 		addSlide(BoardSlide("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", playedBoard(40, 41, 51, 57, 29).toGameState()))
 		addSlide(BoardSlide("Free moves", "If you get sent to a full or won grid you can play anywhere you want", playedBoard(40, 44, 76, 43, 67, 42, 58).toGameState()))
 
-		class ModeSlide : androidx.fragment.app.Fragment() {
+		class ModeSlide : Fragment() {
 			override fun onCreate(savedInstanceState: Bundle?) {
 				super.onCreate(savedInstanceState)
-				retainInstance = true
 			}
 
 			override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

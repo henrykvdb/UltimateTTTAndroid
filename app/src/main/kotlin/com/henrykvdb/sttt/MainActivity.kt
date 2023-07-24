@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.app.*
 import android.content.*
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Pair
@@ -94,7 +95,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			gs = GameState.Builder().swapped(false).build()
 			triggerDialogs()
 		} else {
-			gs = savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
+			gs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
+			else savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
 		}
 
 		//Add listener to the BoardView

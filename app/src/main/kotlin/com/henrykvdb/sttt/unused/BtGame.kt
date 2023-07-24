@@ -1,4 +1,4 @@
-package unused/*
+package com.henrykvdb.sttt.unused/*
  * This file is part of Super Tic Tac Toe.
  * Copyright (C) 2018 Henryk Van der Bruggen <henrykdev@gmail.com>
  *
