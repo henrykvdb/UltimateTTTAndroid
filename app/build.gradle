@@ -1,9 +1,8 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "com.google.gms.google-services"
-    id "com.google.firebase.crashlytics"
+    id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -12,8 +11,8 @@ android {
 
     defaultConfig {
         applicationId 'com.henrykvdb.sttt'
-        minSdkVersion 21
-        targetSdkVersion 33
+        minSdk 21
+        targetSdk 33
         versionCode 28
         versionName '2.2.2'
         resourceConfigurations += ['en']
@@ -33,12 +32,12 @@ android {
         }
     }
 
-    sourceSets {
-        main {
-            kotlin.srcDirs = ["src/main"]
-            java.srcDirs = ["src/main"]
-            resources.srcDirs = ["src/main"]
-        }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 
     buildFeatures {
@@ -48,11 +47,14 @@ android {
 
 dependencies {
     implementation 'com.github.AppIntro:AppIntro:6.2.0'
-    implementation 'com.google.android.material:material:1.9.0'
     implementation files('libs/SuperTTTApi.jar')
 
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
     implementation 'com.google.firebase:firebase-crashlytics-ktx'

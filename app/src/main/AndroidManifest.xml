@@ -24,7 +24,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="sttt.TutorialActivity"
+        <activity android:name=".TutorialActivity"
             android:label="This is an intro"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>

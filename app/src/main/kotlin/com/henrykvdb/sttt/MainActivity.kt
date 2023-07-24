@@ -38,7 +38,6 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
-import sttt.*
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 

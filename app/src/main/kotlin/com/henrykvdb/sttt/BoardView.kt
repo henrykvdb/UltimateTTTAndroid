@@ -16,7 +16,7 @@
  * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package sttt
+package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -29,9 +29,6 @@ import android.widget.TextView
 import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.common.toCoord
-import com.henrykvdb.sttt.GameState
-import com.henrykvdb.sttt.R
-import com.henrykvdb.sttt.Source
 import kotlin.math.min
 import kotlin.math.sqrt
 
