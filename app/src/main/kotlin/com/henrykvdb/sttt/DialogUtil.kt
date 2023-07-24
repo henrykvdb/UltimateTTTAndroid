@@ -18,6 +18,7 @@
 
 package com.henrykvdb.sttt
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ComponentCallbacks
 import android.content.Context
@@ -34,6 +35,7 @@ import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.view.*
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -45,10 +47,6 @@ import com.flaghacker.sttt.common.Player
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import java.util.*
-
-import sttt.INTENT_DATA
-import sttt.INTENT_NEWGAME
-import sttt.TutorialActivity
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
 private const val LAUNCHES_UNTIL_RATE = 3  //Min number of launches before asking for rating
@@ -108,31 +106,37 @@ fun Context.aboutDialog() {
 		.show().autoDismiss(this)
 }
 
-fun Context.triggerDialogs() {
+fun MainActivity.triggerDialogs() {
 	val prefs = getSharedPreferences("APP_RATER", 0)
 	if (prefs.getBoolean(DONT_SHOW_AGAIN, false)) return
+
+	// Update first launch
 	val editor = prefs.edit()
-
-	// Increment launch counter
-	val launchCount = prefs.getLong(LAUNCH_COUNT, 0) + 1
-	editor.putLong(LAUNCH_COUNT, launchCount)
-
-	// Get date of first launch
 	var firstLaunch = prefs.getLong(DATE_FIRST_LAUNCH, 0)
 	if (firstLaunch == 0L) {
 		firstLaunch = System.currentTimeMillis()
 		editor.putLong(DATE_FIRST_LAUNCH, firstLaunch)
+		editor.apply()
 	}
 
-	// Open tutorial if conditions are met
-	if (launchCount == 1L)
-		startActivity(Intent(this, TutorialActivity::class.java))
+	// Increment launch counter
+	val launchCount = prefs.getLong(LAUNCH_COUNT, 0) + 1
+	if (launchCount > 1) {
+		editor.putLong(LAUNCH_COUNT, launchCount)
+		editor.apply()
 
-	// Open rate dialog if conditions are met
-	if (System.currentTimeMillis() >= firstLaunch + DAYS_UNTIL_RATE * 24 * 60 * 60 * 1000 && launchCount >= LAUNCHES_UNTIL_RATE)
-		newRateDialog()
-
-	editor.apply()
+		// Open rate dialog if conditions are met
+		if (System.currentTimeMillis() >= firstLaunch + DAYS_UNTIL_RATE * 24 * 60 * 60 * 1000 && launchCount >= LAUNCHES_UNTIL_RATE)
+			newRateDialog()
+	} else {
+		val intent = Intent(this, TutorialActivity::class.java)
+		registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+			if (result.resultCode == Activity.RESULT_OK) {
+				editor.putLong(LAUNCH_COUNT, 1)
+				editor.apply()
+			}
+		}.launch(intent)
+	}
 }
 
 fun Context.newRateDialog() {
