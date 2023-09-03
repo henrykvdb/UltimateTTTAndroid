@@ -12,7 +12,6 @@
 package com.henrykvdb.sttt
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.DialogInterface
@@ -22,13 +21,16 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.widget.AppCompatTextView
 import android.text.Html
+import android.text.InputFilter
+import android.text.InputFilter.AllCaps
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.view.*
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -37,9 +39,11 @@ import androidx.viewpager2.widget.ViewPager2
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
 import com.flaghacker.sttt.common.Player
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
 import java.util.*
+
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
 private const val LAUNCHES_UNTIL_RATE = 3  //Min number of launches before asking for rating
@@ -93,9 +97,9 @@ fun Context.aboutDialog() {
 		resources.getText(R.string.app_name_long)
 	}
 
-	AlertDialog.Builder(this)
+	MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setView(layout)
-		.setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
+		.setPositiveButton(getString(R.string.cancel)) { dlg, _ -> dlg.dismiss() }
 		.show().autoDismiss(this)
 }
 
@@ -119,8 +123,9 @@ fun MainActivity.triggerDialogs() {
 		editor.apply()
 
 		// Open rate dialog if conditions are met
-		if (System.currentTimeMillis() >= firstLaunch + DAYS_UNTIL_RATE * 24 * 60 * 60 * 1000 && launchCount >= LAUNCHES_UNTIL_RATE)
-			newRateDialog()
+		val enoughUseTime = System.currentTimeMillis() >= firstLaunch + DAYS_UNTIL_RATE * 24 * 60 * 60 * 1000
+		val enoughLaunches = launchCount >= LAUNCHES_UNTIL_RATE
+		if (enoughUseTime && enoughLaunches) newRateDialog()
 	} else {
 		val intent = Intent(this, TutorialActivity::class.java)
 		registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -141,8 +146,7 @@ fun Context.newRateDialog() {
 				editor.apply()
 				startActivity(
 					Intent(
-						Intent.ACTION_VIEW,
-						Uri.parse("market://details?id=$packageName")
+						Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")
 					).apply {
 						addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
 						addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -157,7 +161,7 @@ fun Context.newRateDialog() {
 
 	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
 	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.rate_message)
-	AlertDialog.Builder(this)
+	MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setView(layout)
 		.setCustomTitle(newTitle(getString(R.string.rate_app)))
 		.setPositiveButton(getString(R.string.rate), dialogClickListener)
@@ -181,11 +185,12 @@ fun Context.newLocalDialog() {
 
 	val layout = View.inflate(this, R.layout.dialog_body_basic, null)
 	layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_desc)
-	AlertDialog.Builder(this)
+	MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setCustomTitle(newTitle(getString(R.string.new_local_title)))
 		.setView(layout)
 		.setPositiveButton(getString(R.string.start), dialogClickListener)
-		.setNegativeButton(getString(R.string.close), dialogClickListener).show().autoDismiss(this)
+		.setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
+
 }
 
 class RemoteHostFragment : Fragment() {
@@ -194,7 +199,7 @@ class RemoteHostFragment : Fragment() {
 		container: ViewGroup?,
 		savedInstanceState: Bundle?
 	): View {
-		return inflater.inflate(R.layout.dialog_body_host, container, false)
+		return inflater.inflate(R.layout.dialog_body_online_host, container, false)
 	}
 }
 
@@ -204,14 +209,18 @@ class RemoteJoinFragment : Fragment() {
 		container: ViewGroup?,
 		savedInstanceState: Bundle?
 	): View {
-		return inflater.inflate(R.layout.dialog_body_join, container, false)
+		return inflater.inflate(R.layout.dialog_body_online_join, container, false).apply {
+			val editText = findViewById<EditText>(R.id.remote_join_edit)
+			editText.filters = arrayOf(AllCaps(), InputFilter.LengthFilter(6))
+		}
 	}
 }
 
 fun FragmentActivity.newRemoteDialog(oldGs: GameState) {
-	val layout = View.inflate(this, R.layout.dialog_body_internet, null)
+	val layout = View.inflate(this, R.layout.dialog_body_online, null)
 	val viewPager = layout.findViewById<ViewPager2>(R.id.pager)
 	val tabs = layout.findViewById<TabLayout>(R.id.remote_tabs)
+	var newGameId = ""
 
 	// Set up viewpager
 	val hostFragment = RemoteHostFragment(); val joinFragment = RemoteJoinFragment()
@@ -221,39 +230,64 @@ fun FragmentActivity.newRemoteDialog(oldGs: GameState) {
 	}
 
 	// Create dialog
-	val dialog = AlertDialog.Builder(this)
+	val dialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setView(layout)
-		.setNegativeButton(getString(R.string.close)) { dialog, _ -> dialog?.dismiss() }
-		.setPositiveButton(tabs.getTabAt(0)?.text, null).show().autoDismiss(this)
+		.setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog?.dismiss() }
+		.setPositiveButton(tabs.getTabAt(0)?.text, null).show()
+		.autoDismiss(this)
+
+	// Set up viewpager listener
+	val pageChangeCallback = object: ViewPager2.OnPageChangeCallback() {
+		override fun onPageSelected(position: Int) {
+			super.onPageSelected(position)
+
+			// Remove database entry on switch
+			if (newGameId.isNotEmpty()){
+				removeOnlineGame(newGameId)
+				newGameId = ""
+			}
+
+			// Set correct flags to allow keyboard to open
+			dialog.window?.setFlags(if (position == 1) 1 else 0,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+					or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+		}
+	}
+	viewPager.registerOnPageChangeCallback(pageChangeCallback)
+	dialog.setOnDismissListener { viewPager.unregisterOnPageChangeCallback(pageChangeCallback) }
 
 	// Handle positive button
 	val buttonPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
 	buttonPositive.setOnClickListener {
 		// Host game
 		if (viewPager.currentItem == 0) {
-			// Update dialog
-			buttonPositive.isEnabled = false
-			val textView = (layout.findViewById<View>(R.id.bt_host_desc) as TextView)
-			textView.text = HtmlCompat.fromHtml(
-				getString(R.string.host_desc, "9999"),
-				HtmlCompat.FROM_HTML_MODE_LEGACY
-			)
+			createOnlineGame(afterCreate = { gameId ->
+				newGameId = gameId // Store value for viewpager
 
-			//Get game settings
-			val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
-			val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
-			val start = when (startRadioGrp.checkedRadioButtonId) {
+				// Update dialog
+				buttonPositive.isEnabled = false
+				val textView = (layout.findViewById<View>(R.id.bt_host_desc) as TextView)
+				textView.text = HtmlCompat.fromHtml(
+					getString(R.string.host_desc, newGameId),
+					HtmlCompat.FROM_HTML_MODE_LEGACY
+				)
+
+				//Get game settings
+				val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
+				val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
+				val start = when (startRadioGrp.checkedRadioButtonId) {
 					R.id.start_you -> true
 					R.id.start_other -> false
 					else -> Random().nextBoolean()
-			}
+				}
 
 
-			//Create the actual requested gamestate
-			val swapped = if (newBoard) !start else start xor (oldGs.board.nextPlayer == Player.PLAYER)
-			val gsBuilder = GameState.Builder().remote(9999).swapped(swapped)
-			if (!newBoard) gsBuilder.boards(oldGs.boards)
-			val gs = gsBuilder.build()
+				//Create the actual requested gamestate
+				val swapped = if (newBoard) !start else start xor (oldGs.board.nextPlayer == Player.PLAYER)
+				val gsBuilder = GameState.Builder().remote(newGameId).swapped(swapped)
+				if (!newBoard) gsBuilder.boards(oldGs.boards)
+				val gs = gsBuilder.build()
+			}, afterFail = {msg -> log("Failed to create game {$msg}")}, attempts=3)
 
 			//main.remote.listen(gs)
 			/*sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,GameState.Builder().swapped(false).build()*/  //TODO IMPLEMENT BUTTONS THAT DO SOMETHING))
@@ -314,13 +348,14 @@ fun Context.newAiDialog() {
 		}
 	}
 
-	AlertDialog.Builder(this)
+	MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setView(layout)
 		.setCustomTitle(newTitle(getString(R.string.new_ai_title)))
 		.setPositiveButton(getString(R.string.start), dialogClickListener)
-		.setNegativeButton(getString(R.string.close), dialogClickListener).show().autoDismiss(this)
+		.setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
 }
 
+// Close the dialog to avoid leaking it
 private fun AlertDialog.autoDismiss(c: Context) = apply {
 	c.registerComponentCallbacks(object : ComponentCallbacks {
 		override fun onLowMemory() {}

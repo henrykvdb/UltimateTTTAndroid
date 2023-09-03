@@ -24,8 +24,14 @@ interface RemoteCallback {
 
 class RemoteGame(){
 	fun listen(gs: GameState){}
-	fun connect(remoteId: Int){}
-	fun close(){}
+
+	fun connect(remoteId: Int){
+
+	}
+
+	fun close(){
+
+	}
 
 	fun sendUndo(ask: Boolean){}
 	fun sendBoard(board: Board){}

@@ -24,7 +24,7 @@ enum class Source {
 	REMOTE
 }
 
-class GameState private constructor(val players: Players, val boards: LinkedList<Board>, val extraBot: Bot, val remoteId: Int) : Serializable {
+class GameState private constructor(val players: Players, val boards: LinkedList<Board>, val extraBot: Bot, val remoteId: String) : Serializable {
 	val board get() = boards.peek()!!
 	fun pushBoard(board: Board) = boards.push(board)
 	fun popBoard() = boards.pop() ?: null
@@ -47,7 +47,7 @@ class GameState private constructor(val players: Players, val boards: LinkedList
 	}
 
 	class Builder {
-		private var remoteId: Int = 0
+		private var remoteId: String = ""
 		private var players = Players(Source.LOCAL, Source.LOCAL)
 		private var boards = listOf(Board())
 		private var swapped = false
@@ -58,7 +58,7 @@ class GameState private constructor(val players: Players, val boards: LinkedList
 		fun board(board: Board) = this.boards(listOf(board))
 		fun swapped(swapped: Boolean) = apply { this.swapped = swapped }
 		fun ai(extraBot: Bot) = apply { this.extraBot = extraBot;players = Players(Source.LOCAL, Source.AI) }
-		fun remote(id:Int) = apply { players = Players(Source.LOCAL, Source.REMOTE); this.remoteId = id }
+		fun remote(id:String) = apply { players = Players(Source.LOCAL, Source.REMOTE); this.remoteId = id }
 		fun gs(gs: GameState) = apply {
 			players = gs.players
 			boards = gs.boards

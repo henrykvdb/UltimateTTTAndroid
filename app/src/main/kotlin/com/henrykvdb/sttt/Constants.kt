@@ -19,11 +19,11 @@
 package com.henrykvdb.sttt
 
 //Intents
-const val INTENT_TOAST = "INTENT_TOAST"       //String: text to toast
+//const val INTENT_TOAST = "INTENT_TOAST"       //String: text to toast
 const val INTENT_NEWGAME = "INTENT_NEWGAME"   //GameState: requested new gamestate
-const val INTENT_MOVE = "INTENT_MOVE"         //Byte: move played by the remote
-const val INTENT_UNDO = "INTENT_UNDO"         //Boolean: forced undo or not
-const val INTENT_TURNLOCAL = "INTENT_TURNLOCAL"
+//const val INTENT_MOVE = "INTENT_MOVE"         //Byte: move played by the remote
+//const val INTENT_UNDO = "INTENT_UNDO"         //Boolean: forced undo or not
+//const val INTENT_TURNLOCAL = "INTENT_TURNLOCAL"
 const val INTENT_DATA = "INTENT_DATA"
 
 //Keys for saving to bundle
