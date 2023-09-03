@@ -13,11 +13,11 @@
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@id/layout_guide"
+        android:layout_alignParentTop="true"
         android:gravity="center"
         android:text="@string/ways_to_play"
         android:textColor="@color/colorText"
-        android:layout_alignParentTop="true"
-        android:layout_above="@id/layout_guide"
         android:textSize="28sp"
         android:textStyle="bold" />
 
@@ -31,59 +31,53 @@
         app:srcCompat="@drawable/ic_logo_color" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:gravity="center">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/against"
+            android:textColor="@color/colorText"
+            android:textSize="20sp"
+            android:textStyle="bold|normal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/nav_header_vertical_spacing"
             android:gravity="start"
-            android:orientation="vertical">
+            android:paddingTop="@dimen/nav_header_vertical_spacing"
+            android:text="@string/ways_computer"
+            android:textColor="@color/colorText"
+            android:textSize="20sp"
+            app:drawableStartCompat="@drawable/ic_menu_ai" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Against"
-                android:textColor="@color/colorText"
-                android:textSize="20sp"
-                android:textStyle="bold|normal"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/nav_header_vertical_spacing"
+            android:gravity="start"
+            android:paddingTop="@dimen/nav_header_vertical_spacing"
+            android:text="@string/ways_local"
+            android:textColor="@color/colorText"
+            android:textSize="20sp"
+            app:drawableStartCompat="@drawable/ic_menu_human" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_menu_ai"
-                android:drawablePadding="@dimen/nav_header_vertical_spacing"
-                android:gravity="start"
-                android:paddingTop="@dimen/nav_header_vertical_spacing"
-                android:text="@string/ways_computer"
-                android:textColor="@color/colorText"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_menu_human"
-                android:drawablePadding="@dimen/nav_header_vertical_spacing"
-                android:gravity="start"
-                android:paddingTop="@dimen/nav_header_vertical_spacing"
-                android:text="@string/ways_local"
-                android:textColor="@color/colorText"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableStart="@drawable/ic_menu_online"
-                android:drawablePadding="@dimen/nav_header_vertical_spacing"
-                android:gravity="start"
-                android:paddingTop="@dimen/nav_header_vertical_spacing"
-                android:text="@string/ways_online"
-                android:textColor="@color/colorText"
-                android:textSize="20sp" />
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="@dimen/nav_header_vertical_spacing"
+            android:gravity="start"
+            android:paddingTop="@dimen/nav_header_vertical_spacing"
+            android:text="@string/ways_online"
+            android:textColor="@color/colorText"
+            android:textSize="20sp"
+            app:drawableStartCompat="@drawable/ic_menu_online" />
     </LinearLayout>
 
     <TextView

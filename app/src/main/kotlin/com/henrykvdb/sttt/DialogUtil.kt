@@ -99,7 +99,7 @@ fun Context.aboutDialog() {
 
 	MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 		.setView(layout)
-		.setPositiveButton(getString(R.string.cancel)) { dlg, _ -> dlg.dismiss() }
+		.setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
 		.show().autoDismiss(this)
 }
 

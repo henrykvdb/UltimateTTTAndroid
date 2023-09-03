@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 			gs = GameState.Builder().swapped(false).build()
 			triggerDialogs()
 		} else {
-			gs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+			gs = @Suppress("DEPRECATION") if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
 				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
 			else savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
 		}

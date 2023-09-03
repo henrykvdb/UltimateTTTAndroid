@@ -7,9 +7,9 @@
     <color name="colorWhite">#FAFAFA</color> <!-- #FAFAFA -->
 
     <!-- light theme colors -->
-    <color name="colorText">#131313</color> <!-- #131313 -->
-    <color name="colorTextSmall">#444746</color> <!-- #444746 -->
-    <color name="colorBackground">#FAFAFA</color> <!-- #FAFAFA -->
+    <color name="colorText">#131313</color> <!-- real: #131313 test: #FF0000 -->
+    <color name="colorTextSmall">#444746</color> <!-- real: #444746 test: #FF00FF -->
+    <color name="colorBackground">#FAFAFA</color> <!-- real: #FAFAFA test: #00FF00 -->
 
     <!-- light theme board colors -->
     <color name="xColorLight">#4B9BFF</color>

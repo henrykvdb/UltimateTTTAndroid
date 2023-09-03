@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Host code"
+        android:text="@string/host_code"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorText"
         android:textStyle="normal|bold" />
@@ -29,7 +29,7 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:textCursorDrawable="@null"
-        android:text="ABCDEF"
+        android:hint="@string/online_join_code_hint"
         android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         android:backgroundTint="@color/colorPrimary"
         android:textColor="@color/colorTextSmall" />
@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:text="Enter the host code of your opponent"
+        android:text="@string/online_join_desc"
         android:textColor="@color/colorText"
         android:textStyle="normal" />
 </LinearLayout>

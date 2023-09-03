@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/dialog_about_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,7 +14,7 @@
         android:id="@+id/versionName_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableStart="@mipmap/ic_launcher"
+        app:drawableStartCompat="@mipmap/ic_launcher"
         android:drawablePadding="@dimen/nav_header_vertical_spacing"
         android:gravity="center_vertical"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
@@ -31,7 +32,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorTextSmall"
         android:textSize="20sp"
-        android:textStyle="normal" />
+        android:textStyle="normal|bold" />
 
     <com.henrykvdb.sttt.LinkView
         android:layout_width="wrap_content"
