@@ -1,55 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:paddingLeft="24dp"
-              android:paddingRight="24dp"
-              android:gravity="center_horizontal"
-              android:id="@+id/dialog_about_layout">
+    android:id="@+id/dialog_about_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp">
+
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="@dimen/nav_header_vertical_spacing"
-            android:text="@string/app_name_long"
-			android:textColor="@color/textDark"
-            android:drawableStart="@mipmap/ic_launcher"
-            android:gravity="center_vertical"
-            android:textStyle="normal|bold"
-			android:textSize="20sp"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:id="@+id/versionName_view"/>
+        android:id="@+id/versionName_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableStart="@mipmap/ic_launcher"
+        android:drawablePadding="@dimen/nav_header_vertical_spacing"
+        android:gravity="center_vertical"
+        android:paddingTop="@dimen/nav_header_vertical_spacing"
+        android:text="@string/app_name_long"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/colorText"
+        android:textSize="20sp"
+        android:textStyle="normal|bold" />
+
     <TextView
-            android:text="@string/author_credit"
-			android:textColor="@color/textDark"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal"
-            android:textSize="20sp"
-            android:paddingBottom="6dp"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:text="@string/author_credit"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColor="@color/colorTextSmall"
+        android:textSize="20sp"
+        android:textStyle="normal" />
+
     <com.henrykvdb.sttt.LinkView
-            android:text="@string/special_thanks"
-			android:textColor="@color/textLight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-			android:paddingBottom="6dp"/>
-	<TextView
-			android:text="@string/open_source_title"
-			android:textColor="@color/textDark"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:textAppearance="@style/TextAppearance.AppCompat"
-			android:textStyle="normal|bold"
-			android:gravity="center_horizontal"
-			android:textSize="16sp"/>
-	<TextView
-			android:text="@string/github_url"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:autoLink="web"
-			android:textStyle="normal"
-			android:gravity="center_horizontal"
-			android:textSize="14sp"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:text="@string/special_thanks"
+        android:textColor="@color/colorTextSmall"
+        android:textColorLink="@color/colorTextSmall"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/open_source_title"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColor="@color/colorTextSmall"
+        android:textSize="16sp"
+        android:textStyle="normal|bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:autoLink="web"
+        android:gravity="center_horizontal"
+        android:text="@string/github_url"
+        android:textColor="@color/colorTextSmall"
+        android:textColorLink="@color/colorTextSmall"
+        android:textSize="14sp"
+        android:textStyle="normal" />
 </LinearLayout>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bt_join_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="9dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="0dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Host code"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColor="@color/colorText"
+        android:textStyle="normal|bold" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/remote_join_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textVisiblePassword|textCapCharacters"
+        android:maxLength="6"
+        android:minHeight="48dp"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:textCursorDrawable="@null"
+        android:text="ABCDEF"
+        android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/colorTextSmall" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="Enter the host code of your opponent"
+        android:textColor="@color/colorText"
+        android:textStyle="normal" />
+</LinearLayout>

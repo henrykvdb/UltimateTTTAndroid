@@ -1,62 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:paddingLeft="24dp"
-              android:paddingRight="24dp"
-              android:paddingTop="9dp"
-              android:paddingBottom="9dp"
-              android:id="@+id/new_ai_layout">
+    android:id="@+id/new_ai_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="9dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="9dp">
+
     <TextView
-            android:text="@string/difficulty"
-            android:textColor="@color/textDark"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal|bold"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/difficulty"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColor="@color/colorTextSmall"
+        android:textStyle="normal|bold" />
+
     <SeekBar
-            style="@style/Widget.AppCompat.SeekBar.Discrete"
-            android:layout_height="wrap_content"
-            android:id="@+id/difficulty"
-            android:layout_width="match_parent"
-            android:max="6"
-            android:progress="3"/>
+        android:id="@+id/difficulty"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="6"
+        android:progress="3" />
+
     <TextView
-            android:text="@string/starting_player"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal|bold"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/starting_player"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColor="@color/colorTextSmall"
+        android:textStyle="normal|bold" />
+
     <RadioGroup
-            android:layout_width="match_parent"
+        android:id="@+id/start_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/start_you"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:id="@+id/start_radio_group">
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/you"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textColor="@color/colorTextSmall" />
+
         <RadioButton
-                android:text="@string/you"
-                android:textColor="@color/textDark"
-                android:id="@+id/start_you"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAppearance="@style/TextAppearance.AppCompat"
-                android:checked="true"/>
+            android:id="@+id/start_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/computer"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textColor="@color/colorTextSmall" />
+
         <RadioButton
-                android:text="@string/computer"
-                android:textColor="@color/textDark"
-                android:id="@+id/start_other"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAppearance="@style/TextAppearance.AppCompat"/>
-        <RadioButton
-                android:text="@string/random"
-                android:textColor="@color/textDark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAppearance="@style/TextAppearance.AppCompat"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/random"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textColor="@color/colorTextSmall" />
     </RadioGroup>
 </LinearLayout>

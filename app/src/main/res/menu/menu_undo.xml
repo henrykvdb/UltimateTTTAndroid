@@ -5,7 +5,7 @@
       tools:context="com.example.toolbar.MainActivity">
 
     <item android:id="@+id/action_undo"
-          android:icon="@drawable/ic_menu_undo"
+          android:icon="@drawable/ic_toolbar_undo"
           android:title="@string/undo"
           android:orderInCategory="1"
           android:menuCategory="secondary"

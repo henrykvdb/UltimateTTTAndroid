@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bt_host_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="9dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="0dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_board"
+        android:textColor="@color/colorText"
+        android:textStyle="normal|bold" />
+
+    <RadioGroup
+        android:id="@+id/board_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/board_new"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/new_board"
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/current_board"
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/starting_player"
+        android:textColor="@color/colorText"
+        android:textStyle="normal|bold" />
+
+    <RadioGroup
+        android:id="@+id/start_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/start_you"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/you"
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/start_other"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/other"
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/random"
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/bt_host_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="@string/no_host_desc"
+        android:textColor="@color/colorText"
+        android:textStyle="normal" />
+</LinearLayout>

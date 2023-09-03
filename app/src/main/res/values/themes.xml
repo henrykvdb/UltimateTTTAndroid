@@ -1,0 +1,23 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:textColorPrimary">#00FF00</item> <!-- SHOULD NOT APPEAR -->
+        <item name="colorPrimary">@color/colorPrimary</item> <!-- @color/colorPrimary -->
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item> <!-- @color/colorPrimaryDark -->
+        <item name="colorAccent">#00FF00</item> <!-- @color/colorAccent -->
+        <item name="android:textColorSecondary">@color/colorAccent</item> <!-- SHOULD NOT APPEAR -->
+        <item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>
+    </style>
+
+    <style name="AppTheme.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@color/colorBackground</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+    </style>
+</resources>
