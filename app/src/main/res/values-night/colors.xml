@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#33B5E5</color>
+    <!-- dark theme colors -->
     <color name="colorText">#FAFAFA</color>
-    <color name="colorTextSmall">#737373</color>
-    <color name="colorBackground">#202020</color>
+    <color name="colorTextSmall">#b4b5b5</color>
+    <color name="colorBackground">#131313</color>
+
+    <!-- dark theme board colors -->
+    <color name="xColor">#0000FF</color>
+    <color name="xColorDarker">#0000E6</color>
+    <color name="xColorDarkest">#0000C8</color>
+    <color name="xColorLight">#4B9BFF</color>
+    <color name="oColor">#FF0000</color>
+    <color name="oColorDarker">#E60000</color>
+    <color name="oColorDarkest">#C80000</color>
+    <color name="oColorLight">#FF9B4B</color>
+    <color name="colorBoardUnavailable">#32888888</color>
 </resources>

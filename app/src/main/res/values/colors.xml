@@ -8,7 +8,7 @@
 
     <!-- light theme colors -->
     <color name="colorText">#131313</color> <!-- #131313 -->
-    <color name="colorTextSmall">#131313</color> <!-- #131313 -->
+    <color name="colorTextSmall">#444746</color> <!-- #444746 -->
     <color name="colorBackground">#FAFAFA</color> <!-- #FAFAFA -->
 
     <!-- light theme board colors -->
@@ -20,5 +20,5 @@
     <color name="oColorDarker">#E60000</color>
     <color name="oColorDarkest">#C80000</color>
     <color name="oColorLight">#FF9B4B</color>
-    <color name="unavailableColor">#32888888</color>
+    <color name="colorBoardUnavailable">#32888888</color>
 </resources>

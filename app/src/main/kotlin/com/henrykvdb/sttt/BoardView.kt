@@ -41,7 +41,6 @@ object DrawSettings {
 	const val wonSymbolStrokeRel = 120f / 984
 
 	//Grid-line settings
-	const val gridColor = Color.BLACK
 	const val bigGridStrokeRel = 8f / 984
 	const val smallGridStrokeRel = 1f / 984
 
@@ -151,7 +150,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		for (om in 0 until 9) drawMacro(canvas, board, om.toByte())
 
 		//Bigger macro separate lines
-		drawGridBarriers(canvas, fieldSize, DrawSettings.gridColor, bigGridStroke)
+		drawGridBarriers(canvas, fieldSize, getColor(R.color.colorText), bigGridStroke)
 
 		if (board.isDone) {
 			when (board.wonBy) {
@@ -191,7 +190,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 		canvas.translate(xmt, ymt)
 
 		//Draw macro lines
-		drawGridBarriers(canvas, macroSizeSmall, DrawSettings.gridColor, smallGridStroke)
+		drawGridBarriers(canvas, macroSizeSmall, getColor(R.color.colorText), smallGridStroke)
 
 		//Loop through tiles of the macro
 		for (tile in 9 * om until 9 * om + 9) {
@@ -215,15 +214,15 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 				drawTile(canvas, isX = true, grayBack = false, size = tileSize, color = when {
 					tile.toByte() == board.lastMove -> getColor(R.color.xColorLight)
 					realWin -> getColor(R.color.xColorDarkest)
-					macroOwner == Player.NEUTRAL -> getColor(R.color.xColor)
-					else -> getColor(R.color.xColorDarker)
+					macroOwner != Player.NEUTRAL -> getColor(R.color.xColorDarker)
+					else -> getColor(R.color.xColor)
 				}, strokeWidth = tileSymbolStroke, border = xBorder)
 			} else if (player == Player.ENEMY) {
 				drawTile(canvas, isX = false, grayBack = false, size = tileSize, color = when {
 					tile.toByte() == board.lastMove -> getColor(R.color.oColorLight)
 					realWin -> getColor(R.color.oColorDarkest)
-					macroOwner == Player.NEUTRAL -> getColor(R.color.oColor)
-					else -> getColor(R.color.oColorDarker)
+					macroOwner != Player.NEUTRAL -> getColor(R.color.oColorDarker)
+					else -> getColor(R.color.oColor)
 				}, strokeWidth = tileSymbolStroke, border = oBorder)
 			}
 
@@ -247,7 +246,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 	private fun drawTile(canvas: Canvas, isX: Boolean, grayBack: Boolean, size: Float, color: Int, strokeWidth: Int, border: Float) {
 		if (grayBack) {
 			paint.style = Paint.Style.FILL
-			paint.color = color
+			paint.color = getColor(R.color.colorBoardUnavailable)
 			canvas.drawRect(0f, 0f, size, size, paint)
 		}
 
