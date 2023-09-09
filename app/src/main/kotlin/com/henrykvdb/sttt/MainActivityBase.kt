@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
 
+const val GAMESTATE_KEY = "GAMESTATE_KEY" // Key for saving to bundle
+
 /** This is the root Activity, which implements the base game and basic UI **/
 open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 	//Game fields
@@ -205,7 +207,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		super.onSaveInstanceState(outState)
 	}
 
-	private fun newGame(gs: GameState) {
+	internal fun newGame(gs: GameState) {
 		//if (gs.type != Source.REMOTE)
 		//	remote.close()
 		gameThread.close()

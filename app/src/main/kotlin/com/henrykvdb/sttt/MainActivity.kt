@@ -191,12 +191,7 @@ class MainActivity : MainActivityBaseRemote() {
         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
             when (which) {
                 DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-                DialogInterface.BUTTON_POSITIVE -> sendBroadcast(
-                    Intent(INTENT_NEWGAME).putExtra(
-                        INTENT_DATA,
-                        GameState.Builder().swapped(false).build()
-                    )
-                )
+                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().swapped(false).build())
             }
         }
 
@@ -306,8 +301,9 @@ class MainActivity : MainActivityBaseRemote() {
                     val gs = gsBuilder.build()
                 }, afterFail = {msg -> log("Failed to create game {$msg}") }, attempts=3)
 
+                //TODO IMPLEMENT BUTTONS THAT DO SOMETHING))
                 //main.remote.listen(gs)
-                /*sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,GameState.Builder().swapped(false).build()*/  //TODO IMPLEMENT BUTTONS THAT DO SOMETHING))
+                /*sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,GameState.Builder().swapped(false).build()*/
             }
             // Create game
             else {
@@ -358,9 +354,7 @@ class MainActivity : MainActivityBaseRemote() {
                 else -> Random().nextBoolean()
             }
             when (which) {
-                DialogInterface.BUTTON_POSITIVE -> sendBroadcast(
-                    Intent(INTENT_NEWGAME).putExtra(INTENT_DATA, GameState.Builder().ai(bot).swapped(!start).build()) //TODO CHECK IF WORKING WHEN GAMES IMPLEMENTED AGAIN
-                )
+                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().ai(bot).swapped(!start).build())
                 DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
             }
         }
