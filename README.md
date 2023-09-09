@@ -1,4 +1,4 @@
-# Ultimate Tic Tac Toe Android [![GitHub Version](https://badge.fury.io/gh/henrykvdb%2FSuperTTTAndroid.svg)](https://github.com/henrykvdb/SuperTTTAndroid/releases)
+# Ultimate Tic Tac Toe Android [![GitHub Version](https://badge.fury.io/gh/henrykvdb%2FSuperTTTAndroid.svg)](https://github.com/henrykvdb/UltimateTTTAndroid/releases)
 
 In Ultimate Tic Tac Toe (also known as Super Tic Tac Toe or Meta TTT) each square of the traditional board contains a smaller tic tac toe board. Two players take turns playing the smaller boards until one of them wins three in a row.
 

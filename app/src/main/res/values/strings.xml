@@ -1,9 +1,9 @@
 <resources>
     <!--  App info -->
     <string name="app_name">STTT</string>
-    <string name="app_name_long">Super Tic Tac Toe</string>
+    <string name="app_name_long">Ultimate Tic Tac Toe</string>
 	<string name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
-	<string name="github_url">github.com/henrykvdb/SuperTTTAndroid</string>
+	<string name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
 
     <!-- FireBase -->
     <string name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
@@ -43,10 +43,10 @@
 	<!--  Multi word -->
 	<string name="tut_ways_description">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
 	<string name="host_desc">You are hosting a game, ask a friend to join &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (your game host code)</string>
-	<string name="rate_message">If you enjoy using Super Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
+	<string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
 	<string name="special_thanks"><![CDATA[Special thanks to <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
 	<string name="undo_request">Your opponent requests to undo the last move, do you accept?</string>
-	<string name="lets_play_together">Hey, let\'s play Super Tic Tac Toe together!</string>
+	<string name="lets_play_together">Hey, let\'s play Ultimate Tic Tac Toe together!</string>
 	<string name="online_join_desc">Enter the host code of your opponent</string>
 	<string name="tutorial_first_desc">Let\'s go over the basic rules</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>
