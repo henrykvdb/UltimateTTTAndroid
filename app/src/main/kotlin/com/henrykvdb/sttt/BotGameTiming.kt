@@ -6,6 +6,7 @@ import com.flaghacker.sttt.common.Player
 import com.flaghacker.sttt.games.BotGame
 import java.util.*
 
+// TODO remove after API upstep benchmarks are complete
 class BotGameTiming(private val p1: Bot, private val p2: Bot) {
     private var count = 1
     private var logLevel = BotGame.LogLevel.ALL

@@ -35,12 +35,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
@@ -54,33 +48,18 @@ const val GAMESTATE_KEY = "GAMESTATE_KEY" // Key for saving to bundle
 open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 	//Game fields
 	private var gameThread = GameThread()
-	private lateinit var gs: GameState
+	internal lateinit var gs: GameState
 	//private val remote = RemoteGame()
 
 	//Misc fields
 	private var askDialog: AlertDialog? = null
 	private lateinit var binding: ActivityMainBinding
 
-	private fun DatabaseReference.enableLogging() {
-		addValueEventListener(object : ValueEventListener {
-			override fun onDataChange(dataSnapshot: DataSnapshot) {
-				log("=======================================")
-				log("VALUE EXISTS = ${dataSnapshot.exists()}")
-				log("Value is: ${dataSnapshot.value}")
-				log("=======================================")
-			}
-
-			override fun onCancelled(error: DatabaseError) {
-				TODO("This should be handled")
-			}
-		})
-	}
-
 	// Implemented by child class MainActivity
 	open fun triggerDialogs() {}
 	open fun newAiDialog() {}
 	open fun newLocalDialog() {}
-	open fun newRemoteDialog(gs: GameState) {} // TODO argument needed?
+	open fun newRemoteDialog() {}
 	open fun feedbackSender() {}
 	open fun shareDialog() {}
 	open fun aboutDialog() {}
@@ -90,14 +69,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
 		setSupportActionBar(binding.toolbar)
-
-		val gameId = "XXXABC"
-		val remoteGameRef = Firebase.database.getReference(gameId)
-		remoteGameRef.enableLogging()
-
-		/*		createOnlineGame ({ id ->
-			log("Created game with id $id")
-		}, 3)*/
 
 		//Disable crash reporting and firebase analytics on debug builds
 		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
@@ -109,28 +80,17 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			R.string.navigation_drawer_close
 		)
 		binding.drawerLayout.addDrawerListener(toggle)
-		//toggle.syncState()
+		toggle.syncState()
 		binding.navigationView.setNavigationItemSelectedListener(this)
-
-		//binding.toolbar.setNavigationIcon(R.drawable.ic_toolbar_drawer)
-		//supportActionBar?.setHomeButtonEnabled(true)
-		//supportActionBar?.setDisplayHomeAsUpEnabled(true)
-		//supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_toolbar_drawer)
+		supportActionBar?.setHomeButtonEnabled(true)
+		supportActionBar?.setDisplayHomeAsUpEnabled(true)
+		supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_toolbar_drawer)
 
 		//Add ads in portrait
 		if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
 			MobileAds.initialize(this) {}
 			binding.adView?.loadAd(AdRequest.Builder().build())
 		}
-
-		//Register receiver to get updates from the remote game
-		/*registerReceiver(remoteReceiver, IntentFilter().apply {
-			//addAction(INTENT_TURNLOCAL)
-			addAction(INTENT_NEWGAME)
-			//addAction(INTENT_TOAST)
-			//addAction(INTENT_MOVE)
-			//addAction(INTENT_UNDO)
-		})*/
 
 		if (savedInstanceState == null) {
 			gs = GameState.Builder().swapped(false).build()
@@ -266,7 +226,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		private fun waitForMove(player: Source): Byte? {
 			playerMove.set(Pair(-1, Source.LOCAL))
-			while ((!gs.board.availableMoves.contains(playerMove.get().first)             //Impossible move
+			while ((!gs.board.availableMoves.contains(playerMove.get().first)           //Impossible move
 						|| player != playerMove.get().second                            //Wrong player
 						|| playerMove.get() == null                                     //No Pair
 						|| playerMove.get().first == null                               //No move
@@ -347,7 +307,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		when (item.itemId) {
 			R.id.nav_start_ai -> newAiDialog()
 			R.id.nav_start_local -> newLocalDialog()
-			R.id.nav_start_online -> newRemoteDialog(gs)
+			R.id.nav_start_online -> newRemoteDialog()
 			R.id.nav_other_feedback -> feedbackSender()
 			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
 			R.id.nav_other_share -> shareDialog()

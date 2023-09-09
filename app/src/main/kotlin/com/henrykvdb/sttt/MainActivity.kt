@@ -43,6 +43,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.flaghacker.sttt.bots.MMBot
 import com.flaghacker.sttt.bots.RandomBot
+import com.flaghacker.sttt.common.Board
 import com.flaghacker.sttt.common.Player
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
@@ -205,6 +206,31 @@ class MainActivity : MainActivityBaseRemote() {
 
     }
 
+    override fun newAiDialog() {
+        val layout = View.inflate(this, R.layout.dialog_body_ai, null)
+        val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
+            val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
+            val bot = if (progress > 0) MMBot(progress) else RandomBot()
+
+            val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
+            val start = when (startRadioGrp.checkedRadioButtonId) {
+                R.id.start_you -> true
+                R.id.start_other -> false
+                else -> Random().nextBoolean()
+            }
+            when (which) {
+                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().ai(bot).swapped(!start).build())
+                DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
+            }
+        }
+
+        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+            .setView(layout)
+            .setCustomTitle(newTitle(getString(R.string.new_ai_title)))
+            .setPositiveButton(getString(R.string.start), dialogClickListener)
+            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
+    }
+
     class RemoteHostFragment : Fragment() {
         override fun onCreateView(
             inflater: LayoutInflater,
@@ -228,11 +254,12 @@ class MainActivity : MainActivityBaseRemote() {
         }
     }
 
-    override fun newRemoteDialog(oldGs: GameState) {
+    override fun newRemoteDialog() {
         val layout = View.inflate(this, R.layout.dialog_body_online, null)
         val viewPager = layout.findViewById<ViewPager2>(R.id.pager)
         val tabs = layout.findViewById<TabLayout>(R.id.remote_tabs)
         var newGameId = ""
+        var destroyOnDismiss = true
 
         // Set up viewpager
         val hostFragment = RemoteHostFragment(); val joinFragment = RemoteJoinFragment()
@@ -254,10 +281,7 @@ class MainActivity : MainActivityBaseRemote() {
                 super.onPageSelected(position)
 
                 // Remove database entry on switch
-                if (newGameId.isNotEmpty()){
-                    removeOnlineGame(newGameId)
-                    newGameId = ""
-                }
+                if (newGameId.isNotEmpty()){ removeOnlineGame(newGameId); newGameId = ""}
 
                 // Set correct flags to allow keyboard to open
                 dialog.window?.setFlags(if (position == 1) 1 else 0,
@@ -266,48 +290,82 @@ class MainActivity : MainActivityBaseRemote() {
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)
-        dialog.setOnDismissListener { viewPager.unregisterOnPageChangeCallback(pageChangeCallback) }
+        dialog.setOnDismissListener {
+            viewPager.unregisterOnPageChangeCallback(pageChangeCallback)
+            if (newGameId.isNotEmpty() && destroyOnDismiss){
+                removeOnlineGame(newGameId); newGameId = ""
+            }
+        }
 
         // Handle positive button
         val buttonPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
         buttonPositive.setOnClickListener {
             // Host game
             if (viewPager.currentItem == 0) {
-                createOnlineGame(afterCreate = { gameId ->
+                createOnlineGame(afterSuccess = { gameId ->
                     newGameId = gameId // Store value for viewpager
 
                     // Update dialog
                     buttonPositive.isEnabled = false
                     val textView = (layout.findViewById<View>(R.id.bt_host_desc) as TextView)
                     textView.text = HtmlCompat.fromHtml(
-                        getString(R.string.host_desc, newGameId),
+                        getString(R.string.host_desc, gameId),
                         HtmlCompat.FROM_HTML_MODE_LEGACY
                     )
 
-                    //Get game settings
-                    val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
-                    val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
-                    val start = when (startRadioGrp.checkedRadioButtonId) {
-                        R.id.start_you -> true
-                        R.id.start_other -> false
-                        else -> Random().nextBoolean()
-                    }
+                    createListener(gameId, onChange = { data ->
+                        if(data.fidRemote.isNotEmpty()){
+                            //Get game settings
+                            val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
+                            val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
+                            val startHost = when (startRadioGrp.checkedRadioButtonId) {
+                                R.id.start_you -> true
+                                R.id.start_other -> false
+                                else -> Random().nextBoolean()
+                            }
 
+                            // Create game
+                            val boards = if (newBoard) listOf(Board()) else gs.boards
+                            val board = boards.first() // first one is the latest
+                            val swap = startHost xor (board.nextPlayer == Player.PLAYER)
+                            val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
+                            newGame(gb.build())
 
-                    //Create the actual requested gamestate
-                    val swapped = if (newBoard) !start else start xor (oldGs.board.nextPlayer == Player.PLAYER)
-                    val gsBuilder = GameState.Builder().remote(newGameId).swapped(swapped)
-                    if (!newBoard) gsBuilder.boards(oldGs.boards)
-                    val gs = gsBuilder.build()
+                            // Store game update in server // TODO
+                            val gameRef = gameId.getDbRef()
+                            val boardString = board.toCompactString()
+                            gameRef.child("startHost").setValue(startHost)
+                            gameRef.child("board").setValue(board.toCompactString())
+
+                            // Close dialog
+                            destroyOnDismiss = false
+                            dialog.dismiss()
+                        }
+                    })
                 }, afterFail = {msg -> log("Failed to create game {$msg}") }, attempts=3)
-
-                //TODO IMPLEMENT BUTTONS THAT DO SOMETHING))
-                //main.remote.listen(gs)
-                /*sendBroadcast(Intent(INTENT_NEWGAME).putExtra(INTENT_DATA,GameState.Builder().swapped(false).build()*/
             }
-            // Create game
-            else {
-                dialog.dismiss()
+            else if (viewPager.currentItem == 1){
+                val gameId = layout.findViewById<EditText>(R.id.remote_join_edit).text.toString()
+                if (gameId.length != 6) log("Enter valid host code")
+                else {
+                    joinOnlineGame(gameId, afterSuccess = {
+                        createListener(gameId, onChange = { data ->
+                            if(data.board.isNotEmpty()){
+                                // Create game
+                                val board = Board(data.board)
+                                val boards = listOf(board) // no history sent
+                                val startHost = data.startHost
+                                val swap = startHost xor (board.nextPlayer == Player.PLAYER)
+                                val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
+                                newGame(gb.build())
+
+                                // Close dialog
+                                destroyOnDismiss = false
+                                dialog.dismiss()
+                            }
+                        })
+                    }, afterFail = {msg -> log("Failed to join game {$msg}") })
+                }
             }
         }
 
@@ -339,31 +397,6 @@ class MainActivity : MainActivityBaseRemote() {
 
             }
         })
-    }
-
-    override fun newAiDialog() {
-        val layout = View.inflate(this, R.layout.dialog_body_ai, null)
-        val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
-            val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
-            val bot = if (progress > 0) MMBot(progress) else RandomBot()
-
-            val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
-            val start = when (startRadioGrp.checkedRadioButtonId) {
-                R.id.start_you -> true
-                R.id.start_other -> false
-                else -> Random().nextBoolean()
-            }
-            when (which) {
-                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().ai(bot).swapped(!start).build())
-                DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-            }
-        }
-
-        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
-            .setView(layout)
-            .setCustomTitle(newTitle(getString(R.string.new_ai_title)))
-            .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
     }
 }
 

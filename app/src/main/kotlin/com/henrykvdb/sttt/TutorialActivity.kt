@@ -39,6 +39,8 @@ class TutorialActivity : AppIntro() {
 		val rand = Random()
 		fun Board.randomMoves(count: Int) = apply { repeat(count) { play(randomAvailableMove(rand)) } }
 		fun Board.toGameState() = GameState.Builder().board(this).build()
+
+		// TODO create from string instead
 		fun playedBoard(vararg moves: Coord) = Board().apply {
 			for (move in moves)
 				play(move)
