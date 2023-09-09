@@ -34,6 +34,7 @@
         android:textSize="20sp"
         android:textStyle="normal|bold" />
 
+    <!-- TODO why does this exist? Can't we put HTML in a regular textview -->
     <com.henrykvdb.sttt.LinkView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
