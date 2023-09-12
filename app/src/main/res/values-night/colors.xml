@@ -6,11 +6,11 @@
     <color name="colorBackground">#131313</color>
 
     <!-- dark theme board colors -->
-    <color name="xColorLight">#4B9BFF</color>
-    <color name="xColor">#0000FF</color>
+    <color name="xColorLight">#4BBBFF</color>
+    <color name="xColor">#2050FF</color>
     <color name="xColorDark">#0000C8</color>
-    <color name="oColorLight">#FF9B4B</color>
-    <color name="oColor">#FF0000</color>
+    <color name="oColorLight">#FFBB4B</color>
+    <color name="oColor">#FF5020</color>
     <color name="oColorDark">#C80000</color>
     <color name="colorBoardUnavailable">#32888888</color>
 </resources>

@@ -21,14 +21,30 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/colorPrimary"
-                app:navigationIcon="@drawable/ic_toolbar_drawer"
-                app:titleTextColor="@color/colorWhite" />
+                android:layout_height="wrap_content">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@color/colorPrimary"
+                    app:navigationIcon="@drawable/ic_toolbar_drawer"
+                    app:titleTextColor="@color/colorWhite" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/ai_progress_ind"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:progress="0"
+                    android:max="100"
+                    android:visibility="invisible"
+                    app:hideAnimationBehavior="inward"
+                    app:indicatorColor="@color/colorAccent"
+                    app:showAnimationBehavior="outward" />
+            </FrameLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
         <LinearLayout

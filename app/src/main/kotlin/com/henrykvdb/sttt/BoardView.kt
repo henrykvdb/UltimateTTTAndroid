@@ -21,9 +21,9 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import com.flaghacker.sttt.common.Board
-import com.flaghacker.sttt.common.Player
-import com.flaghacker.sttt.common.toCoord
+import common.Board
+import common.Player
+import common.toCoord
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -95,19 +95,19 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         fieldSize = min(width, height).toFloat()
 
         macroSizeFull = fieldSize / 3
-        whiteSpace = fieldSize * DrawSettings.whiteSpaceRel
+        whiteSpace = fieldSize * ds.whiteSpaceRel
 
         macroSizeSmall = macroSizeFull - 2 * whiteSpace
         tileSize = macroSizeSmall / 3
 
-        xBorder = fieldSize * DrawSettings.borderXRel
-        oBorder = fieldSize * DrawSettings.borderORel
+        xBorder = fieldSize * ds.borderXRel
+        oBorder = fieldSize * ds.borderORel
 
-        bigGridStroke = (fieldSize * DrawSettings.bigGridStrokeRel).toInt()
-        smallGridStroke = (fieldSize * DrawSettings.smallGridStrokeRel).toInt()
-        tileSymbolStroke = (fieldSize * DrawSettings.tileSymbolStrokeRel).toInt()
-        macroSymbolStroke = (fieldSize * DrawSettings.macroSymbolStrokeRel).toInt()
-        wonSymbolStroke = (fieldSize * DrawSettings.wonSymbolStrokeRel).toInt()
+        bigGridStroke = (fieldSize * ds.bigGridStrokeRel).toInt()
+        smallGridStroke = (fieldSize * ds.smallGridStrokeRel).toInt()
+        tileSymbolStroke = (fieldSize * ds.tileSymbolStrokeRel).toInt()
+        macroSymbolStroke = (fieldSize * ds.macroSymbolStrokeRel).toInt()
+        wonSymbolStroke = (fieldSize * ds.wonSymbolStrokeRel).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -118,7 +118,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             it.text = null
             if (!board.isDone) {
                 if (gameState.type != Source.LOCAL) {
-                    it.setTextColor(if (board.nextPlayer == Player.PLAYER) Color.BLUE else Color.RED)
+                    it.setTextColor(if (board.nextPlayX) Color.BLUE else Color.RED)
                     val yourTurn = gameState.nextSource() == Source.LOCAL
                     it.text =
                         resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
@@ -147,23 +147,15 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
 
         //Draw the macros
-        for (om in 0 until 9) drawMacro(canvas, board, om.toByte())
+        for (om in 0 until 9) drawMacro(canvas, board, om)
 
         //Bigger macro separate lines
-        drawGridBarriers(canvas, fieldSize, when (board.wonBy ?: Player.NEUTRAL) {
-                Player.PLAYER -> getColor(R.color.xColorDark)
-                Player.ENEMY -> getColor(R.color.oColorDark)
-                Player.NEUTRAL -> getColor(R.color.colorText)
-            }, bigGridStroke
-        )
+        drawGridBarriers(canvas, fieldSize, getColor(R.color.colorTextSmall), bigGridStroke)
     }
 
-    private fun drawMacro(canvas: Canvas, board: Board, om: Byte) {
+    private fun drawMacro(canvas: Canvas, board: Board, om: Int) {
         val xm = om % 3
         val ym = om / 3
-
-        val macroOwner = board.macro(om)
-        val realWin = (board.wonBy ?: Player.NEUTRAL) != Player.NEUTRAL
 
         //Translate to macro
         val xmt = macroSizeFull * xm + whiteSpace
@@ -174,37 +166,40 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         drawGridBarriers(canvas, macroSizeSmall, getColor(R.color.colorText), smallGridStroke)
 
         // Draw individual tiles
-        for (tile in 9 * om until 9 * om + 9) {
-            val player = board.tile(tile.toByte())
+        for (os in 0 until 9) {
+            val coord = ((om.toInt() shl 4) + os).toByte()
+            val player = board.tile(coord)
 
             //Translate to tile
-            val xt = (tile % 9) % 3 * tileSize
-            val yt = (tile % 9) / 3 * tileSize
+            val xt = os % 3 * tileSize
+            val yt = os / 3 * tileSize
             canvas.translate(xt, yt)
 
             //Color tile if available
             paint.style = Paint.Style.FILL
             paint.color =
-                if (board.nextPlayer == Player.PLAYER) getColor(R.color.xColor) else getColor(R.color.oColor)
+                if (board.nextPlayX) getColor(R.color.xColor) else getColor(R.color.oColor)
             paint.alpha = 50
-            if (board.availableMoves.contains(tile.toByte())) { // TODO implement this in board to not construct array
-                canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
+
+            board.availableMoves.forEach {
+                if (it == coord) canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
             }
 
             //Draw the correct symbol on the tile
+            val darkTiles = (board.wonBy != Player.NEUTRAL || (board.macro(om) != Player.NEUTRAL) || (board.macroTied(om)))
             if (player == Player.PLAYER) {
                 drawTile(
                     canvas, isX = true, size = tileSize, color = when {
-                        tile.toByte() == board.lastMove -> getColor(R.color.xColorLight)
-                        (realWin || (macroOwner != Player.NEUTRAL)) -> getColor(R.color.xColorDark)
+                        coord == board.lastMove -> getColor(R.color.xColorLight)
+                        darkTiles -> getColor(R.color.xColorDark)
                         else -> getColor(R.color.xColor)
                     }, strokeWidth = tileSymbolStroke, border = xBorder
                 )
             } else if (player == Player.ENEMY) {
                 drawTile(
                     canvas, isX = false, size = tileSize, color = when {
-                        tile.toByte() == board.lastMove -> getColor(R.color.oColorLight)
-                        (realWin || (macroOwner != Player.NEUTRAL)) -> getColor(R.color.oColorDark)
+                        coord == board.lastMove -> getColor(R.color.oColorLight)
+                        darkTiles -> getColor(R.color.oColorDark)
                         else -> getColor(R.color.oColor)
                     }, strokeWidth = tileSymbolStroke, border = oBorder
                 )
@@ -215,30 +210,31 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         // Set the background color for the macro
         paint.style = Paint.Style.FILL
-        if (realWin) {
-            if (board.wonBy == macroOwner) {
-                val xMacro = macroOwner == Player.PLAYER
+        val macroPartOfWin = board.macroPartOfWin(om)
+        if (board.isDone) {
+            if (macroPartOfWin) {
+                val xMacro = board.macro(om) == Player.PLAYER
                 paint.color = getColorAlpha(
                     if (xMacro) R.color.xColor else R.color.oColor,
-                    80
+                    100
                 ) //TODO move to constant
-            } else paint.color = getColor(R.color.colorBoardUnavailable)
-            canvas.drawRect(0f, 0f, macroSizeSmall, macroSizeSmall, paint)
-        } else if (macroOwner != Player.NEUTRAL) {
+                canvas.drawRect(0f, 0f, macroSizeSmall, macroSizeSmall, paint)
+            }
+        } else if (board.macro(om) != Player.NEUTRAL || board.macroTied(om)) {
             paint.color = getColor(R.color.colorBoardUnavailable)
             canvas.drawRect(0f, 0f, macroSizeSmall, macroSizeSmall, paint)
         }
 
         //Draw big x and y over macros
-        var alphaSymbolMacro = DrawSettings.symbolMacroAlpha
-        if (realWin && board.wonBy == macroOwner) alphaSymbolMacro = 160 // TODO constant
-        if (macroOwner == Player.PLAYER) {
+        var alphaSymbolMacro = ds.symbolMacroAlpha
+        if (board.wonBy != Player.NEUTRAL && macroPartOfWin) alphaSymbolMacro = 160 // TODO constant
+        if (board.macro(om) == Player.PLAYER) {
             drawTile(
                 canvas, true, macroSizeSmall,
                 getColorAlpha(R.color.xColor, alphaSymbolMacro),
                 macroSymbolStroke, xBorder
             )
-        } else if (macroOwner == Player.ENEMY) {
+        } else if (board.macro(om) == Player.ENEMY) {
             drawTile(
                 canvas, false, macroSizeSmall,
                 getColorAlpha(R.color.oColor, alphaSymbolMacro),
@@ -335,7 +331,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     private fun getColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
-    private fun getColorAlpha(colorRes: Int, transparacy: Int): Int {
-        return ColorUtils.setAlphaComponent(getColor(colorRes), transparacy)
+    private fun getColorAlpha(colorRes: Int, a: Int): Int {
+        return ColorUtils.setAlphaComponent(getColor(colorRes), a)
     }
 }
