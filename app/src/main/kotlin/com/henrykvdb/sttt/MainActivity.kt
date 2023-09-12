@@ -41,12 +41,10 @@ import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.flaghacker.sttt.bots.MMBot
-import com.flaghacker.sttt.bots.RandomBot
-import com.flaghacker.sttt.common.Board
-import com.flaghacker.sttt.common.Player
+import bots.MCTSBot
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
+import common.Board
 import java.util.Random
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
@@ -108,11 +106,10 @@ class MainActivity : MainActivityBaseRemote() {
         val layout = View.inflate(this, R.layout.dialog_body_about, null)
 
         (layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
-            resources.getText(R.string.app_name_long)
-                .toString() + "\n" + getString(R.string.version) + " " +
-                    BuildConfig.VERSION_NAME
+            resources.getText(R.string.app_name_newline).toString() + "\n" +
+                    getString(R.string.version) + " " + BuildConfig.VERSION_NAME
         } catch (e: PackageManager.NameNotFoundException) {
-            resources.getText(R.string.app_name_long)
+            resources.getText(R.string.app_name_newline)
         }
 
         MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
@@ -210,7 +207,8 @@ class MainActivity : MainActivityBaseRemote() {
         val layout = View.inflate(this, R.layout.dialog_body_ai, null)
         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
             val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
-            val bot = if (progress > 0) MMBot(progress) else RandomBot()
+            //val bot = if (progress > 0) MMBot(progress) else RandomBot()
+            val bot = MCTSBot(100*25_000)
 
             val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
             val start = when (startRadioGrp.checkedRadioButtonId) {
@@ -327,7 +325,7 @@ class MainActivity : MainActivityBaseRemote() {
                             // Create game
                             val boards = if (newBoard) listOf(Board()) else gs.boards
                             val board = boards.first() // first one is the latest
-                            val swap = startHost xor (board.nextPlayer == Player.PLAYER)
+                            val swap = startHost xor board.nextPlayX
                             val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
                             newGame(gb.build())
 
@@ -355,7 +353,7 @@ class MainActivity : MainActivityBaseRemote() {
                                 val board = Board(data.board)
                                 val boards = listOf(board) // no history sent
                                 val startHost = data.startHost
-                                val swap = startHost xor (board.nextPlayer == Player.PLAYER)
+                                val swap = startHost xor board.nextPlayX
                                 val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
                                 newGame(gb.build())
 

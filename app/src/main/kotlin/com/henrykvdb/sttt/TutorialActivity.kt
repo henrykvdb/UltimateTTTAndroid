@@ -14,19 +14,14 @@ package com.henrykvdb.sttt
 import android.app.Activity
 import android.os.Build
 import android.os.Bundle
-import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.flaghacker.sttt.common.Board
-import com.flaghacker.sttt.common.Coord
 import com.github.appintro.AppIntro
-import com.github.appintro.AppIntroFragment
-import com.github.appintro.model.SliderPage
-import java.util.*
+import common.Board
 
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
@@ -36,24 +31,25 @@ class TutorialActivity : AppIntro() {
 		//Add the main slide
 		addSlide(FirstSlide())
 
-		val rand = Random()
-		fun Board.randomMoves(count: Int) = apply { repeat(count) { play(randomAvailableMove(rand)) } }
+		// Helper functions
 		fun Board.toGameState() = GameState.Builder().board(this).build()
+		fun playedBoard(vararg moves: Byte) = Board().apply { for (move in moves) play(move) }
 
-		// TODO create from string instead
-		fun playedBoard(vararg moves: Coord) = Board().apply {
-			for (move in moves)
-				play(move)
-		}
+		// Create the boards
+		val b0 = playedBoard(68, 67, 54, 97, 20, 66, 32).toGameState()
+		val b1 = playedBoard(68, 72, -124, 71, 116, 70).toGameState()
+		val b2 = playedBoard(65, 23, 120, -124, 64, 6, 104, -127, 24, -122, 103, 112, 7, 116, 72, -123, 81, 16, 4, 66, 40, -121, 113, 19, 48, 8, 68, 22, 102, 2, 36, 56, 32).toGameState()
+		val b3 = playedBoard(68, 69, 86, 99).toGameState()
+		val b4 = playedBoard(68, 69, 86, 99, 50).toGameState()
+		val b5 = playedBoard(68, 72, -124, 71, 116, 70, 100).toGameState()
 
 		//Add explanation
-        // TODO move to strings.xml
-		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid", playedBoard(40).randomMoves(6).toGameState()))
-		addSlide(BoardSlide.newInstance("Win grids", "Win grids by getting three in a row, like you would in regular tic tac toe", Board("XXx".padStart(45).padEnd(81)).toGameState()))
-		addSlide(BoardSlide.newInstance("How to win", "Win 3 grids in a row in order to win the game", playedBoard(37, 16, 71, 76, 36, 6, 62, 73, 17, 78, 61, 63, 7, 67, 44, 77, 46, 9, 4, 38, 26, 79, 64, 12, 27, 8, 40, 15, 60, 2, 22, 35, 18).toGameState()))
-		addSlide(BoardSlide.newInstance("The colors", "The allowed moves for the next player are indicated in that player's color. The last move is colored slightly lighter", playedBoard(40, 41, 51, 57).toGameState()))
-		addSlide(BoardSlide.newInstance("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", playedBoard(40, 41, 51, 57, 29).toGameState()))
-		addSlide(BoardSlide.newInstance("Free moves", "If you get sent to a full or won grid you can play anywhere you want", playedBoard(40, 44, 76, 43, 67, 42, 58).toGameState()))
+		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe g0rid", b0))
+		addSlide(BoardSlide.newInstance("Win grids", "Win grids by getting three in a row, like you would in regular tic tac toe", b1))
+		addSlide(BoardSlide.newInstance("How to win", "Win 3 grids in a row in order to win the game", b2))
+		addSlide(BoardSlide.newInstance("The colors", "The allowed moves for the next player are indicated in that player's color. The last move is colored slightly lighter", b3))
+		addSlide(BoardSlide.newInstance("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", b4))
+		addSlide(BoardSlide.newInstance("Free moves", "If you get sent to a full or won grid you can play anywhere you want", b5))
 
 		addSlide(ModeSlide())
 

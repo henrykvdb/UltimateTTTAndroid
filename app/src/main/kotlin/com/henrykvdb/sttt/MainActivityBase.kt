@@ -23,6 +23,8 @@ import android.content.*
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.Pair
 import android.view.Menu
@@ -31,11 +33,13 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
+import common.Player
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicReference
 
@@ -205,10 +209,14 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			log("$this started")
 
 			while (!gs.board.isDone && running) {
+				// Set progress bar visibility
 				val nextSource = gs.nextSource()
-				val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board) else waitForMove(
-					nextSource
-				)
+				runOnUiThread { binding.aiProgressInd.isVisible = nextSource == Source.AI }
+
+				// Fetch move
+				val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board) {
+					runOnUiThread { if(it < 100) binding.aiProgressInd.progress = it }
+				} else waitForMove(nextSource)
 
 				if (running) move?.let {
 					val newBoard = gs.board.copy()
@@ -265,7 +273,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
-	private fun toast(text: String) {
+	internal fun toast(text: String) {
 		toast.setText(text)
 		toast.show()
 	}
@@ -283,9 +291,12 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			return true
 		}
 
-		when {
-			gs.type == Source.REMOTE -> TODO()//remote.sendUndo(ask = true)
-			gs.otherSource() == Source.AI -> undo(count = 2) // TODO this cound undo the AI's move, fix
+		when(gs.type){
+			Source.REMOTE -> TODO()//remote.sendUndo(ask = true)
+			Source.AI -> {
+				if (gs.nextSource() == Source.LOCAL) undo(count = 2)
+				else toast("Undo unavailable")
+			}
 			else -> undo()
 		}
 

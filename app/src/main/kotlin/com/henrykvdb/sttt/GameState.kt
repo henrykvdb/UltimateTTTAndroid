@@ -11,10 +11,9 @@
 
 package com.henrykvdb.sttt
 
-import com.flaghacker.sttt.bots.RandomBot
-import com.flaghacker.sttt.common.Board
-import com.flaghacker.sttt.common.Bot
-import com.flaghacker.sttt.common.Player
+import bots.RandomBot
+import common.Board
+import common.Bot
 import java.io.Serializable
 import java.util.*
 
@@ -35,8 +34,8 @@ class GameState private constructor(val players: Players, val boards: LinkedList
 		else -> Source.LOCAL
 	}
 
-	fun nextSource() = if (board.nextPlayer == Player.PLAYER) players.first else players.second
-	fun otherSource() = if (board.nextPlayer == Player.PLAYER) players.second else players.first
+	fun nextSource() = if (board.nextPlayX) players.first else players.second
+	fun otherSource() = if (board.nextPlayX) players.second else players.first
 	class Players(val first: Source, val second: Source) : Serializable {
 		operator fun contains(source: Source) = (first == source || second == source)
 		fun swap() = Players(second, first)
