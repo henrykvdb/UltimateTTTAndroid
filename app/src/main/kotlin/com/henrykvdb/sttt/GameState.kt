@@ -11,62 +11,71 @@
 
 package com.henrykvdb.sttt
 
+import bots.MCTSBot
 import bots.RandomBot
 import common.Board
 import common.Bot
 import java.io.Serializable
-import java.util.*
+import java.util.LinkedList
 
-enum class Source {
-	LOCAL,
-	AI,
-	REMOTE
-}
+enum class Source { LOCAL, AI, REMOTE }
 
-class GameState private constructor(val players: Players, val boards: LinkedList<Board>, val extraBot: Bot, val remoteId: String) : Serializable {
-	val board get() = boards.peek()!!
-	fun pushBoard(board: Board) = boards.push(board)
-	fun popBoard() = boards.pop() ?: null
+open class GameState(
+    players: Pair<Source, Source> = Pair(Source.LOCAL, Source.LOCAL),
+    boards: LinkedList<Board> = LinkedList(listOf(Board())),
+    extraBot: Bot = RandomBot(),
+    remoteId: String = ""
+) : Serializable {
+    var players: Pair<Source, Source> = players; private set
+    var boards: LinkedList<Board> = boards; private set
+    var extraBot: Bot = extraBot; private set
+    var remoteId: String = remoteId; private set
 
-	val type = when {
-		Source.REMOTE in players -> Source.REMOTE
-		Source.AI in players -> Source.AI
-		else -> Source.LOCAL
-	}
+    /** Access methods (not extendable) **/
 
-	fun nextSource() = if (board.nextPlayX) players.first else players.second
-	fun otherSource() = if (board.nextPlayX) players.second else players.first
-	class Players(val first: Source, val second: Source) : Serializable {
-		operator fun contains(source: Source) = (first == source || second == source)
-		fun swap() = Players(second, first)
+    // Player access methods
+    @Synchronized fun nextSource() = if (board.nextPlayX) players.first else players.second
+    @Synchronized fun otherSource() = if (board.nextPlayX) players.second else players.first
+    @get:Synchronized val type : Source get() = when {
+        players.first == Source.REMOTE || players.second == Source.REMOTE -> Source.REMOTE
+        players.first == Source.AI || players.second == Source.AI -> Source.AI
+        else -> Source.LOCAL
+    }
 
-		companion object {
-			private const val serialVersionUID = 5619757295352382870L
-		}
-	}
+    // Board access methods
+    @Synchronized fun pushBoard(board: Board) = boards.push(board)
+    @Synchronized fun popBoard() = boards.pop() ?: null
+    @get:Synchronized val board get() = boards.peek()!!
 
-	class Builder {
-		private var remoteId: String = ""
-		private var players = Players(Source.LOCAL, Source.LOCAL)
-		private var boards = listOf(Board())
-		private var swapped = false
-		private var extraBot: Bot = RandomBot()
+    /** Play method **/
 
-		fun build() = GameState(if (swapped) players.swap() else players, LinkedList(boards), extraBot, remoteId)
-		fun boards(boards: List<Board>) = apply { this.boards = LinkedList(boards) }
-		fun board(board: Board) = this.boards(listOf(board))
-		fun swapped(swapped: Boolean) = apply { this.swapped = swapped }
-		fun ai(extraBot: Bot) = apply { this.extraBot = extraBot;players = Players(Source.LOCAL, Source.AI) }
-		fun remote(id:String) = apply { players = Players(Source.LOCAL, Source.REMOTE); this.remoteId = id }
-		fun gs(gs: GameState) = apply {
-			players = gs.players
-			boards = gs.boards
-			extraBot = gs.extraBot
-			remoteId = gs.remoteId
-		}
-	}
+    @Synchronized open fun play(source: Source, move: Byte) {
+        if(board.availableMoves.contains(move) && source == nextSource())
+            board.play(move)
+    }
 
-	companion object {
-		private const val serialVersionUID = -3051602110955747927L
-	}
+    /** Methods to start new games **/
+
+    @Synchronized open fun newLocal(){
+        this.players = Pair(Source.LOCAL, Source.LOCAL)
+        this.boards = LinkedList(listOf(Board()))
+        this.remoteId = ""
+    }
+
+    @Synchronized open fun newAi(swapped: Boolean, difficulty: Int){
+        this.players = if (swapped) Pair(Source.AI, Source.LOCAL) else Pair(Source.LOCAL, Source.AI)
+        this.boards = LinkedList(listOf(Board()))
+        this.extraBot = MCTSBot(100*25_000) // TODO based on difficulty
+        this.remoteId = ""
+    }
+
+    @Synchronized open fun newRemote(swapped: Boolean, board: Board, remoteId: String){
+        this.players = if (swapped) Pair(Source.REMOTE, Source.LOCAL) else Pair(Source.LOCAL, Source.REMOTE)
+        this.boards = LinkedList(listOf(board))
+        this.remoteId = remoteId
+    }
+
+    companion object {
+        private const val serialVersionUID: Long = 5744699802048496982L
+    }
 }

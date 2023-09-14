@@ -71,7 +71,7 @@
 	<string name="select_board">Select board</string>
 	<string name="tie_message">It is a tie!</string>
 	<string name="ways_local">Local friend</string>
-	<string name="bt_game">Bluetooth Game</string>
+	<string name="online_game">Online Game</string>
 	<string name="local_game">Local Game</string>
 	<string name="share_with">Share with</string>
 	<string name="host_code">Host code</string>

@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.github.appintro.AppIntro
 import common.Board
+import java.util.LinkedList
 
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
@@ -32,7 +33,7 @@ class TutorialActivity : AppIntro() {
 		addSlide(FirstSlide())
 
 		// Helper functions
-		fun Board.toGameState() = GameState.Builder().board(this).build()
+		fun Board.toGameState() = GameState(boards= LinkedList(listOf(this)))
 		fun playedBoard(vararg moves: Byte) = Board().apply { for (move in moves) play(move) }
 
 		// Create the boards

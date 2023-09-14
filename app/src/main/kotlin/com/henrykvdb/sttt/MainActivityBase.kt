@@ -21,27 +21,23 @@ package com.henrykvdb.sttt
 import android.app.*
 import android.content.*
 import android.content.res.Configuration
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.util.Pair
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
-import common.Player
-import java.io.Closeable
-import java.util.concurrent.atomic.AtomicReference
+import common.Board
+import java.net.URL
 
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
@@ -51,9 +47,7 @@ const val GAMESTATE_KEY = "GAMESTATE_KEY" // Key for saving to bundle
 /** This is the root Activity, which implements the base game and basic UI **/
 open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 	//Game fields
-	private var gameThread = GameThread()
 	internal lateinit var gs: GameState
-	//private val remote = RemoteGame()
 
 	//Misc fields
 	private var askDialog: AlertDialog? = null
@@ -69,6 +63,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	open fun aboutDialog() {}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
+		log("onCreate") // TODO REMOVE
 		super.onCreate(savedInstanceState)
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
@@ -97,113 +92,68 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		}
 
 		if (savedInstanceState == null) {
-			gs = GameState.Builder().swapped(false).build()
+			gs = GameState()
 			triggerDialogs()
 		} else {
 			gs = @Suppress("DEPRECATION") if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
 				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
 			else savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
 		}
+		updateTitleText() // has to be caled after GameState is created
 
 		//Add listener to the BoardView
 		binding.boardView.setup(
-			{ coord -> gameThread.play(Source.LOCAL, coord) },
+			{ coord -> play(Source.LOCAL, coord) }, // TODO should the AI play too?
 			binding.nextMoveTextview
 		)
+		binding.boardView.drawState(gs)
 	}
 
-	override fun onStart() {
-		log("onStart")
-		super.onStart()
-		newGame(gs)
-
-		/*val test = BotGameTiming(MMBot(7), MCTSBot(Random(), 10_000))
-		test.setCount(10)
-		test.setShuffling(true)
-		test.setLogLevel(BotGame.LogLevel.BASIC)
-		test.run()*/
-	}
-
-	override fun onStop() {
-		log("onStop")
-
-		// TODO EVALUATE LIFECYLE
-		if (isChangingConfigurations) gameThread.close()
-
-		super.onStop()
-	}
-
-	override fun onDestroy() {
-		log("onDestroy")
-		super.onDestroy()
-		//unregisterReceiver(remoteReceiver)
-		//unregisterReceiver(btStateReceiver)
-
-		//if (!isChangingConfigurations) {
-		//	unbindRemoteService(true)
-		//	if (!keepBtOn) btAdapter?.disable()
-		//}
-
-		//Close notification
-		//closeBtNotification(this)
-	}
-
-	/*private val remoteReceiver = object : BroadcastReceiver() {
-		override fun onReceive(context: Context, intent: Intent): Unit = when (intent.action) {
-			//INTENT_MOVE -> gameThread.play(Source.REMOTE, intent.getSerializableExtra(INTENT_DATA) as Byte)
-			//INTENT_UNDO -> undo(intent.getBooleanExtra(INTENT_DATA, true))
-			//INTENT_TOAST -> toast(intent.getStringExtra(INTENT_DATA)!!)
-			//INTENT_TURNLOCAL -> turnLocal()
-			//INTENT_NEWGAME -> {
-				//btDialog?.setOnDismissListener { }
-				//btDialog?.dismiss()
-				val new_gs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-					intent.getSerializableExtra(GAMESTATE_KEY, GameState::class.java)!!
-				else intent.getSerializableExtra(GAMESTATE_KEY) as GameState
-				newGame(new_gs)
-			}
-			else -> throw IllegalStateException(intent.action)
-		}
-	}*/
+	// TODO remove
+	override fun onStart() { log("onStart"); super.onStart() }
+	override fun onStop() { log("onStop"); super.onStop() }
+	override fun onDestroy() { log("onDestroy"); super.onDestroy() }
 
 	override fun onSaveInstanceState(outState: Bundle) {
+		log("onSaveInstanceState")
 		outState.putSerializable(GAMESTATE_KEY, gs)
 		super.onSaveInstanceState(outState)
 	}
 
-	internal fun newGame(gs: GameState) {
-		//if (gs.type != Source.REMOTE)
-		//	remote.close()
-		gameThread.close()
+	@Synchronized fun play(source: Source, move: Byte) {
+		gs.play(source, move)
+		runOnUiThread { binding.boardView.drawState(gs) }
+	}
 
-		binding.boardView.drawState(gs)
-		this.gs = gs
-
-		supportActionBar?.title = when (gs.type) {
+	fun updateTitleText(){
+		// Set title
+		supportActionBar?.title = when(gs.type){
 			Source.LOCAL -> getString(R.string.local_game)
-			Source.REMOTE -> getString(R.string.bt_game)
 			Source.AI -> getString(R.string.computer_game)
+			Source.REMOTE -> getString(R.string.online_game)
 		}
-		supportActionBar?.subtitle = if (gs.type == Source.REMOTE) getString(
-				R.string.subtitle_remote, gs.remoteId
-			) else null
 
-		gameThread = GameThread()
-		gameThread.start()
+		// Set subtitle
+		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
+										else getString(R.string.subtitle_remote, gs.remoteId)
 	}
 
-	private fun turnLocal() {
-		if (gs.type == Source.REMOTE) newGame(GameState.Builder().boards(gs.boards).build())
+	@Synchronized fun newLocal() {
+		gs.newLocal()
+		runOnUiThread { updateTitleText() }
 	}
 
-	private inner class GameThread : Thread(), Closeable {
-		private val playerLock = Object()
-		private val playerMove = AtomicReference<Pair<Byte, Source>>()
+	@Synchronized fun newAi(swapped: Boolean, difficulty: Int) {
+		gs.newAi(swapped, difficulty)
+		runOnUiThread { updateTitleText() }
+	}
 
-		@Volatile
-		private var running: Boolean = false
+	@Synchronized fun newRemote(swapped: Boolean, board: Board, remoteId: String) {
+		gs.newRemote(swapped, board, remoteId)
+		runOnUiThread { updateTitleText() }
+	}
 
-		override fun run() {
+	/*override fun run() {
 			name = "GameThread"
 			running = true
 			log("$this started")
@@ -230,47 +180,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 				}
 			}
 			log("$this stopped")
-		}
-
-		private fun waitForMove(player: Source): Byte? {
-			playerMove.set(Pair(-1, Source.LOCAL))
-			while ((!gs.board.availableMoves.contains(playerMove.get().first)           //Impossible move
-						|| player != playerMove.get().second                            //Wrong player
-						|| playerMove.get() == null                                     //No Pair
-						|| playerMove.get().first == null                               //No move
-						|| playerMove.get().second == null)                             //No source
-				&& !interrupted() && running
-			) {
-				synchronized(playerLock) {
-					try {
-						playerLock.wait() //TODO fix #2
-					} catch (e: InterruptedException) {
-						return null
-					}
-				}
-			}
-			return playerMove.getAndSet(null).first
-		}
-
-		fun play(source: Source, move: Byte) {
-			synchronized(playerLock) {
-				playerMove.set(Pair(move, source))
-				playerLock.notify() //TODO fix #1
-			}
-		}
-
-		override fun close() {
-			try {
-				synchronized(playerLock) {
-					running = false
-					interrupt()
-					playerLock.notify() //TODO fix #0
-				}
-			} catch (t: Throwable) {
-				log("Error closing thread $t")
-			}
-		}
-	}
+		}*/
 
 	private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
 	internal fun toast(text: String) {
@@ -278,9 +188,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		toast.show()
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu): Boolean {
+	override fun onCreateOptionsMenu(menu: Menu) = true.apply {
 		menuInflater.inflate(R.menu.menu_undo, menu)
-		return true
 	}
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -295,23 +204,15 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			Source.REMOTE -> TODO()//remote.sendUndo(ask = true)
 			Source.AI -> {
 				if (gs.nextSource() == Source.LOCAL) undo(count = 2)
-				else toast("Undo unavailable")
+				else {
+					undo(count = 1)
+					gs.extraBot.cancel()
+				}
 			}
 			else -> undo()
 		}
 
 		return true
-	}
-
-	private fun undo(ask: Boolean = false, count: Int = 1) {
-		if (ask && gs.type == Source.REMOTE) {
-			askUser(getString(R.string.undo_request)) { allow ->
-				if (allow) {
-					undo()
-					TODO()//remote.sendUndo(ask = false)
-				}
-			}
-		} else newGame(GameState.Builder().gs(gs).build().apply { repeat(count) { popBoard() } })
 	}
 
 	override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -328,6 +229,17 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		binding.drawerLayout.closeDrawer(GravityCompat.START)
 		return true
+	}
+
+	private fun undo(ask: Boolean = false, count: Int = 1) {
+		if (ask && gs.type == Source.REMOTE) {
+			askUser(getString(R.string.undo_request)) { allow ->
+				if (allow) {
+					undo()
+					TODO()//remote.sendUndo(ask = false)
+				}
+			}
+		} else TODO()//newGame(GameStateBase.Builder().gs(gs).build().apply { repeat(count) { popBoard() } })
 	}
 
 	private fun askUser(message: String, callBack: (Boolean) -> Unit) {

@@ -54,7 +54,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val paint = Paint().apply { isAntiAlias = true }
     private val path = Path()
 
-    private var gameState = GameState.Builder().build()
+    private var gameState = GameState()
     private var nextPlayerView: TextView? = null
     private var moveCallback: (Byte) -> Unit = {}
 

@@ -189,7 +189,7 @@ class MainActivity : MainActivityBaseRemote() {
         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
             when (which) {
                 DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
-                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().swapped(false).build())
+                DialogInterface.BUTTON_POSITIVE -> newLocal()
             }
         }
 
@@ -208,7 +208,7 @@ class MainActivity : MainActivityBaseRemote() {
         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
             val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
             //val bot = if (progress > 0) MMBot(progress) else RandomBot()
-            val bot = MCTSBot(100*25_000)
+            val bot = MCTSBot(1000*25_000)
 
             val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
             val start = when (startRadioGrp.checkedRadioButtonId) {
@@ -217,7 +217,7 @@ class MainActivity : MainActivityBaseRemote() {
                 else -> Random().nextBoolean()
             }
             when (which) {
-                DialogInterface.BUTTON_POSITIVE -> newGame(GameState.Builder().ai(bot).swapped(!start).build())
+                DialogInterface.BUTTON_POSITIVE -> newAi(!start, progress)
                 DialogInterface.BUTTON_NEGATIVE -> dialog.dismiss()
             }
         }
@@ -323,15 +323,12 @@ class MainActivity : MainActivityBaseRemote() {
                             }
 
                             // Create game
-                            val boards = if (newBoard) listOf(Board()) else gs.boards
-                            val board = boards.first() // first one is the latest
+                            val board = if (newBoard) Board() else gs.board
                             val swap = startHost xor board.nextPlayX
-                            val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
-                            newGame(gb.build())
+                            newRemote(swap, board, gameId)
 
                             // Store game update in server // TODO
                             val gameRef = gameId.getDbRef()
-                            val boardString = board.toCompactString()
                             gameRef.child("startHost").setValue(startHost)
                             gameRef.child("board").setValue(board.toCompactString())
 
@@ -348,14 +345,11 @@ class MainActivity : MainActivityBaseRemote() {
                 else {
                     joinOnlineGame(gameId, afterSuccess = {
                         createListener(gameId, onChange = { data ->
-                            if(data.board.isNotEmpty()){
+                            if(data.board.isNotEmpty()) {
                                 // Create game
-                                val board = Board(data.board)
-                                val boards = listOf(board) // no history sent
-                                val startHost = data.startHost
-                                val swap = startHost xor board.nextPlayX
-                                val gb = GameState.Builder().remote(gameId).swapped(swap).boards(boards)
-                                newGame(gb.build())
+                                val board = Board(data.board) // no history sent
+                                val swap = (!data.startHost) xor board.nextPlayX
+                                newRemote(swap, board, gameId)
 
                                 // Close dialog
                                 destroyOnDismiss = false
