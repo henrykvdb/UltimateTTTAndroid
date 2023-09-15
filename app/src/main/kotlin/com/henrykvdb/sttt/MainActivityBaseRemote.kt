@@ -1,7 +1,9 @@
 package com.henrykvdb.sttt
 
+import android.os.Bundle
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
@@ -12,7 +14,7 @@ internal fun String.getDbRef() = Firebase.database.getReference(this)
 
 @IgnoreExtraProperties
 data class RemoteDbEntry(
-    var board: String = "",
+    var history: List<Int> = listOf(),
     var fidHost: String = "",
     var fidRemote: String = "",
     var startHost: Boolean = true,
@@ -22,7 +24,30 @@ data class RemoteDbEntry(
 
 /** This class implements remote (internet) game functionality on the top MainActivityBase **/
 open class MainActivityBaseRemote : MainActivityBase() {
+    private var dataBaseReference: DatabaseReference? = null
     private var remoteListener: ValueEventListener? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Restore the connection
+        if (gs.type == Source.REMOTE){
+            val gameId = gs.remoteId
+            if (gameId.isNotEmpty())
+                createListener(gameId) { onDbEntryChange(it) }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        destroyListener()
+    }
+
+    fun onDbEntryChange(newEntry: RemoteDbEntry){
+        if (gs.type == Source.REMOTE)
+            newRemote(gs.swapped, newEntry.history, gs.remoteId)
+        else turnLocal()
+    }
 
     /** Host side of game creation handshakeing **/
     fun createOnlineGame(afterSuccess: (id: String) -> Unit,
@@ -36,8 +61,8 @@ open class MainActivityBaseRemote : MainActivityBase() {
         val gameId: String = List(6) { validChars.random() }.joinToString("")
         val remoteGameRef = gameId.getDbRef()
 
-        FirebaseInstallations.getInstance().id.addOnSuccessListener { fid -> // hostID
-            remoteGameRef.get().addOnSuccessListener {
+        FirebaseInstallations.getInstance().id.addOnSuccessListener(this) { fid -> // hostID
+            remoteGameRef.get().addOnSuccessListener(this) {
                 if (it.exists()) {
                     log("Remote game with gameId=$gameId already exists, retrying")
                     createOnlineGame(afterSuccess, afterFail, attempts - 1)
@@ -60,11 +85,11 @@ open class MainActivityBaseRemote : MainActivityBase() {
         log("ATTEMPT JOIN GAME ($gameId)")
         val remoteGameRef = gameId.getDbRef()
 
-        FirebaseInstallations.getInstance().id.addOnSuccessListener { fidLocal -> // hostID
-            remoteGameRef.get().addOnSuccessListener {
+        FirebaseInstallations.getInstance().id.addOnSuccessListener(this) { fidLocal -> // hostID
+            remoteGameRef.get().addOnSuccessListener(this) {
                 if (it.exists()) {
                     val child = remoteGameRef.child("fidRemote")
-                    child.get().addOnSuccessListener { data ->
+                    child.get().addOnSuccessListener(this) { data ->
                         val fidExisting: String? = data.getValue(String::class.java)
                         if (fidExisting == "" || fidExisting == fidLocal){
                             remoteGameRef.child("fidRemote").setValue(fidLocal)
@@ -90,9 +115,10 @@ open class MainActivityBaseRemote : MainActivityBase() {
         log("Start listening to gameId=$gameId")
 
         // Cancel listener if one exists
-        remoteListener?.let { destroyListener(gameId) }
+        remoteListener?.let { destroyListener() }
 
         // Create the new listener
+        dataBaseReference = gameId.getDbRef()
         remoteListener = object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val newDbEntry = dataSnapshot.getValue(RemoteDbEntry::class.java)
@@ -106,12 +132,13 @@ open class MainActivityBaseRemote : MainActivityBase() {
         }
 
         // Add the new listener
-        remoteListener?.let { gameId.getDbRef().addValueEventListener(it) }
+        remoteListener?.let { dataBaseReference?.addValueEventListener(it) }
     }
 
-    fun destroyListener(gameId: String){
-        log("Stop listening to gameId=$gameId")
-        remoteListener?.let { gameId.getDbRef().removeEventListener(it) }
+    fun destroyListener(){
+        log("REMOTE Stop listening")
+        remoteListener?.let { dataBaseReference?.removeEventListener(it) }
+        dataBaseReference = null
         remoteListener = null
     }
 
@@ -119,6 +146,6 @@ open class MainActivityBaseRemote : MainActivityBase() {
     fun removeOnlineGame(gameId: String) {
         log("Remove remote game with gameId=$gameId")
         gameId.getDbRef().removeValue()
-        destroyListener(gameId)
+        destroyListener()
     }
 }

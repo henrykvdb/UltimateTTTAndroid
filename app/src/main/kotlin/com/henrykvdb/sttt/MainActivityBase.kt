@@ -21,7 +21,6 @@ package com.henrykvdb.sttt
 import android.app.*
 import android.content.*
 import android.content.res.Configuration
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -37,7 +36,6 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import common.Board
-import java.net.URL
 
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
@@ -121,11 +119,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	@Synchronized fun play(source: Source, move: Byte) {
-		gs.play(source, move)
-		runOnUiThread { binding.boardView.drawState(gs) }
+		if (gs.play(source, move))
+			runOnUiThread { binding.boardView.drawState(gs) }
+		else if (source == Source.REMOTE)
+			gs.turnLocal()
 	}
 
-	fun updateTitleText(){
+	private fun updateTitleText(){
 		// Set title
 		supportActionBar?.title = when(gs.type){
 			Source.LOCAL -> getString(R.string.local_game)
@@ -140,17 +140,22 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	@Synchronized fun newLocal() {
 		gs.newLocal()
-		runOnUiThread { updateTitleText() }
+		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
+	}
+
+	@Synchronized fun turnLocal() {
+		gs.turnLocal()
+		runOnUiThread { updateTitleText() } // note: no board update needed
 	}
 
 	@Synchronized fun newAi(swapped: Boolean, difficulty: Int) {
 		gs.newAi(swapped, difficulty)
-		runOnUiThread { updateTitleText() }
+		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
 	}
 
-	@Synchronized fun newRemote(swapped: Boolean, board: Board, remoteId: String) {
-		gs.newRemote(swapped, board, remoteId)
-		runOnUiThread { updateTitleText() }
+	@Synchronized fun newRemote(swapped: Boolean, history: List<Int>, remoteId: String) {
+		gs.newRemote(swapped, history, remoteId)
+		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
 	}
 
 	/*override fun run() {
@@ -195,7 +200,9 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		if (item.itemId != R.id.action_undo) return false
 
-		if (gs.boards.size == 1 || (gs.boards.size == 2 && gs.otherSource() == Source.AI)) {
+		// TODO whole undo operation should be handled in gamestate..
+
+		if (gs.history.size == 1 || (gs.history.size == 2 && gs.otherSource() == Source.AI)) {
 			toast(getString(R.string.no_prev_moves))
 			return true
 		}

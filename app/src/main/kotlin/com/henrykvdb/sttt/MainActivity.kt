@@ -311,8 +311,12 @@ class MainActivity : MainActivityBaseRemote() {
                         HtmlCompat.FROM_HTML_MODE_LEGACY
                     )
 
+                    var handshakeComplete = false
                     createListener(gameId, onChange = { data ->
-                        if(data.fidRemote.isNotEmpty()){
+                        if (handshakeComplete) onDbEntryChange(data)
+                        else if(data.fidRemote.isNotEmpty()){
+                            handshakeComplete = true
+
                             //Get game settings
                             val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
                             val newBoard = (layout.findViewById<View>(R.id.board_new) as RadioButton).isChecked
@@ -323,14 +327,15 @@ class MainActivity : MainActivityBaseRemote() {
                             }
 
                             // Create game
-                            val board = if (newBoard) Board() else gs.board
-                            val swap = startHost xor board.nextPlayX
-                            newRemote(swap, board, gameId)
+                            val history = if (newBoard) listOf(-1) else gs.history
+                            val nextPlayX = if (newBoard) true else history.size % 2 == 1
+                            val swap = startHost xor nextPlayX
+                            newRemote(swap, history, gameId)
 
                             // Store game update in server // TODO
                             val gameRef = gameId.getDbRef()
                             gameRef.child("startHost").setValue(startHost)
-                            gameRef.child("board").setValue(board.toCompactString())
+                            gameRef.child("history").setValue(history)
 
                             // Close dialog
                             destroyOnDismiss = false
@@ -340,16 +345,21 @@ class MainActivity : MainActivityBaseRemote() {
                 }, afterFail = {msg -> log("Failed to create game {$msg}") }, attempts=3)
             }
             else if (viewPager.currentItem == 1){
+                var handshakeComplete = false
                 val gameId = layout.findViewById<EditText>(R.id.remote_join_edit).text.toString()
                 if (gameId.length != 6) log("Enter valid host code")
                 else {
                     joinOnlineGame(gameId, afterSuccess = {
                         createListener(gameId, onChange = { data ->
-                            if(data.board.isNotEmpty()) {
+                            if (handshakeComplete) onDbEntryChange(data)
+                            else if(data.history.isNotEmpty()) {
+                                handshakeComplete = true
+
                                 // Create game
-                                val board = Board(data.board) // no history sent
-                                val swap = (!data.startHost) xor board.nextPlayX
-                                newRemote(swap, board, gameId)
+                                val history = data.history
+                                val nextPlayX = history.size % 2 == 1
+                                val swap = !(data.startHost xor nextPlayX)
+                                newRemote(swap, history, gameId)
 
                                 // Close dialog
                                 destroyOnDismiss = false

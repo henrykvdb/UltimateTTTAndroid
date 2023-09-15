@@ -16,63 +16,70 @@ import bots.RandomBot
 import common.Board
 import common.Bot
 import java.io.Serializable
-import java.util.LinkedList
 
 enum class Source { LOCAL, AI, REMOTE }
 
-open class GameState(
-    players: Pair<Source, Source> = Pair(Source.LOCAL, Source.LOCAL),
-    boards: LinkedList<Board> = LinkedList(listOf(Board())),
-    extraBot: Bot = RandomBot(),
-    remoteId: String = ""
-) : Serializable {
-    var players: Pair<Source, Source> = players; private set
-    var boards: LinkedList<Board> = boards; private set
-    var extraBot: Bot = extraBot; private set
-    var remoteId: String = remoteId; private set
+open class GameState : Serializable {
+    var players = Pair(Source.LOCAL, Source.LOCAL); private set
+    var board = Board(); private set
+    var history = mutableListOf(-1)
+    var extraBot: Bot = RandomBot(); private set
+    var remoteId = ""; private set
 
     /** Access methods (not extendable) **/
 
     // Player access methods
     @Synchronized fun nextSource() = if (board.nextPlayX) players.first else players.second
     @Synchronized fun otherSource() = if (board.nextPlayX) players.second else players.first
+    @get:Synchronized val swapped : Boolean get() = players.second == Source.LOCAL
     @get:Synchronized val type : Source get() = when {
         players.first == Source.REMOTE || players.second == Source.REMOTE -> Source.REMOTE
         players.first == Source.AI || players.second == Source.AI -> Source.AI
         else -> Source.LOCAL
     }
 
-    // Board access methods
-    @Synchronized fun pushBoard(board: Board) = boards.push(board)
-    @Synchronized fun popBoard() = boards.pop() ?: null
-    @get:Synchronized val board get() = boards.peek()!!
-
     /** Play method **/
 
-    @Synchronized open fun play(source: Source, move: Byte) {
-        if(board.availableMoves.contains(move) && source == nextSource())
+    @Throws(IllegalArgumentException::class)
+    @Synchronized open fun play(source: Source, move: Byte): Boolean {
+        val play = board.availableMoves.contains(move) && source == nextSource()
+        if (play){
             board.play(move)
+            history.add(move.toInt() and 0xFF)
+        }
+        return play
     }
 
     /** Methods to start new games **/
 
-    @Synchronized open fun newLocal(){
+    @Synchronized open fun newLocal(board: Board = Board()){ // TODO using the board arg gives an invalid state
         this.players = Pair(Source.LOCAL, Source.LOCAL)
-        this.boards = LinkedList(listOf(Board()))
+        this.board = Board()
+        this.history = mutableListOf(-1)
+        this.remoteId = ""
+    }
+
+    @Synchronized open fun turnLocal(){
+        this.players = Pair(Source.LOCAL, Source.LOCAL)
         this.remoteId = ""
     }
 
     @Synchronized open fun newAi(swapped: Boolean, difficulty: Int){
         this.players = if (swapped) Pair(Source.AI, Source.LOCAL) else Pair(Source.LOCAL, Source.AI)
-        this.boards = LinkedList(listOf(Board()))
+        this.board = Board()
+        this.history = mutableListOf(-1)
         this.extraBot = MCTSBot(100*25_000) // TODO based on difficulty
         this.remoteId = ""
     }
 
-    @Synchronized open fun newRemote(swapped: Boolean, board: Board, remoteId: String){
+    @Synchronized open fun newRemote(swapped: Boolean, history: List<Int>, remoteId: String){
         this.players = if (swapped) Pair(Source.REMOTE, Source.LOCAL) else Pair(Source.LOCAL, Source.REMOTE)
-        this.boards = LinkedList(listOf(board))
+        this.history = history.toMutableList()
         this.remoteId = remoteId
+        this.board = Board()
+
+        // Replay the board history (skip first entry containing -1)
+        history.forEachIndexed { idx, mv -> if (idx > 0) board.play(mv.toByte()) }
     }
 
     companion object {

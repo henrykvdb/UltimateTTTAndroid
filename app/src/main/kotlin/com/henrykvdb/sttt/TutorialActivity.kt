@@ -33,7 +33,7 @@ class TutorialActivity : AppIntro() {
 		addSlide(FirstSlide())
 
 		// Helper functions
-		fun Board.toGameState() = GameState(boards= LinkedList(listOf(this)))
+		fun Board.toGameState() = GameState().apply { newLocal(this@toGameState) }
 		fun playedBoard(vararg moves: Byte) = Board().apply { for (move in moves) play(move) }
 
 		// Create the boards
