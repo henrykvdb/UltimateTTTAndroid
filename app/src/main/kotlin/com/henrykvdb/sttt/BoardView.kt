@@ -54,7 +54,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val paint = Paint().apply { isAntiAlias = true }
     private val path = Path()
 
-    private var gameState = GameState()
+    private var boardGs: GameState? = null
     private var nextPlayerView: TextView? = null
     private var moveCallback: (Byte) -> Unit = {}
 
@@ -87,7 +87,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     fun drawState(gameState: GameState) {
-        this.gameState = gameState
+        this.boardGs = gameState
         postInvalidate()
     }
 
@@ -111,46 +111,49 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     override fun onDraw(canvas: Canvas) {
-        val board = gameState.board
+        boardGs?.let { gs ->
+            val board = gs.board
 
-        //Set the helper text
-        nextPlayerView?.let {
-            it.text = null
-            if (!board.isDone) {
-                if (gameState.type != Source.LOCAL) {
-                    it.setTextColor(if (board.nextPlayX) Color.BLUE else Color.RED)
-                    val yourTurn = gameState.nextSource() == Source.LOCAL
-                    it.text =
-                        resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
-                }
-            } else {
-                if (board.wonBy == Player.NEUTRAL) {
-                    it.setTextColor(Color.BLACK)
-                    it.text = resources.getText(R.string.tie_message)
-                } else {
-                    if (gameState.type == Source.LOCAL) {
-                        it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
-                        it.text = resources.getString(
-                            R.string.game_winner,
-                            if (board.wonBy == Player.PLAYER) "X" else "O"
-                        )
-                    } else {
-                        it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
-                        val youWon =
-                            if (board.wonBy == Player.PLAYER) gameState.players.first == Source.LOCAL
-                            else gameState.players.second == Source.LOCAL
+            //Set the helper text
+            // TODO move this to MainActivityBase
+            nextPlayerView?.let {
+                it.text = null
+                if (!board.isDone) {
+                    if (gs.type != Source.LOCAL) {
+                        it.setTextColor(if (board.nextPlayX) Color.BLUE else Color.RED)
+                        val yourTurn = gs.nextSource() == Source.LOCAL
                         it.text =
-                            resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+                            resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
+                    }
+                } else {
+                    if (board.wonBy == Player.NEUTRAL) {
+                        it.setTextColor(Color.BLACK)
+                        it.text = resources.getText(R.string.tie_message)
+                    } else {
+                        if (gs.type == Source.LOCAL) {
+                            it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
+                            it.text = resources.getString(
+                                R.string.game_winner,
+                                if (board.wonBy == Player.PLAYER) "X" else "O"
+                            )
+                        } else {
+                            it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
+                            val youWon =
+                                if (board.wonBy == Player.PLAYER) gs.players.first == Source.LOCAL
+                                else gs.players.second == Source.LOCAL
+                            it.text =
+                                resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+                        }
                     }
                 }
             }
+
+            //Draw the macros
+            for (om in 0 until 9) drawMacro(canvas, board, om)
+
+            //Bigger macro separate lines
+            drawGridBarriers(canvas, fieldSize, getColor(R.color.colorTextSmall), bigGridStroke)
         }
-
-        //Draw the macros
-        for (om in 0 until 9) drawMacro(canvas, board, om)
-
-        //Bigger macro separate lines
-        drawGridBarriers(canvas, fieldSize, getColor(R.color.colorTextSmall), bigGridStroke)
     }
 
     private fun drawMacro(canvas: Canvas, board: Board, om: Int) {
