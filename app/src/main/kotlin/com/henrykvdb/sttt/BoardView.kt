@@ -86,7 +86,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         this.nextPlayerView = nextPlayerView
     }
 
-    fun drawState(gameState: GameState) {
+    fun drawState(gameState: GameState?) {
         this.boardGs = gameState
         postInvalidate()
     }

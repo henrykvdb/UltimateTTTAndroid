@@ -21,7 +21,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.github.appintro.AppIntro
-import common.Board
 
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
@@ -79,52 +78,33 @@ class TutorialActivity : AppIntro() {
 	}
 }
 
-class ModeSlide : Fragment() {
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-		return inflater.inflate(R.layout.tutorial_body_modes, container, false)
-	}
-}
+// Custom slides
+class FirstSlide : Fragment(R.layout.tutorial_body_first)
+class ModeSlide : Fragment(R.layout.tutorial_body_modes)
+class BoardSlide : Fragment(R.layout.tutorial_body_boardview) {
+	private val title get() = requireArguments().getString("title") ?: ""
+	private val desc get() = requireArguments().getString("desc") ?: ""
+	private val gs: GameState? get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+			requireArguments().getSerializable("gameState", GameState::class.java)
+				else requireArguments().getSerializable("gameState") as GameState?
 
-//Class used for custom slides with a BoardView in them
-class BoardSlide : Fragment() {
-	var title: String? = null
-	var desc: String? = null
-	var gameState: GameState? = null
-
-	override fun onCreate(savedInstanceState: Bundle?) {
-		super.onCreate(savedInstanceState)
-		arguments?.let {
-			title = it.getString("title")
-			desc = it.getString("desc")
-			gameState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-				it.getSerializable("gameState", GameState::class.java)
-			else it.getSerializable("gameState") as GameState?
-		}
-	}
-
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-		return inflater.inflate(R.layout.tutorial_body_boardview, container, false).apply {
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		return super.onCreateView(inflater, container, savedInstanceState)?.apply {
 			findViewById<TextView>(R.id.title).text = title
 			findViewById<TextView>(R.id.description).text = desc
-			gameState?.let { findViewById<BoardView>(R.id.boardView).drawState(it) }
+			findViewById<BoardView>(R.id.boardView).drawState(gs)
 		}
 	}
 
 	companion object {
 		fun newInstance(title: String, desc: String, gameState: GameState): BoardSlide {
-			val frag = BoardSlide()
-			frag.arguments = Bundle().apply {
-				putString("title", title)
-				putString("desc", desc)
-				putSerializable("gameState", gameState)
+			return BoardSlide().apply {
+				arguments = Bundle().apply {
+					putString("title", title)
+					putString("desc", desc)
+					putSerializable("gameState", gameState)
+				}
 			}
-			return frag
 		}
-	}
-}
-
-class FirstSlide : Fragment(){
-	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-		return inflater.inflate(R.layout.tutorial_body_first, container, false)
 	}
 }
