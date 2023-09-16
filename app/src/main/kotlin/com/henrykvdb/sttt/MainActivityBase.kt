@@ -23,6 +23,7 @@ import android.content.*
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -35,7 +36,6 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
-import common.Board
 
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
@@ -66,6 +66,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
 		setSupportActionBar(binding.toolbar)
+		StrictMode.enableDefaults() // TODO REMOVE once all leaks are resolved
 
 		//Disable crash reporting and firebase analytics on debug builds
 		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
@@ -118,11 +119,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		super.onSaveInstanceState(outState)
 	}
 
+	open fun updateRemote(history: List<Int>) {}
 	@Synchronized fun play(source: Source, move: Byte) {
-		if (gs.play(source, move))
+		val remoteGame = gs.type == Source.REMOTE
+		if (gs.play(source, move)){
+			if (remoteGame) updateRemote(gs.history)
 			runOnUiThread { binding.boardView.drawState(gs) }
-		else if (source == Source.REMOTE)
-			gs.turnLocal()
+		}
 	}
 
 	private fun updateTitleText(){

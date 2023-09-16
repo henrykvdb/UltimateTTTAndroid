@@ -43,6 +43,11 @@ open class MainActivityBaseRemote : MainActivityBase() {
         destroyListener()
     }
 
+    override fun updateRemote(history: List<Int>) {
+        super.updateRemote(history)
+        dataBaseReference?.child("history")?.setValue(history)
+    }
+
     fun onDbEntryChange(newEntry: RemoteDbEntry){
         if (gs.type == Source.REMOTE)
             newRemote(gs.swapped, newEntry.history, gs.remoteId)

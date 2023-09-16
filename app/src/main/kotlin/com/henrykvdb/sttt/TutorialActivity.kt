@@ -22,7 +22,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.github.appintro.AppIntro
 import common.Board
-import java.util.LinkedList
 
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
@@ -32,17 +31,14 @@ class TutorialActivity : AppIntro() {
 		//Add the main slide
 		addSlide(FirstSlide())
 
-		// Helper functions
-		fun Board.toGameState() = GameState().apply { newLocal(this@toGameState) }
-		fun playedBoard(vararg moves: Byte) = Board().apply { for (move in moves) play(move) }
-
 		// Create the boards
-		val b0 = playedBoard(68, 67, 54, 97, 20, 66, 32).toGameState()
-		val b1 = playedBoard(68, 72, -124, 71, 116, 70).toGameState()
-		val b2 = playedBoard(65, 23, 120, -124, 64, 6, 104, -127, 24, -122, 103, 112, 7, 116, 72, -123, 81, 16, 4, 66, 40, -121, 113, 19, 48, 8, 68, 22, 102, 2, 36, 56, 32).toGameState()
-		val b3 = playedBoard(68, 69, 86, 99).toGameState()
-		val b4 = playedBoard(68, 69, 86, 99, 50).toGameState()
-		val b5 = playedBoard(68, 72, -124, 71, 116, 70, 100).toGameState()
+		fun gameState(history: List<Int>) = GameState().apply { newRemote(false, history, "")}
+		val b0 = gameState(listOf(68, 67, 54, 97, 20, 66, 32))
+		val b1 = gameState(listOf(68, 72, -124, 71, 116, 70))
+		val b2 = gameState(listOf(65, 23, 120, -124, 64, 6, 104, -127, 24, -122, 103, 112, 7, 116, 72, -123, 81, 16, 4, 66, 40, -121, 113, 19, 48, 8, 68, 22, 102, 2, 36, 56, 32))
+		val b3 = gameState(listOf(68, 69, 86, 99))
+		val b4 = gameState(listOf(68, 69, 86, 99, 50))
+		val b5 = gameState(listOf(68, 72, -124, 71, 116, 70, 100))
 
 		//Add explanation
 		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe g0rid", b0))
