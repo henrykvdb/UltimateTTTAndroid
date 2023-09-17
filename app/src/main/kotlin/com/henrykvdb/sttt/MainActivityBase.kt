@@ -129,13 +129,14 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		super.onSaveInstanceState(outState)
 	}
 
-	private fun triggerAI(){
+	private fun launchAI(){
 		aiJob = lifecycleScope.launch {
 			var move: Byte = -1
 			try {
 				binding.aiProgressInd.isVisible = true
 				withContext(Dispatchers.IO) {
 					val bot = gs.extraBot
+					bot.reset() // the bot might have been cancelled before
 					move = bot.move(gs.board) {
 						if (isActive) runOnUiThread {
 							if(it < 100) binding.aiProgressInd.progress = it
@@ -167,7 +168,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding.boardView.drawState(gs)
 
 		// Generate AI move if necessary
-		if (gs.nextSource() == Source.AI) triggerAI()
+		if (gs.nextSource() == Source.AI) launchAI()
 	}
 
 	@Synchronized fun play(source: Source, move: Byte) {
