@@ -40,7 +40,8 @@ class TutorialActivity : AppIntro() {
 		val b5 = gameState(listOf(68, 72, -124, 71, 116, 70, 100))
 
 		//Add explanation
-		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe g0rid", b0))
+		// TODO extract to strings
+		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid", b0))
 		addSlide(BoardSlide.newInstance("Win grids", "Win grids by getting three in a row, like you would in regular tic tac toe", b1))
 		addSlide(BoardSlide.newInstance("How to win", "Win 3 grids in a row in order to win the game", b2))
 		addSlide(BoardSlide.newInstance("The colors", "The allowed moves for the next player are indicated in that player's color. The last move is colored slightly lighter", b3))

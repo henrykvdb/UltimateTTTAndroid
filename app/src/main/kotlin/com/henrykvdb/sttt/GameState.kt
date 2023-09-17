@@ -68,7 +68,7 @@ open class GameState : Serializable {
         this.players = if (swapped) Pair(Source.AI, Source.LOCAL) else Pair(Source.LOCAL, Source.AI)
         this.board = Board()
         this.history = mutableListOf(-1)
-        this.extraBot = MCTSBot(100*25_000) // TODO based on difficulty
+        this.extraBot = MCTSBot(25_000_000) // TODO based on difficulty
         this.remoteId = ""
     }
 
@@ -76,13 +76,23 @@ open class GameState : Serializable {
         this.players = if (swapped) Pair(Source.REMOTE, Source.LOCAL) else Pair(Source.LOCAL, Source.REMOTE)
         this.history = history.toMutableList()
         this.remoteId = remoteId
-        this.board = Board()
+        this.board = boardFromHistory(history)
+    }
 
-        // Replay the board history (skip first entry containing -1)
-        history.forEachIndexed { idx, mv -> if (idx > 0) board.play(mv.toByte()) }
+    @Synchronized fun undo(count:Int = 1): Boolean {
+        if (history.size > count) {
+            repeat(count) { history.removeLast() }
+            this.board = boardFromHistory(history)
+            return true
+        }
+        return false
     }
 
     companion object {
         private const val serialVersionUID: Long = 5744699802048496982L
+
+        private fun boardFromHistory(history: List<Int>) = Board().apply {
+                history.forEachIndexed { idx, mv -> if (idx > 0) this.play(mv.toByte()) }
+        }
     }
 }

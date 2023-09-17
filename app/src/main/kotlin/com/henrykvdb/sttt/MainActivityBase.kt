@@ -23,7 +23,6 @@ import android.content.*
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.StrictMode
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -31,11 +30,19 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
@@ -47,8 +54,12 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	//Game fields
 	internal lateinit var gs: GameState
 
-	//Misc fields
+	// Closables
+	private lateinit var drawerToggle: ActionBarDrawerToggle
 	private var askDialog: AlertDialog? = null
+	private var aiJob: Job? = null
+
+	//Misc fields
 	private lateinit var binding: ActivityMainBinding
 
 	// Implemented by child class MainActivity
@@ -60,58 +71,57 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	open fun shareDialog() {}
 	open fun aboutDialog() {}
 
+	// Implemented by child class MainActivityBaseRemote
+	open fun updateRemote(history: List<Int>) {}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		log("onCreate") // TODO REMOVE
 		super.onCreate(savedInstanceState)
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
 		setSupportActionBar(binding.toolbar)
-		StrictMode.enableDefaults() // TODO REMOVE once all leaks are resolved
 
 		//Disable crash reporting and firebase analytics on debug builds
 		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
 
 		//Add listener to open and closeGame drawer
-		val toggle = ActionBarDrawerToggle(
+		drawerToggle = ActionBarDrawerToggle(
 			this, binding.drawerLayout, binding.toolbar,
 			R.string.navigation_drawer_open,
 			R.string.navigation_drawer_close
 		)
-		binding.drawerLayout.addDrawerListener(toggle)
-		toggle.syncState()
+		binding.drawerLayout.addDrawerListener(drawerToggle)
+		drawerToggle.syncState()
 		binding.navigationView.setNavigationItemSelectedListener(this)
 		supportActionBar?.setHomeButtonEnabled(true)
 		supportActionBar?.setDisplayHomeAsUpEnabled(true)
 		supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_toolbar_drawer)
 
+		// Restore gamestate if rotate / re-create
+		gs = if (savedInstanceState == null) GameState()
+		else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
+		else @Suppress("DEPRECATION") savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
+
+		// Set up board and draw
+		binding.boardView.setup({ coord -> play(Source.LOCAL, coord) },	binding.nextMoveTextview)
+		redraw()
+
 		//Add ads in portrait
 		if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
-			MobileAds.initialize(this) {}
+			MobileAds.initialize(this)
 			binding.adView?.loadAd(AdRequest.Builder().build())
 		}
 
-		if (savedInstanceState == null) {
-			gs = GameState()
-			triggerDialogs()
-		} else {
-			gs = @Suppress("DEPRECATION") if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
-			else savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
-		}
-		updateTitleText() // has to be caled after GameState is created
-
-		//Add listener to the BoardView
-		binding.boardView.setup(
-			{ coord -> play(Source.LOCAL, coord) }, // TODO should the AI play too?
-			binding.nextMoveTextview
-		)
-		binding.boardView.drawState(gs)
+		// Trigger the rate / tutorial dialog
+		if (savedInstanceState == null) triggerDialogs()
 	}
 
-	// TODO remove
-	override fun onStart() { log("onStart"); super.onStart() }
-	override fun onStop() { log("onStop"); super.onStop() }
-	override fun onDestroy() { log("onDestroy"); super.onDestroy() }
+	override fun onDestroy() {
+		log("onDestroy");
+		super.onDestroy()
+		binding.drawerLayout.addDrawerListener(drawerToggle)
+	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
 		log("onSaveInstanceState")
@@ -119,16 +129,29 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		super.onSaveInstanceState(outState)
 	}
 
-	open fun updateRemote(history: List<Int>) {}
-	@Synchronized fun play(source: Source, move: Byte) {
-		val remoteGame = gs.type == Source.REMOTE
-		if (gs.play(source, move)){
-			if (remoteGame) updateRemote(gs.history)
-			runOnUiThread { binding.boardView.drawState(gs) }
+	private fun triggerAI(){
+		aiJob = lifecycleScope.launch {
+			var move: Byte = -1
+			try {
+				binding.aiProgressInd.isVisible = true
+				withContext(Dispatchers.IO) {
+					val bot = gs.extraBot
+					move = bot.move(gs.board) {
+						if (isActive) runOnUiThread {
+							if(it < 100) binding.aiProgressInd.progress = it
+						} else bot.cancel()
+					}
+				}
+			} finally {
+				binding.aiProgressInd.isVisible = false
+				if (move != (-1).toByte() && lifecycle.currentState >= Lifecycle.State.STARTED) {
+					play(Source.AI, move)
+				}
+			}
 		}
 	}
 
-	private fun updateTitleText(){
+	private fun redraw(){
 		// Set title
 		supportActionBar?.title = when(gs.type){
 			Source.LOCAL -> getString(R.string.local_game)
@@ -139,56 +162,41 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		// Set subtitle
 		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
 										else getString(R.string.subtitle_remote, gs.remoteId)
+
+		// Redraw board
+		binding.boardView.drawState(gs)
+
+		// Generate AI move if necessary
+		if (gs.nextSource() == Source.AI) triggerAI()
+	}
+
+	@Synchronized fun play(source: Source, move: Byte) {
+		val remoteGame = gs.type == Source.REMOTE
+		if (gs.play(source, move)){
+			if (remoteGame) updateRemote(gs.history)
+			runOnUiThread { redraw() }
+		}
 	}
 
 	@Synchronized fun newLocal() {
 		gs.newLocal()
-		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
+		runOnUiThread { redraw() }
 	}
 
 	@Synchronized fun turnLocal() {
 		gs.turnLocal()
-		runOnUiThread { updateTitleText() } // note: no board update needed
+		runOnUiThread { redraw() }
 	}
 
 	@Synchronized fun newAi(swapped: Boolean, difficulty: Int) {
 		gs.newAi(swapped, difficulty)
-		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
+		runOnUiThread { redraw() }
 	}
 
 	@Synchronized fun newRemote(swapped: Boolean, history: List<Int>, remoteId: String) {
 		gs.newRemote(swapped, history, remoteId)
-		runOnUiThread { updateTitleText(); binding.boardView.drawState(gs) }
+		runOnUiThread { redraw() }
 	}
-
-	/*override fun run() {
-			name = "GameThread"
-			running = true
-			log("$this started")
-
-			while (!gs.board.isDone && running) {
-				// Set progress bar visibility
-				val nextSource = gs.nextSource()
-				runOnUiThread { binding.aiProgressInd.isVisible = nextSource == Source.AI }
-
-				// Fetch move
-				val move = if (nextSource == Source.AI) gs.extraBot.move(gs.board) {
-					runOnUiThread { if(it < 100) binding.aiProgressInd.progress = it }
-				} else waitForMove(nextSource)
-
-				if (running) move?.let {
-					val newBoard = gs.board.copy()
-					newBoard.play(move)
-
-					// TODO
-					//if (gs.players.contains(Source.REMOTE) && gs.board.nextPlayer == Player.PLAYER == (gs.players.first == Source.LOCAL))
-					//	remote.sendBoard(newBoard)
-					gs.pushBoard(newBoard)
-					binding.boardView.drawState(gs)
-				}
-			}
-			log("$this stopped")
-		}*/
 
 	private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
 	internal fun toast(text: String) {
@@ -203,26 +211,23 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		if (item.itemId != R.id.action_undo) return false
 
-		// TODO whole undo operation should be handled in gamestate..
-
-		if (gs.history.size == 1 || (gs.history.size == 2 && gs.otherSource() == Source.AI)) {
-			toast(getString(R.string.no_prev_moves))
-			return true
-		}
-
+		var success = true
 		when(gs.type){
-			Source.REMOTE -> TODO()//remote.sendUndo(ask = true)
+			Source.REMOTE -> {
+				TODO()//remote.sendUndo(ask = true)
+			}
 			Source.AI -> {
-				if (gs.nextSource() == Source.LOCAL) undo(count = 2)
-				else {
-					undo(count = 1)
-					gs.extraBot.cancel()
+				success = if (gs.nextSource() == Source.LOCAL) gs.undo(2) else {
+					aiJob?.cancel()
+					gs.undo()
 				}
 			}
-			else -> undo()
+			else -> gs.undo()
 		}
 
-		return true
+		if (!success) toast("Not enough moves")
+		else runOnUiThread { redraw() }
+		return success
 	}
 
 	override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -239,17 +244,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		binding.drawerLayout.closeDrawer(GravityCompat.START)
 		return true
-	}
-
-	private fun undo(ask: Boolean = false, count: Int = 1) {
-		if (ask && gs.type == Source.REMOTE) {
-			askUser(getString(R.string.undo_request)) { allow ->
-				if (allow) {
-					undo()
-					TODO()//remote.sendUndo(ask = false)
-				}
-			}
-		} else TODO()//newGame(GameStateBase.Builder().gs(gs).build().apply { repeat(count) { popBoard() } })
 	}
 
 	private fun askUser(message: String, callBack: (Boolean) -> Unit) {
