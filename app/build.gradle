@@ -49,11 +49,13 @@ dependencies {
     // Note: monitor https://github.com/AppIntro/AppIntro/issues/1123 so appintro_fixed.xml can be removed
     implementation 'com.github.AppIntro:AppIntro:6.3.1'
 
-    implementation files('libs/SuperTTTApi.jar')
+    implementation files('libs/ULtimateTTTApi.jar')
 
     implementation 'androidx.core:core-ktx:1.10.1' // Next version requires API target 34
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.10')
     implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
