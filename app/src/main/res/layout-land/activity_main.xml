@@ -39,6 +39,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
                     android:progress="0"
+                    android:max="100"
+                    android:visibility="invisible"
                     app:hideAnimationBehavior="inward"
                     app:indicatorColor="@color/colorAccent"
                     app:showAnimationBehavior="outward" />

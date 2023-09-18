@@ -128,7 +128,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		// Set up board and draw
 		binding.boardView.setup({ coord -> play(Source.LOCAL, coord) },	binding.nextMoveTextview)
-		redraw()
+		redraw(launchAI = false)
 
 		//Add ads in portrait
 		if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
@@ -155,7 +155,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	override fun onStart() {
 		super.onStart()
-		redraw()
+		if (gs.nextSource() == Source.AI)
+			launchAI()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
@@ -178,8 +179,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 					}
 				}
 			} finally {
-				binding.aiProgressInd.isVisible = false
-
 				// (conditionally) play move
 				var playMove = true
 				playMove = playMove and (move != (-1).toByte())
@@ -190,7 +189,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		}
 	}
 
-	private fun redraw(){
+	private fun redraw(launchAI: Boolean = true){
+		// Disable progress bar
+		binding.aiProgressInd.isVisible = false
+
 		// Set title
 		supportActionBar?.title = when(gs.type){
 			Source.LOCAL -> getString(R.string.local_game)
@@ -206,7 +208,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding.boardView.drawState(gs)
 
 		// Generate AI move if necessary
-		if (gs.nextSource() == Source.AI) launchAI()
+		if (launchAI && gs.nextSource() == Source.AI) launchAI()
 	}
 
 	@Synchronized fun play(source: Source, move: Byte) {
