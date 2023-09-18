@@ -40,6 +40,11 @@ import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.ktx.initialize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -80,6 +85,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
 		setSupportActionBar(binding.toolbar)
+
+		// App integrity check
+		Firebase.initialize(this)
+		Firebase.appCheck.installAppCheckProviderFactory(
+			if(BuildConfig.DEBUG) DebugAppCheckProviderFactory.getInstance()
+			else PlayIntegrityAppCheckProviderFactory.getInstance()
+		)
 
 		//Disable crash reporting and firebase analytics on debug builds
 		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
