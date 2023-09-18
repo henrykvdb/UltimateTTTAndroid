@@ -1,3 +1,14 @@
+/*
+ * This file is part of Ultimate Tic Tac Toe.
+ * Copyright (C) 2023 Henryk Van der Bruggen <henrykdev@gmail.com>
+ *
+ * This work is licensed under a Creative Commons
+ * Attribution-NonCommercial-NoDerivatives 4.0 International License.
+ *
+ * You should have received a copy of the CC NC ND License along
+ * with Ultimate Tic Tac Toe.  If not, see <https://creativecommons.org/>.
+ */
+
 package com.henrykvdb.sttt
 
 import android.app.Activity

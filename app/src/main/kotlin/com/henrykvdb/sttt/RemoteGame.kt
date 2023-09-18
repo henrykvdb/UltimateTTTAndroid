@@ -1,19 +1,12 @@
 /*
- * This file is part of Super Tic Tac Toe.
- * Copyright (C) 2018 Henryk Van der Bruggen <henrykdev@gmail.com>
+ * This file is part of Ultimate Tic Tac Toe.
+ * Copyright (C) 2023 Henryk Van der Bruggen <henrykdev@gmail.com>
  *
- * Super Tic Tac Toe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This work is licensed under a Creative Commons
+ * Attribution-NonCommercial-NoDerivatives 4.0 International License.
  *
- * Super Tic Tac Toe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Super Tic Tac Toe.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the CC NC ND License along
+ * with Ultimate Tic Tac Toe.  If not, see <https://creativecommons.org/>.
  */
 
 package com.henrykvdb.sttt
