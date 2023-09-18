@@ -27,26 +27,28 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.navigation.NavigationView
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.henrykvdb.sttt.databinding.ActivityMainBinding
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
+import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
@@ -59,10 +61,17 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	//Game fields
 	internal lateinit var gs: GameState
 
+	// Automaticly closed (lifecycleScope)
+	private var aiJob: Job? = null
+
 	// Closables
 	private lateinit var drawerToggle: ActionBarDrawerToggle
-	private var askDialog: AlertDialog? = null
-	private var aiJob: Job? = null
+	private var askDialog: AlertDialog? = null // TODO
+	private var onBackCallback = object: OnBackPressedCallback(true) {
+		override fun handleOnBackPressed() {
+			moveTaskToBack(true);
+		}
+	}
 
 	//Misc fields
 	private lateinit var binding: ActivityMainBinding
@@ -80,7 +89,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	open fun updateRemote(history: List<Int>) {}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
-		log("onCreate") // TODO REMOVE
 		super.onCreate(savedInstanceState)
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
@@ -109,6 +117,9 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		supportActionBar?.setDisplayHomeAsUpEnabled(true)
 		supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_toolbar_drawer)
 
+		// Make back button not finish() application
+		onBackPressedDispatcher.addCallback(this, onBackCallback)
+
 		// Restore gamestate if rotate / re-create
 		gs = if (savedInstanceState == null) GameState()
 		else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -130,13 +141,24 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	override fun onDestroy() {
-		log("onDestroy");
 		super.onDestroy()
+
+		// Remove listeners
 		binding.drawerLayout.addDrawerListener(drawerToggle)
+		onBackCallback.remove()
+	}
+
+	override fun onPause() {
+		super.onPause()
+		aiJob?.cancel()
+	}
+
+	override fun onStart() {
+		super.onStart()
+		redraw()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
-		log("onSaveInstanceState")
 		outState.putSerializable(GAMESTATE_KEY, gs)
 		super.onSaveInstanceState(outState)
 	}
@@ -157,9 +179,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 				}
 			} finally {
 				binding.aiProgressInd.isVisible = false
-				if (move != (-1).toByte() && lifecycle.currentState >= Lifecycle.State.STARTED) {
-					play(Source.AI, move)
-				}
+
+				// (conditionally) play move
+				var playMove = true
+				playMove = playMove and (move != (-1).toByte())
+				playMove = playMove and (lifecycle.currentState >= Lifecycle.State.STARTED)
+				playMove = playMove and isActive
+				if (playMove) play(Source.AI, move)
 			}
 		}
 	}
