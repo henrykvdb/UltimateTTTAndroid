@@ -44,7 +44,6 @@ import androidx.viewpager2.widget.ViewPager2
 import bots.MCTSBot
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
-import common.Board
 import java.util.Random
 
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
@@ -314,7 +313,7 @@ class MainActivity : MainActivityBaseRemote() {
                     var handshakeComplete = false
                     createListener(gameId, onChange = { data ->
                         if (handshakeComplete) onDbEntryChange(data)
-                        else if(data.fidRemote.isNotEmpty()){
+                        else if(data.idRemote.isNotEmpty()){
                             handshakeComplete = true
 
                             //Get game settings
@@ -332,9 +331,9 @@ class MainActivity : MainActivityBaseRemote() {
                             val swap = startHost xor nextPlayX
                             newRemote(swap, history, gameId)
 
-                            // Store game update in server // TODO
+                            // Store game update in server
                             val gameRef = gameId.getDbRef()
-                            gameRef.child("startHost").setValue(startHost)
+                            gameRef.child("hostIsX").setValue(!swap)
                             gameRef.child("history").setValue(history)
 
                             // Close dialog
@@ -349,16 +348,20 @@ class MainActivity : MainActivityBaseRemote() {
                 val gameId = layout.findViewById<EditText>(R.id.remote_join_edit).text.toString()
                 if (gameId.length != 6) log("Enter valid host code")
                 else {
-                    joinOnlineGame(gameId, afterSuccess = {
+                    joinOnlineGame(gameId, afterSuccess = { isHost ->
                         createListener(gameId, onChange = { data ->
-                            if (handshakeComplete) onDbEntryChange(data)
+                            if (handshakeComplete)
+                                onDbEntryChange(data)
+                            else if(isHost && data.idRemote.isEmpty())
+                                removeOnlineGame(gameId)
                             else if(data.history.isNotEmpty()) {
                                 handshakeComplete = true
 
                                 // Create game
                                 val history = data.history
                                 val nextPlayX = history.size % 2 == 1
-                                val swap = !(data.startHost xor nextPlayX)
+                                val start = if (isHost) data.hostIsX else !data.hostIsX
+                                val swap = start xor nextPlayX
                                 newRemote(swap, history, gameId)
 
                                 // Close dialog
