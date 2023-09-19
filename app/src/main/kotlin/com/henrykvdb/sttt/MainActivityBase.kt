@@ -29,14 +29,15 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.view.ActionMode
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
@@ -66,7 +67,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	// Closables
 	private lateinit var drawerToggle: ActionBarDrawerToggle
-	private var askDialog: AlertDialog? = null // TODO
+	private var remoteDialog: AlertDialog? = null
 	private var onBackCallback = object: OnBackPressedCallback(true) {
 		override fun handleOnBackPressed() {
 			moveTaskToBack(true);
@@ -87,6 +88,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	// Implemented by child class MainActivityBaseRemote
 	open fun updateRemote(history: List<Int>) {}
+	open fun requestRemoteUndo() {}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -146,6 +148,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		// Remove listeners
 		binding.drawerLayout.addDrawerListener(drawerToggle)
 		onBackCallback.remove()
+
+		// Dismiss ask dialog
+		remoteDialog?.setOnDismissListener(null)
+		remoteDialog?.dismiss()
 	}
 
 	override fun onPause() {
@@ -211,6 +217,22 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		if (launchAI && gs.nextSource() == Source.AI) launchAI()
 	}
 
+	override fun onNavigationItemSelected(item: MenuItem): Boolean {
+		when (item.itemId) {
+			R.id.nav_start_ai -> newAiDialog()
+			R.id.nav_start_local -> newLocalDialog()
+			R.id.nav_start_online -> newRemoteDialog()
+			R.id.nav_other_feedback -> feedbackSender()
+			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
+			R.id.nav_other_share -> shareDialog()
+			R.id.nav_other_about -> aboutDialog()
+			else -> return false
+		}
+
+		binding.drawerLayout.closeDrawer(GravityCompat.START)
+		return true
+	}
+
 	@Synchronized fun play(source: Source, move: Byte) {
 		val remoteGame = gs.type == Source.REMOTE
 		if (gs.play(source, move)){
@@ -239,6 +261,23 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		runOnUiThread { redraw() }
 	}
 
+	@Synchronized fun undo(ask: Boolean = false, count: Int = 1) {
+		if (!ask) gs.undo(count)
+		else {
+			val dialogClickListener = DialogInterface.OnClickListener { _, which ->
+				if (which == DialogInterface.BUTTON_POSITIVE)
+					undo(ask = false)
+				updateRemote(history = gs.history) // cancels undo requests
+			}
+
+			if (remoteDialog?.isShowing == true) remoteDialog?.dismiss()
+			remoteDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+				.setMessage(getString(R.string.undo_request_msg))
+				.setPositiveButton(getString(R.string.yes), dialogClickListener)
+				.setNegativeButton(getString(R.string.no), dialogClickListener).show().autoDismiss(this)
+		}
+	}
+
 	private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
 	internal fun toast(text: String) {
 		toast.setText(text)
@@ -253,50 +292,16 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		if (item.itemId != R.id.action_undo) return false
 
 		var success = true
+		aiJob?.cancel()
 		when(gs.type){
-			Source.REMOTE -> {
-				TODO()//remote.sendUndo(ask = true)
-			}
-			Source.AI -> {
-				success = if (gs.nextSource() == Source.LOCAL) gs.undo(2) else {
-					aiJob?.cancel()
-					gs.undo()
-				}
-			}
-			else -> gs.undo()
+			Source.REMOTE -> requestRemoteUndo() // don't update success
+			Source.AI -> success = if (gs.nextSource() == Source.LOCAL) gs.undo(2)
+									else gs.undo()
+			Source.LOCAL -> success = gs.undo()
 		}
 
 		if (!success) toast("Not enough moves")
 		else runOnUiThread { redraw() }
 		return success
-	}
-
-	override fun onNavigationItemSelected(item: MenuItem): Boolean {
-		when (item.itemId) {
-			R.id.nav_start_ai -> newAiDialog()
-			R.id.nav_start_local -> newLocalDialog()
-			R.id.nav_start_online -> newRemoteDialog()
-			R.id.nav_other_feedback -> feedbackSender()
-			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
-			R.id.nav_other_share -> shareDialog()
-			R.id.nav_other_about -> aboutDialog()
-			else -> return false
-		}
-
-		binding.drawerLayout.closeDrawer(GravityCompat.START)
-		return true
-	}
-
-	private fun askUser(message: String, callBack: (Boolean) -> Unit) {
-		val dialogClickListener = DialogInterface.OnClickListener { _, which ->
-			if (which == DialogInterface.BUTTON_POSITIVE) callBack.invoke(true)
-			else if (which == DialogInterface.BUTTON_NEGATIVE) callBack.invoke(false)
-		}
-
-		if (askDialog?.isShowing == true) askDialog!!.dismiss()
-		askDialog = AlertDialog.Builder(this).setMessage(message)
-			.setPositiveButton(getString(R.string.yes), dialogClickListener)
-			.setNegativeButton(getString(R.string.no), dialogClickListener)
-			.setOnDismissListener { callBack.invoke(false) }.show()
 	}
 }

@@ -60,16 +60,6 @@ class MainActivity : MainActivityBaseRemote() {
         (findViewById<View>(R.id.action_bar_title) as TextView).text = title
     }
 
-    // Close the dialog to avoid leaking it
-    private fun AlertDialog.autoDismiss(c: Context) = apply {
-        c.registerComponentCallbacks(object : ComponentCallbacks {
-            override fun onLowMemory() {}
-            override fun onConfigurationChanged(newConfig: Configuration) {
-                this@autoDismiss.dismiss()
-            }
-        })
-    }
-
     // TODO use build in feedback api
     override fun feedbackSender() {
         // @formatter:off
@@ -364,6 +354,10 @@ class MainActivity : MainActivityBaseRemote() {
                                 val swap = start xor nextPlayX
                                 newRemote(swap, history, gameId)
 
+                                // Process undo request (if it exists)
+                                if ((isHost && data.undoRemote) || (!isHost && data.undoHost))
+                                    undo(ask = true)
+
                                 // Close dialog
                                 destroyOnDismiss = false
                                 dialog.dismiss()
@@ -413,4 +407,14 @@ class LinkView(context: Context, attrs: AttributeSet) : AppCompatTextView(contex
         text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
         else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
     }
+}
+
+// Close the dialog to avoid leaking it
+public fun AlertDialog.autoDismiss(c: Context) = apply {
+    c.registerComponentCallbacks(object : ComponentCallbacks {
+        override fun onLowMemory() {}
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            this@autoDismiss.dismiss()
+        }
+    })
 }

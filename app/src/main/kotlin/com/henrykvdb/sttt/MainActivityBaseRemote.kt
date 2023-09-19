@@ -1,5 +1,6 @@
 package com.henrykvdb.sttt
 
+import android.app.Activity
 import android.os.Bundle
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -45,23 +46,42 @@ open class MainActivityBaseRemote : MainActivityBase() {
 
     override fun updateRemote(history: List<Int>) {
         super.updateRemote(history)
-        dataBaseReference?.child("history")?.setValue(history)
+        dataBaseReference?.updateChildren(hashMapOf<String, Any>(
+                "history" to history,
+                "undoHost" to false,
+                "undoRemote" to false,
+            )
+        )
+    }
+
+    override fun requestRemoteUndo() {
+        super.requestRemoteUndo()
+        val gameId = gs.remoteId
+        if (gs.type == Source.REMOTE && gameId.isNotEmpty()){
+            runWithUid { localUid ->
+                val dbRef = gameId.getDbRef()
+                dbRef.child("idHost").get().addOnSuccessListener {
+                    val hostUid = it.getValue(String::class.java)
+                    val tag = if (localUid == hostUid) "undoHost" else "undoRemote"
+                    dbRef.child(tag).setValue(true)
+                }
+            }
+        }
     }
 
     fun onDbEntryChange(newEntry: RemoteDbEntry){
-        if (gs.type == Source.REMOTE)
+        if (gs.type == Source.REMOTE){
+            // Update game with latest data
             newRemote(gs.swapped, newEntry.history, gs.remoteId)
+
+            // Ask device if undo is accepted
+            runWithUid { localUid ->
+                val isHost = localUid == newEntry.idHost
+                if ((isHost && newEntry.undoRemote) || (!isHost && newEntry.undoHost))
+                    undo(ask = true)
+            }
+        }
         else turnLocal()
-    }
-
-    private fun runWithUid(afterSuccess: (id: String) -> Unit) {
-        val currentUser = Firebase.auth.currentUser
-
-        if (currentUser != null)
-            afterSuccess(currentUser.uid)
-        else Firebase.auth.signInAnonymously()
-                .addOnSuccessListener(this) { runWithUid(afterSuccess) }
-                .addOnFailureListener { log("Check internet connection (auth)") }
     }
 
     /** Host side of game creation handshakeing **/
@@ -154,4 +174,13 @@ open class MainActivityBaseRemote : MainActivityBase() {
         destroyListener()
         turnLocal()
     }
+}
+
+private fun Activity.runWithUid(afterSuccess: (id: String) -> Unit) {
+    val currentUser = Firebase.auth.currentUser
+    if (currentUser != null)
+        afterSuccess(currentUser.uid)
+    else Firebase.auth.signInAnonymously()
+        .addOnSuccessListener(this) { runWithUid(afterSuccess) }
+        .addOnFailureListener { log("Check internet connection (auth)") }
 }
