@@ -10,7 +10,7 @@
     android:paddingBottom="0dp">
 
     <TextView
-        android:text="@string/tutorial_title"
+        android:text="@string/tut0_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -29,7 +29,7 @@
         app:srcCompat="@drawable/ic_logo_color" />
 
     <TextView
-        android:text="@string/tutorial_first_desc"
+        android:text="@string/tut0_desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/centerImage"

@@ -24,6 +24,10 @@ import com.github.appintro.AppIntro
 
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
+
+	private fun Int.getS() = getString(this)
+	private fun Int.getC() = ContextCompat.getColor(this@TutorialActivity, this)
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -40,29 +44,29 @@ class TutorialActivity : AppIntro() {
 		val b5 = gameState(listOf(68, 72, -124, 71, 116, 70, 100))
 
 		//Add explanation
-		// TODO extract to strings
-		addSlide(BoardSlide.newInstance("The board", "Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid", b0))
-		addSlide(BoardSlide.newInstance("Win grids", "Win grids by getting three in a row, like you would in regular tic tac toe", b1))
-		addSlide(BoardSlide.newInstance("How to win", "Win 3 grids in a row in order to win the game", b2))
-		addSlide(BoardSlide.newInstance("The colors", "The allowed moves for the next player are indicated in that player's color. The last move is colored slightly lighter", b3))
-		addSlide(BoardSlide.newInstance("Allowed moves", "You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid", b4))
-		addSlide(BoardSlide.newInstance("Free moves", "If you get sent to a full or won grid you can play anywhere you want", b5))
+		addSlide(BoardSlide.newInstance(R.string.tut1_title.getS(), R.string.tut1_desc.getS(), b0))
+		addSlide(BoardSlide.newInstance(R.string.tut2_title.getS(),	R.string.tut2_desc.getS(), b1))
+		addSlide(BoardSlide.newInstance(R.string.tut3_title.getS(),	R.string.tut3_desc.getS(), b2))
+		addSlide(BoardSlide.newInstance(R.string.tut4_title.getS(),	R.string.tut4_desc.getS(), b3))
+		addSlide(BoardSlide.newInstance(R.string.tut5_title.getS(),	R.string.tut5_desc.getS(), b4))
+		addSlide(BoardSlide.newInstance(R.string.tut6_title.getS(),	R.string.tut6_desc.getS(), b5))
 
+		// Add final slide
 		addSlide(ModeSlide())
 
 		//Set bottom navigation bar colors
-		setBarColor(ContextCompat.getColor(this, R.color.colorPrimary))
-		setSeparatorColor(ContextCompat.getColor(this, R.color.colorAccent))
+		setBarColor(R.color.colorPrimary.getC())
+		setSeparatorColor(R.color.colorAccent.getC())
 
 		//Set navigation button colors
-		setColorDoneText(ContextCompat.getColor(this, R.color.colorWhite))
-		setColorSkipButton(ContextCompat.getColor(this, R.color.colorWhite))
-		setNextArrowColor(ContextCompat.getColor(this, R.color.colorWhite))
-		setBackArrowColor(ContextCompat.getColor(this, R.color.colorWhite))
+		setColorDoneText(R.color.colorWhite.getC())
+		setColorSkipButton(R.color.colorWhite.getC())
+		setNextArrowColor(R.color.colorWhite.getC())
+		setBackArrowColor(R.color.colorWhite.getC())
 
 		setIndicatorColor(
-			selectedIndicatorColor = ContextCompat.getColor(this, R.color.colorWhite),
-			unselectedIndicatorColor = ContextCompat.getColor(this, R.color.colorPrimaryDark)
+			selectedIndicatorColor = R.color.colorWhite.getC(),
+			unselectedIndicatorColor = R.color.colorPrimaryDark.getC()
 		)
 	}
 

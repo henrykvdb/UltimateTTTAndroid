@@ -12,7 +12,6 @@
 
     <!--  Single word -->
 	<string name="online_join_code_hint">ABC123</string>
-	<string name="tutorial_title">Tutorial</string>
 	<string name="ways_computer">Computer</string>
     <string name="difficulty">Difficulty</string>
     <string name="current_board">Current</string>
@@ -42,14 +41,12 @@
 	<string name="no">No</string>
 
 	<!--  Multi word -->
-	<string name="tut_ways_description">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
 	<string name="host_desc">You are hosting a game, ask a friend to join &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (your game host code)</string>
 	<string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
 	<string name="special_thanks"><![CDATA[Special thanks to <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
 	<string name="undo_request">Your opponent requests to undo the last move, do you accept?</string>
 	<string name="lets_play_together">Hey, let\'s play Ultimate Tic Tac Toe together!</string>
 	<string name="online_join_desc">Enter the host code of your opponent</string>
-	<string name="tutorial_first_desc">Let\'s go over the basic rules</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="no_host_desc">Press create once you are ready</string>
@@ -67,7 +64,6 @@
 	<string name="author_credit">by Henrykvdb</string>
 	<string name="your_turn">It is your turn!</string>
 	<string name="ways_online">Online friend</string>
-	<string name="ways_to_play">Ways to play</string>
 	<string name="select_board">Select board</string>
 	<string name="tie_message">It is a tie!</string>
 	<string name="ways_local">Local friend</string>
@@ -79,4 +75,31 @@
 	<string name="you_lost">You lost!</string>
 	<string name="rate_app">Rate app</string>
 	<string name="you_won">You won!</string>
+    <string name="undo_request_msg">Opponent is requesting undo, accept?</string>
+
+	<!--  Tutorial slides -->
+
+	<string name="tut0_title">Tutorial</string>
+	<string name="tut0_desc">Let\'s go over the basic rules</string>
+
+	<string name="tut1_title">The board</string>
+	<string name="tut1_desc">Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid</string>
+
+	<string name="tut2_title">Win grids</string>
+	<string name="tut2_desc">Win grids by getting three in a row, like you would in regular tic tac toe</string>
+
+	<string name="tut3_title">How to win</string>
+	<string name="tut3_desc">Win 3 grids in a row in order to win the game</string>
+
+	<string name="tut4_title">The colors</string>
+	<string name="tut4_desc">The allowed moves for the next player are indicated in that player\'s color. The last move is colored slightly lighter</string>
+
+	<string name="tut5_title">Allowed moves</string>
+	<string name="tut5_desc">You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid</string>
+
+	<string name="tut6_title">Free moves</string>
+	<string name="tut6_desc">If you get sent to a full or won grid you can play anywhere you want</string>
+
+	<string name="tut7_title">Ways to play</string>
+	<string name="tut7_desc">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
 </resources>
