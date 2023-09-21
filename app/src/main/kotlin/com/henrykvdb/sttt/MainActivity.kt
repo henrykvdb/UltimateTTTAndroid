@@ -12,12 +12,10 @@
 package com.henrykvdb.sttt
 
 import android.app.Activity
-import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -55,12 +53,6 @@ private const val LAUNCH_COUNT = "launch_count"
 
 /** This is the top Activity, which implements all the dialogs **/
 class MainActivity : MainActivityBaseRemote() {
-    // Create a dialog title view // TODO replace by default Dialog title (was needed for spinner)
-    fun newTitle(title: String) = View.inflate(this, R.layout.dialog_title, null).apply {
-        (findViewById<View>(R.id.action_bar_title) as TextView).text = title
-    }
-
-    // TODO use build in feedback api
     override fun feedbackSender() {
         // @formatter:off
         val deviceInfo = ("\n /** please do not remove this block, technical info: "
@@ -101,10 +93,11 @@ class MainActivity : MainActivityBaseRemote() {
             resources.getText(R.string.app_name_newline)
         }
 
-        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+        openDialog?.dismiss()
+        openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
             .setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
-            .show().autoDismiss(this)
+            .show()
     }
 
     override fun triggerDialogs() {
@@ -165,13 +158,14 @@ class MainActivity : MainActivityBaseRemote() {
 
         val layout = View.inflate(this, R.layout.dialog_body_basic, null)
         layout.findViewById<TextView>(R.id.textView).text = getString(R.string.rate_message)
-        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+        openDialog?.dismiss()
+        openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
-            .setCustomTitle(newTitle(getString(R.string.rate_app)))
+            .setTitle(getString(R.string.rate_app))
             .setPositiveButton(getString(R.string.rate), dialogClickListener)
             .setNeutralButton(getString(R.string.later), dialogClickListener)
             .setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
-            .show().autoDismiss(this)
+            .show()
     }
 
     override fun newLocalDialog() {
@@ -184,11 +178,12 @@ class MainActivity : MainActivityBaseRemote() {
 
         val layout = View.inflate(this, R.layout.dialog_body_basic, null)
         layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_desc)
-        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
-            .setCustomTitle(newTitle(getString(R.string.new_local_title)))
+        openDialog?.dismiss()
+        openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+            .setTitle(getString(R.string.new_local_title))
             .setView(layout)
             .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
+            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show()
 
     }
 
@@ -211,11 +206,12 @@ class MainActivity : MainActivityBaseRemote() {
             }
         }
 
-        MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+        openDialog?.dismiss()
+        openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
-            .setCustomTitle(newTitle(getString(R.string.new_ai_title)))
+            .setTitle(getString(R.string.new_ai_title))
             .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show().autoDismiss(this)
+            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show()
     }
 
     class RemoteHostFragment : Fragment() {
@@ -256,11 +252,12 @@ class MainActivity : MainActivityBaseRemote() {
         }
 
         // Create dialog
-        val dialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+        openDialog?.dismiss()
+        val newDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
             .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog?.dismiss() }
             .setPositiveButton(tabs.getTabAt(0)?.text, null).show()
-            .autoDismiss(this)
+        openDialog = newDialog
 
         // Set up viewpager listener
         val pageChangeCallback = object: ViewPager2.OnPageChangeCallback() {
@@ -271,13 +268,13 @@ class MainActivity : MainActivityBaseRemote() {
                 if (newGameId.isNotEmpty()){ removeOnlineGame(newGameId); newGameId = ""}
 
                 // Set correct flags to allow keyboard to open
-                dialog.window?.setFlags(if (position == 1) 1 else 0,
+                newDialog.window?.setFlags(if (position == 1) 1 else 0,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                             or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)
-        dialog.setOnDismissListener {
+        newDialog.setOnDismissListener {
             viewPager.unregisterOnPageChangeCallback(pageChangeCallback)
             if (newGameId.isNotEmpty() && destroyOnDismiss){
                 removeOnlineGame(newGameId); newGameId = ""
@@ -285,7 +282,7 @@ class MainActivity : MainActivityBaseRemote() {
         }
 
         // Handle positive button
-        val buttonPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
+        val buttonPositive = newDialog.getButton(DialogInterface.BUTTON_POSITIVE)
         buttonPositive.setOnClickListener {
             // Host game
             if (viewPager.currentItem == 0) {
@@ -328,7 +325,7 @@ class MainActivity : MainActivityBaseRemote() {
 
                             // Close dialog
                             destroyOnDismiss = false
-                            dialog.dismiss()
+                            newDialog.dismiss()
                         }
                     })
                 }, afterFail = {msg -> log("Failed to create game {$msg}") }, attempts=3)
@@ -360,7 +357,7 @@ class MainActivity : MainActivityBaseRemote() {
 
                                 // Close dialog
                                 destroyOnDismiss = false
-                                dialog.dismiss()
+                                newDialog.dismiss()
                             }
                         })
                     }, afterFail = {msg -> log("Failed to join game {$msg}") })
@@ -384,8 +381,8 @@ class MainActivity : MainActivityBaseRemote() {
                 if (viewPager.scrollState == ViewPager2.SCROLL_STATE_IDLE) {
                     val selectedTab = tabs.getTabAt(viewPager.currentItem)
                     selectedTab?.select()
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).text = selectedTab?.text
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                    newDialog.getButton(AlertDialog.BUTTON_POSITIVE).text = selectedTab?.text
+                    newDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
 
                     if (selectedTab?.position != 0) {
                         val textView =
@@ -407,14 +404,4 @@ class LinkView(context: Context, attrs: AttributeSet) : AppCompatTextView(contex
         text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
         else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
     }
-}
-
-// Close the dialog to avoid leaking it
-public fun AlertDialog.autoDismiss(c: Context) = apply {
-    c.registerComponentCallbacks(object : ComponentCallbacks {
-        override fun onLowMemory() {}
-        override fun onConfigurationChanged(newConfig: Configuration) {
-            this@autoDismiss.dismiss()
-        }
-    })
 }

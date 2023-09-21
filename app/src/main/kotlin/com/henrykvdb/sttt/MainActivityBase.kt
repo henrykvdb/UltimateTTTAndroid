@@ -66,8 +66,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	private var aiJob: Job? = null
 
 	// Closables
+	var openDialog: AlertDialog? = null
 	private lateinit var drawerToggle: ActionBarDrawerToggle
-	private var remoteDialog: AlertDialog? = null
 	private var onBackCallback = object: OnBackPressedCallback(true) {
 		override fun handleOnBackPressed() {
 			moveTaskToBack(true);
@@ -150,8 +150,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		onBackCallback.remove()
 
 		// Dismiss ask dialog
-		remoteDialog?.setOnDismissListener(null)
-		remoteDialog?.dismiss()
+		openDialog?.setOnDismissListener(null)
+		openDialog?.dismiss()
 	}
 
 	override fun onPause() {
@@ -270,11 +270,11 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 				updateRemote(history = gs.history) // cancels undo requests
 			}
 
-			if (remoteDialog?.isShowing == true) remoteDialog?.dismiss()
-			remoteDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
+			openDialog?.dismiss()
+			openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
 				.setMessage(getString(R.string.undo_request_msg))
 				.setPositiveButton(getString(R.string.yes), dialogClickListener)
-				.setNegativeButton(getString(R.string.no), dialogClickListener).show().autoDismiss(this)
+				.setNegativeButton(getString(R.string.no), dialogClickListener).show()
 		}
 	}
 

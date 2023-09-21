@@ -25,8 +25,8 @@ import com.github.appintro.AppIntro
 class TutorialActivity : AppIntro() {
 	override val layoutId = R.layout.appintro_fixed
 
-	private fun Int.getS() = getString(this)
-	private fun Int.getC() = ContextCompat.getColor(this@TutorialActivity, this)
+	private fun Int.getS() = applicationContext.getString(this)
+	private fun Int.getC() = ContextCompat.getColor(applicationContext, this)
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
