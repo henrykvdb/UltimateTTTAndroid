@@ -31,9 +31,10 @@ import kotlin.math.sqrt
 typealias ds = DrawSettings
 
 object DrawSettings {
-    //Availability color settings
-    const val symbolMacroAlpha = 60 // Range 0 (full) -> 255 (transparant)
-    const val symbolWinAlpha = 255 - 60 // Range 0 (full) -> 255 (transparant)
+    //Availability color settings; 0(=full) -> 255(=transparant)
+    const val alphaSymbolMacro = 60            // alpha symbol over won macros
+    const val alphaWinnerSymbolMacro = 160     // alpha symbol over won macros (for winning player)
+    const val alphaWinnerBackgroundMacro = 100 // alpha background won macros (for winning players)
 
     //Symbol stroke width
     const val tileSymbolStrokeRel = 16f / 984
@@ -114,8 +115,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         boardGs?.let { gs ->
             val board = gs.board
 
-            //Set the helper text
-            // TODO move this to MainActivityBase
+            // Set the helper text
+            // TODO nice to have: move the code for this text view out of the boardview
             nextPlayerView?.let {
                 it.text = null
                 if (!board.isDone) {
@@ -219,8 +220,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 val xMacro = board.macro(om) == Player.PLAYER
                 paint.color = getColorAlpha(
                     if (xMacro) R.color.xColor else R.color.oColor,
-                    100
-                ) //TODO move to constant
+                    ds.alphaWinnerBackgroundMacro
+                )
                 canvas.drawRect(0f, 0f, macroSizeSmall, macroSizeSmall, paint)
             }
         } else if (board.macro(om) != Player.NEUTRAL || board.macroTied(om)) {
@@ -229,8 +230,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
 
         //Draw big x and y over macros
-        var alphaSymbolMacro = ds.symbolMacroAlpha
-        if (board.wonBy != Player.NEUTRAL && macroPartOfWin) alphaSymbolMacro = 160 // TODO constant
+        val alphaSymbolMacro = if (board.wonBy != Player.NEUTRAL && macroPartOfWin)
+            ds.alphaWinnerSymbolMacro else ds.alphaSymbolMacro
         if (board.macro(om) == Player.PLAYER) {
             drawTile(
                 canvas, true, macroSizeSmall,

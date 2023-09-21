@@ -91,7 +91,7 @@ class BoardSlide : Fragment(R.layout.tutorial_body_boardview) {
 	private val desc get() = requireArguments().getString("desc") ?: ""
 	private val gs: GameState? get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
 			requireArguments().getSerializable("gameState", GameState::class.java)
-				else requireArguments().getSerializable("gameState") as GameState?
+				else @Suppress("DEPRECATION") requireArguments().getSerializable("gameState") as GameState?
 
 	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 		return super.onCreateView(inflater, container, savedInstanceState)?.apply {

@@ -39,7 +39,6 @@ import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import bots.MCTSBot
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import java.util.Random
@@ -191,8 +190,6 @@ class MainActivity : MainActivityBaseRemote() {
         val layout = View.inflate(this, R.layout.dialog_body_ai, null)
         val dialogClickListener = DialogInterface.OnClickListener { dialog, which ->
             val progress = (layout.findViewById<View>(R.id.difficulty) as SeekBar).progress
-            //val bot = if (progress > 0) MMBot(progress) else RandomBot()
-            val bot = MCTSBot(1000*25_000)
 
             val startRadioGrp = (layout.findViewById<View>(R.id.start_radio_group) as RadioGroup)
             val start = when (startRadioGrp.checkedRadioButtonId) {
@@ -396,12 +393,9 @@ class MainActivity : MainActivityBaseRemote() {
     }
 }
 
-// TODO find a better place for this
-@Suppress("DEPRECATION")
 class LinkView(context: Context, attrs: AttributeSet) : AppCompatTextView(context, attrs) {
     init {
         movementMethod = LinkMovementMethod.getInstance()
-        text = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) Html.fromHtml(text.toString())
-        else Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY)
+        text = HtmlCompat.fromHtml(text.toString(), HtmlCompat.FROM_HTML_MODE_LEGACY)
     }
 }

@@ -33,7 +33,6 @@
             android:text="@string/join" />
     </com.google.android.material.tabs.TabLayout>
 
-    <!-- TODO investigate if viewpager is needed with TabLayout-->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/pager"
         android:layout_width="match_parent"
