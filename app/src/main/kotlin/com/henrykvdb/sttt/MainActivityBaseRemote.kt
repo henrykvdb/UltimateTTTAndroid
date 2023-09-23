@@ -85,8 +85,7 @@ open class MainActivityBaseRemote : MainActivityBase() {
     }
 
     /** Host side of game creation handshakeing **/
-    fun createOnlineGame(afterSuccess: (id: String) -> Unit,
-                         afterFail: (msg: String) -> Unit, attempts:Int) {
+    fun createOnlineGame(afterSuccess: (id: String) -> Unit, attempts:Int) {
         // Stop trying if attempts run out
         if (attempts == 0) return
         log("ATTEMPT CREATE GAME (left=$attempts)")
@@ -100,21 +99,18 @@ open class MainActivityBaseRemote : MainActivityBase() {
             remoteGameRef.get().addOnSuccessListener(this) {
                 if (it.exists()) {
                     log("Remote game with gameId=$gameId already exists, retrying")
-                    createOnlineGame(afterSuccess, afterFail, attempts - 1)
+                    createOnlineGame(afterSuccess, attempts - 1)
                 } else {
                     log("Create remote game with gameId=$gameId")
-                    //remoteGameRef.child("board").setValue(gs.board.toCompactString())
                     remoteGameRef.setValue(RemoteDbEntry(idHost = idHost))
                     afterSuccess(gameId)
                 }
-            }.addOnFailureListener{
-                afterFail("Check internet connection (gid)")
-            }
+            }.addOnFailureListener{ toast("Check your internet connection (1)") }
         }
     }
 
     /** Client side of game creation handshakeing **/
-    fun joinOnlineGame(gameId: String, afterSuccess: (host: Boolean) -> Unit, afterFail: (msg: String) -> Unit) {
+    fun joinOnlineGame(gameId: String, afterSuccess: (host: Boolean) -> Unit) {
         log("ATTEMPT JOIN GAME ($gameId)")
         val remoteGameRef = gameId.getDbRef()
 
@@ -130,9 +126,9 @@ open class MainActivityBaseRemote : MainActivityBase() {
                     else if (idRemote == "" || idRemote == idLocal) {
                         remoteGameRef.child("idRemote").setValue(idLocal)
                         afterSuccess(false)
-                    } else afterFail("Game not joinable")
-                } else afterFail("Game does not exist")
-            }.addOnFailureListener{ afterFail("Check internet connection (gid)") }
+                    } else toast("Game not joinable")
+                } else toast("Game does not exit")
+            }.addOnFailureListener{ toast("Check your internet connection (2)") }
         }
     }
 
@@ -145,14 +141,11 @@ open class MainActivityBaseRemote : MainActivityBase() {
         // Create the new listener
         dataBaseReference = gameId.getDbRef()
         remoteListener = object : ValueEventListener {
+            override fun onCancelled(error: DatabaseError) = turnLocal()
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val newDbEntry = dataSnapshot.getValue(RemoteDbEntry::class.java)
                 log("Update (gid=$gameId): $newDbEntry")
                 newDbEntry?.let { onChange(it) }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("This should be handled")
             }
         }
 
@@ -174,13 +167,13 @@ open class MainActivityBaseRemote : MainActivityBase() {
         destroyListener()
         turnLocal()
     }
-}
 
-private fun Activity.runWithUid(afterSuccess: (id: String) -> Unit) {
-    val currentUser = Firebase.auth.currentUser
-    if (currentUser != null)
-        afterSuccess(currentUser.uid)
-    else Firebase.auth.signInAnonymously()
-        .addOnSuccessListener(this) { runWithUid(afterSuccess) }
-        .addOnFailureListener { log("Check internet connection (auth)") }
+    private fun runWithUid(afterSuccess: (id: String) -> Unit) {
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser != null)
+            afterSuccess(currentUser.uid)
+        else Firebase.auth.signInAnonymously()
+            .addOnSuccessListener(this) { runWithUid(afterSuccess) }
+            .addOnFailureListener { toast("Check your internet connection (3)") }
+    }
 }

@@ -325,7 +325,7 @@ class MainActivity : MainActivityBaseRemote() {
                             newDialog.dismiss()
                         }
                     })
-                }, afterFail = {msg -> log("Failed to create game {$msg}") }, attempts=3)
+                }, attempts=3)
             }
             else if (viewPager.currentItem == 1){
                 var handshakeComplete = false
@@ -357,7 +357,7 @@ class MainActivity : MainActivityBaseRemote() {
                                 newDialog.dismiss()
                             }
                         })
-                    }, afterFail = {msg -> log("Failed to join game {$msg}") })
+                    })
                 }
             }
         }

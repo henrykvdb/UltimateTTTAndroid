@@ -247,6 +247,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	@Synchronized fun turnLocal() {
+		if (gs.type == Source.REMOTE) toast("Connection lost")
 		gs.turnLocal()
 		runOnUiThread { redraw() }
 	}
