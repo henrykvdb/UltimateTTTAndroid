@@ -5,6 +5,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#33B5E5</color>
     <color name="colorWhite">#FAFAFA</color> <!-- #FAFAFA -->
+    <color name="colorGrey">#c6c6c6</color> <!-- #FAFAFA -->
 
     <!-- light theme colors -->
     <color name="colorText">#131313</color> <!-- real: #131313 test: #FF0000 -->

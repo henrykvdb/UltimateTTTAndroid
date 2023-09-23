@@ -31,6 +31,7 @@
                     android:layout_height="?attr/actionBarSize"
                     android:background="@color/colorPrimary"
                     app:navigationIcon="@drawable/ic_toolbar_drawer"
+                    app:subtitleTextColor="@color/colorGrey"
                     app:titleTextColor="@color/colorWhite" />
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
