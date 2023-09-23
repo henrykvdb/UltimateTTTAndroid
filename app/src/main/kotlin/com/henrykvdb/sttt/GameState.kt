@@ -29,8 +29,8 @@ open class GameState : Serializable {
     /** Access methods (not extendable) **/
 
     // Player access methods
-    @Synchronized fun nextSource() = if (board.nextPlayX) players.first else players.second
-    @Synchronized fun otherSource() = if (board.nextPlayX) players.second else players.first
+    @Synchronized fun nextSource() = if (history.size % 2 == 1) players.first else players.second
+    @Synchronized fun otherSource() = if (history.size % 2 == 0) players.second else players.first
     @get:Synchronized val swapped : Boolean get() = players.second == Source.LOCAL
     @get:Synchronized val type : Source get() = when {
         players.first == Source.REMOTE || players.second == Source.REMOTE -> Source.REMOTE
