@@ -69,6 +69,16 @@ open class GameState : Serializable {
         this.board = Board()
         this.history = mutableListOf(-1)
         this.extraBot = MCTSBot(25_000_000) // TODO based on difficulty
+        this.extraBot = when(difficulty){
+            0 -> RandomBot()
+            1 -> MCTSBot(350)
+            2 -> MCTSBot(2_200)
+            3 -> MCTSBot(8_000)
+            4 -> MCTSBot(20_000)
+            5 -> MCTSBot(50_000)
+            6 -> MCTSBot(100_000)
+            else -> throw Exception("No such difficulty")
+        }
         this.remoteId = ""
     }
 
