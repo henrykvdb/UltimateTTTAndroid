@@ -247,7 +247,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	@Synchronized fun turnLocal() {
-		if (gs.type == Source.REMOTE) toast("Connection lost")
+		if (gs.type == Source.REMOTE) toast(R.string.connection_lost)
 		gs.turnLocal()
 		runOnUiThread { redraw() }
 	}
@@ -280,8 +280,9 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	private val toast by lazy { Toast.makeText(this, "", Toast.LENGTH_SHORT) }
-	internal fun toast(text: String) {
-		toast.setText(text)
+	internal fun toast(textResId: Int) {
+		toast.cancel()
+		toast.setText(textResId)
 		toast.show()
 	}
 
@@ -301,7 +302,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			Source.LOCAL -> success = gs.undo()
 		}
 
-		if (!success) toast("Not enough moves")
+		if (!success) toast(R.string.no_undo_moves)
 		else runOnUiThread { redraw() }
 		return success
 	}

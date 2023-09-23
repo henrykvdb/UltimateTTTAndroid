@@ -1,6 +1,5 @@
 package com.henrykvdb.sttt
 
-import android.app.Activity
 import android.os.Bundle
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -105,7 +104,7 @@ open class MainActivityBaseRemote : MainActivityBase() {
                     remoteGameRef.setValue(RemoteDbEntry(idHost = idHost))
                     afterSuccess(gameId)
                 }
-            }.addOnFailureListener{ toast("Check your internet connection (1)") }
+            }.addOnFailureListener{ toast(R.string.check_internet_1) }
         }
     }
 
@@ -126,9 +125,9 @@ open class MainActivityBaseRemote : MainActivityBase() {
                     else if (idRemote == "" || idRemote == idLocal) {
                         remoteGameRef.child("idRemote").setValue(idLocal)
                         afterSuccess(false)
-                    } else toast("Game not joinable")
-                } else toast("Game does not exit")
-            }.addOnFailureListener{ toast("Check your internet connection (2)") }
+                    } else toast(R.string.online_not_joinable)
+                } else toast(R.string.online_not_exit)
+            }.addOnFailureListener{ toast(R.string.check_internet_2) }
         }
     }
 
@@ -174,6 +173,6 @@ open class MainActivityBaseRemote : MainActivityBase() {
             afterSuccess(currentUser.uid)
         else Firebase.auth.signInAnonymously()
             .addOnSuccessListener(this) { runWithUid(afterSuccess) }
-            .addOnFailureListener { toast("Check your internet connection (3)") }
+            .addOnFailureListener { toast(R.string.check_internet_3) }
     }
 }

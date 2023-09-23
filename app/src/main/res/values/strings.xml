@@ -47,13 +47,19 @@
 	<string name="undo_request">Your opponent requests to undo the last move, do you accept?</string>
 	<string name="lets_play_together">Hey, let\'s play Ultimate Tic Tac Toe together!</string>
 	<string name="online_join_desc">Enter the host code of your opponent</string>
+	<string name="check_internet_1">Check your internet connection (1)</string>
+	<string name="check_internet_2">Check your internet connection (2)</string>
+	<string name="check_internet_3">Check your internet connection (3)</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="no_host_desc">Press create once you are ready</string>
 	<string name="new_local_desc">Create a new two player game</string>
+	<string name="online_not_joinable">Game not joinable</string>
 	<string name="open_source_title">It\'s open source:</string>
+	<string name="online_not_exit">Game does not exit</string>
 	<string name="new_ai_title">Start a new AI game?</string>
 	<string name="new_local_title">Start a new game?</string>
+	<string name="connection_lost">Connection lost</string>
 	<string name="starting_player">Beginning player</string>
 	<string name="enemy_turn">The enemy is playing!</string>
 	<string name="no_prev_moves">No previous moves</string>
@@ -102,4 +108,5 @@
 
 	<string name="tut7_title">Ways to play</string>
 	<string name="tut7_desc">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
+	<string name="no_undo_moves">Not enough moves</string>
 </resources>
