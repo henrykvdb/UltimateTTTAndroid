@@ -39,6 +39,9 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
+import com.google.android.ump.ConsentInformation
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
@@ -76,6 +79,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	//Misc fields
 	private lateinit var binding: ActivityMainBinding
+	private lateinit var consentInformation: ConsentInformation
+	private lateinit var bds : BillingDataSource
 
 	// Implemented by child class MainActivity
 	open fun triggerDialogs() {}
@@ -95,6 +100,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		binding = ActivityMainBinding.inflate(layoutInflater)
 		setContentView(binding.root)
 		setSupportActionBar(binding.toolbar)
+
+		// Create consent information
+		consentInformation = UserMessagingPlatform.getConsentInformation(this)
+
+		// Add the billing data source
+		bds = (application as StttApplication).appContainer.billingDataSource
+		bds.showAdsLiveData.observe(this) { showAdChecked() }
 
 		// App integrity check
 		Firebase.initialize(this)
@@ -133,13 +145,46 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		redraw(launchAI = false)
 
 		//Add ads in portrait
-		if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT && !BuildConfig.DEBUG) {
-			MobileAds.initialize(this)
-			binding.adView?.loadAd(AdRequest.Builder().build())
-		}
+		showAdChecked()
 
 		// Trigger the rate / tutorial dialog
 		if (savedInstanceState == null) triggerDialogs()
+	}
+
+	private fun showAdChecked(){
+		if (consentInformation.canRequestAds()) {
+			showAd()
+		} else { // request consent
+			val params = ConsentRequestParameters.Builder().build()
+			consentInformation.requestConsentInfoUpdate(this, params, {
+				UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { formError ->
+					if (formError != null) { // Consent not obtained in current session.
+						log("Error ${formError.errorCode}: ${formError.message}")
+					} else if (consentInformation.canRequestAds()){
+						showAd()
+					}
+				}
+			}, { log("Error ${it.errorCode}: ${it.message}") })
+		}
+	}
+
+	private fun showAd(){
+		if (!shouldShowAd()){
+			return
+		}
+
+		MobileAds.initialize(this)
+		binding.adView?.loadAd(AdRequest.Builder().build())
+	}
+
+	private fun shouldShowAd(): Boolean {
+		val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+		val isPremium = bds.showAdsLiveData.isInitialized && bds.showAdsLiveData.value == true
+		return isPortrait && !isPremium// && !BuildConfig.DEBUG
+	}
+
+	private fun disableAds(){
+		//binding.adView?.
 	}
 
 	override fun onDestroy() {

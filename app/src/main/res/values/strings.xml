@@ -55,7 +55,7 @@
 	<string name="no_host_desc">Press create once you are ready</string>
 	<string name="new_local_desc">Create a new two player game</string>
 	<string name="online_not_joinable">Game not joinable</string>
-	<string name="open_source_title">It\'s open source:</string>
+	<string name="open_source_title">Source code available:</string>
 	<string name="online_not_exit">Game does not exit</string>
 	<string name="new_ai_title">Start a new AI game?</string>
 	<string name="new_local_title">Start a new game?</string>

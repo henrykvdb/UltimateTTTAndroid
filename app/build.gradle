@@ -55,6 +55,7 @@ dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.10')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
 
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -69,6 +70,8 @@ dependencies {
     debugImplementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
     implementation 'com.google.firebase:firebase-auth-ktx'
 
+    // Ads/Billing
     implementation 'com.google.android.gms:play-services-ads:22.4.0'
     implementation 'com.android.billingclient:billing:6.0.1'
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
 }
