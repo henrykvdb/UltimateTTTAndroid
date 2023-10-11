@@ -34,8 +34,7 @@ private const val SKU_DETAILS_REQUERY_TIME = 1000L * 60L * 60L * 4L // 4 hours
 
 const val BILLING_PRODUCT_ID_ADS = "remove_ads"
 
-private val PRODUCT_ID_LIST = listOf(BILLING_PRODUCT_ID_ADS)
-private val PRODUCT_LIST = PRODUCT_ID_LIST.map {
+private val PRODUCT_LIST = listOf(BILLING_PRODUCT_ID_ADS).map {
     QueryProductDetailsParams.Product.newBuilder().setProductId(it)
         .setProductType(BillingClient.ProductType.INAPP).build()
 }

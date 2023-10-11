@@ -19,7 +19,8 @@ data class RemoteDbEntry(
     var idRemote: String = "",
     var hostIsX: Boolean = true,
     var undoHost: Boolean = false,
-    var undoRemote: Boolean = false
+    var undoRemote: Boolean = false,
+    var timestamp: Long = System.currentTimeMillis()
 )
 
 /** This class implements remote (internet) game functionality on the top MainActivityBase **/
