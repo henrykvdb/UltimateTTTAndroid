@@ -8,7 +8,6 @@
 
     <!-- FireBase -->
     <string name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
-    <string name="admob_banner_id">ca-app-pub-6464324284979557/5400944625</string>
 
     <!--  Single word -->
 	<string name="online_join_code_hint">ABC123</string>
@@ -64,7 +63,6 @@
 	<string name="enemy_turn">The enemy is playing!</string>
 	<string name="no_prev_moves">No previous moves</string>
 	<string name="game_winner">%1$s won the game!</string>
-	<string name="subtitle_remote"> %1$s</string>
 	<string name="computer_game">Computer Game</string>
 	<string name="send_feedback">Send feedback</string>
 	<string name="author_credit">by Henrykvdb</string>
@@ -74,6 +72,8 @@
 	<string name="tie_message">It is a tie!</string>
 	<string name="ways_local">Local friend</string>
 	<string name="online_game">Online Game</string>
+	<string name="subtitle_remote"> %1$s</string>
+	<string name="remove_ads">Support me</string>
 	<string name="local_game">Local Game</string>
 	<string name="share_with">Share with</string>
 	<string name="host_code">Host code</string>

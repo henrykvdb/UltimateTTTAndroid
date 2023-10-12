@@ -13,13 +13,13 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -51,13 +51,13 @@ class BillingDataSource private constructor(
     // when was the last successful SkuDetailsResponse?
     private var skuDetailsResponseTime = -SKU_DETAILS_REQUERY_TIME
 
-    private enum class SkuState {
-        STATE_UNPURCHASED, STATE_PENDING, STATE_PURCHASED, STATE_PURCHASED_AND_ACKNOWLEDGED
+    enum class SkuState {
+        STATE_UNKNOWN, STATE_UNPURCHASED, STATE_PENDING, STATE_PURCHASED, STATE_PURCHASED_AND_ACKNOWLEDGED
     }
 
     // Flows that can be transformed into observables.
     // default: no ads until billing says not premium
-    private val stateFlow: MutableStateFlow<SkuState> = MutableStateFlow(SkuState.STATE_PURCHASED_AND_ACKNOWLEDGED)
+    private val stateFlow: MutableStateFlow<SkuState> = MutableStateFlow(SkuState.STATE_UNKNOWN)
     private val detailsFlow: MutableStateFlow<ProductDetails?> = MutableStateFlow(null)
     private val billingFlowInProcess = MutableStateFlow(false)
 
@@ -66,7 +66,8 @@ class BillingDataSource private constructor(
         detailsFlow.subscriptionCount.map { count -> count > 0 } // map count into active/inactive flag
             .distinctUntilChanged() // only react to true<->false changes
             .onEach { isActive -> // configure an action
-                val shouldRefresh = SystemClock.elapsedRealtime() - skuDetailsResponseTime > SKU_DETAILS_REQUERY_TIME
+                val shouldRefresh =
+                    SystemClock.elapsedRealtime() - skuDetailsResponseTime > SKU_DETAILS_REQUERY_TIME
                 if (isActive && shouldRefresh) {
                     log("Skus not fresh, requerying")
                     skuDetailsResponseTime = SystemClock.elapsedRealtime()
@@ -75,7 +76,8 @@ class BillingDataSource private constructor(
             }.launchIn(defaultScope)
 
         // Create billing client
-        billingClient = BillingClient.newBuilder(application).setListener(this).enablePendingPurchases().build()
+        billingClient =
+            BillingClient.newBuilder(application).setListener(this).enablePendingPurchases().build()
         billingClient.startConnection(this)
     }
 
@@ -106,9 +108,27 @@ class BillingDataSource private constructor(
             min(reconnectMilliseconds * 2, RECONNECT_TIMER_MAX_TIME_MILLISECONDS)
     }
 
-    val showAdsLiveData = isPremiumFlow().map {premium -> !premium }.asLiveData()
-    private fun isPremiumFlow(): Flow<Boolean> {
-        return stateFlow.map { skuState -> skuState == SkuState.STATE_PURCHASED_AND_ACKNOWLEDGED }
+    // Note: as of writing mapping of StateFlow into a new StateFlow is only experimentally supported
+    val stateLiveData = stateFlow.asLiveData()
+    val billingLoaded get() = stateFlow.value != SkuState.STATE_UNKNOWN
+    val showAds get() = stateFlow.value != SkuState.STATE_PURCHASED_AND_ACKNOWLEDGED
+
+    internal fun resetAllPurchasesAsync() {
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP).build()
+        ) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                for (purchase in purchases) {
+                    val params =
+                        ConsumeParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
+                    billingClient.consumeAsync(params) { responseCode, _ ->
+                        log("Consume response code ${responseCode.responseCode}")
+                        refreshPurchasesAsync()
+                    }
+                }
+            } else log("Problem resetting purchases: " + billingResult.debugMessage)
+        }
     }
 
     fun purchaseAdUnlock(activity: Activity) {
@@ -169,10 +189,10 @@ class BillingDataSource private constructor(
                     val params = AcknowledgePurchaseParams.newBuilder()
                         .setPurchaseToken(purchase.purchaseToken).build()
                     billingClient.acknowledgePurchase(params) { billingResult ->
-                        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                             stateFlow.tryEmit(SkuState.STATE_PURCHASED_AND_ACKNOWLEDGED)
                             log("Error acknowledging purchas")
-                        } else log("Error acknowledging purchase")
+                        } else log("Error acknowledging purchase ${billingResult.responseCode}")
                     }
                 }
             }
@@ -181,7 +201,10 @@ class BillingDataSource private constructor(
         }
     }
 
-    override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
+    override fun onPurchasesUpdated(
+        billingResult: BillingResult,
+        purchases: MutableList<Purchase>?
+    ) {
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) acknowledgePurchase(purchase)
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {

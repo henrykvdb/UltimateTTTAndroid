@@ -26,6 +26,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -34,15 +35,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -106,13 +109,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		// Add the billing data source
 		bds = (application as StttApplication).appContainer.billingDataSource
-		bds.showAdsLiveData.observe(this) { showAdChecked() }
+		bds.stateLiveData.observe(this) { showAdChecked() }
 
 		// App integrity check
 		Firebase.initialize(this)
 		Firebase.appCheck.installAppCheckProviderFactory(
-			if(BuildConfig.DEBUG) DebugAppCheckProviderFactory.getInstance()
-			else PlayIntegrityAppCheckProviderFactory.getInstance()
+			//if(BuildConfig.DEBUG) DebugAppCheckProviderFactory.getInstance() else
+				PlayIntegrityAppCheckProviderFactory.getInstance()
 		)
 
 		//Disable crash reporting and firebase analytics on debug builds
@@ -169,22 +172,27 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	private fun showAd(){
-		if (!shouldShowAd()){
-			return
-		}
+		val shouldShowAd = shouldShowAd()
 
-		MobileAds.initialize(this)
-		binding.adView?.loadAd(AdRequest.Builder().build())
+		val navItem = binding.navigationView.menu.findItem(R.id.nav_remove_ads)
+		navItem.isVisible = shouldShowAd
+
+		val adView = binding.adView
+		adView?.visibility = if (shouldShowAd) View.VISIBLE else View.GONE
+
+		if (shouldShowAd){
+			MobileAds.initialize(this)
+			binding.adView?.apply {
+				visibility = View.VISIBLE
+				loadAd(AdRequest.Builder().build())
+			}
+		}
 	}
 
 	private fun shouldShowAd(): Boolean {
 		val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-		val isPremium = bds.showAdsLiveData.isInitialized && bds.showAdsLiveData.value == true
-		return isPortrait && !isPremium// && !BuildConfig.DEBUG
-	}
-
-	private fun disableAds(){
-		//binding.adView?.
+		val showAds = bds.billingLoaded && bds.showAds
+		return isPortrait && showAds
 	}
 
 	override fun onDestroy() {
@@ -267,6 +275,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			R.id.nav_start_ai -> newAiDialog()
 			R.id.nav_start_local -> newLocalDialog()
 			R.id.nav_start_online -> newRemoteDialog()
+			R.id.nav_remove_ads -> bds.purchaseAdUnlock(this)
 			R.id.nav_other_feedback -> feedbackSender()
 			R.id.nav_other_tutorial -> startActivity(Intent(this, TutorialActivity::class.java))
 			R.id.nav_other_share -> shareDialog()

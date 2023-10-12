@@ -19,6 +19,10 @@
     <item android:title="@string/other">
         <menu>
             <item
+                android:id="@+id/nav_remove_ads"
+                android:icon="@drawable/ic_menu_remove_ads"
+                android:title="@string/remove_ads"/>
+            <item
                     android:id="@+id/nav_other_feedback"
                     android:icon="@drawable/ic_menu_feedback"
                     android:title="@string/feedback"/>

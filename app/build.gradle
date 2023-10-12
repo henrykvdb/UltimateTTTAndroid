@@ -24,6 +24,10 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            resValue 'string', 'admob_banner_id', '"ca-app-pub-6464324284979557/5400944625"'
+        }
+        debug {
+            resValue 'string', 'admob_banner_id', '"ca-app-pub-3940256099942544/6300978111"'
         }
     }
 
@@ -57,7 +61,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
 
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // Firebase
