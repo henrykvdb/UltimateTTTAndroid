@@ -35,11 +35,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
@@ -106,6 +103,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		// Create consent information
 		consentInformation = UserMessagingPlatform.getConsentInformation(this)
+		requestConsent {}
 
 		// Add the billing data source
 		bds = (application as StttApplication).appContainer.billingDataSource
@@ -154,21 +152,22 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		if (savedInstanceState == null) triggerDialogs()
 	}
 
-	private fun showAdChecked(){
-		if (consentInformation.canRequestAds()) {
-			showAd()
-		} else { // request consent
-			val params = ConsentRequestParameters.Builder().build()
-			consentInformation.requestConsentInfoUpdate(this, params, {
-				UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { formError ->
-					if (formError != null) { // Consent not obtained in current session.
-						log("Error ${formError.errorCode}: ${formError.message}")
-					} else if (consentInformation.canRequestAds()){
-						showAd()
-					}
+	private fun requestConsent(callback: () -> Unit){
+		val params = ConsentRequestParameters.Builder().build()
+		consentInformation.requestConsentInfoUpdate(this, params, {
+			UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { formError ->
+				if (formError != null) { // Consent not obtained in current session.
+					log("Error ${formError.errorCode}: ${formError.message}")
+				} else if (consentInformation.canRequestAds()){
+					callback()
 				}
-			}, { log("Error ${it.errorCode}: ${it.message}") })
-		}
+			}
+		}, { log("Error ${it.errorCode}: ${it.message}") })
+	}
+
+	private fun showAdChecked(){
+		if (consentInformation.canRequestAds()) showAd()
+		else requestConsent { showAd() }
 	}
 
 	private fun showAd(){
