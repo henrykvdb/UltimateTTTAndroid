@@ -80,7 +80,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@color/colorBackground"
-        android:fitsSystemWindows="true"
+        android:fitsSystemWindows="false"
         app:headerLayout="@layout/drawer_header"
         app:itemIconTint="@color/colorTextSmall"
         app:itemTextColor="@color/colorText"
