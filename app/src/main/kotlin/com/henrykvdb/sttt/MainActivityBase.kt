@@ -113,7 +113,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		Firebase.initialize(this)
 		Firebase.appCheck.installAppCheckProviderFactory(
 			//if(BuildConfig.DEBUG) DebugAppCheckProviderFactory.getInstance() else
-				PlayIntegrityAppCheckProviderFactory.getInstance()
+			PlayIntegrityAppCheckProviderFactory.getInstance()
 		)
 
 		//Disable crash reporting and firebase analytics on debug builds
@@ -138,12 +138,12 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		// Restore gamestate if rotate / re-create
 		gs = if (savedInstanceState == null) GameState()
 		else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
+			savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
 		else @Suppress("DEPRECATION") savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
 
 		// Set up board and draw
 		binding.boardView.setup({ coord -> play(Source.LOCAL, coord) },	binding.nextMoveTextview)
-		redraw(launchAI = false)
+		redraw(shouldLaunchAI = false)
 
 		//Add ads in portrait
 		showAdChecked()
@@ -213,8 +213,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 	override fun onStart() {
 		super.onStart()
-		if (gs.nextSource() == Source.AI)
-			launchAI()
+		launchAI()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
@@ -223,6 +222,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	private fun launchAI(){
+		// Only generate move if needed
+		if (gs.nextSource() != Source.AI) return
+		if (gs.board.isDone) return
+
 		aiJob = lifecycleScope.launch {
 			var move: Byte = -1
 			try {
@@ -247,7 +250,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		}
 	}
 
-	private fun redraw(launchAI: Boolean = true){
+	private fun redraw(shouldLaunchAI: Boolean = true){
 		// Disable progress bar
 		binding.aiProgressInd.isVisible = false
 
@@ -260,13 +263,13 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		// Set subtitle
 		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
-										else getString(R.string.subtitle_remote, gs.remoteId)
+		else getString(R.string.subtitle_remote, gs.remoteId)
 
 		// Redraw board
 		binding.boardView.drawState(gs)
 
 		// Generate AI move if necessary
-		if (launchAI && gs.nextSource() == Source.AI) launchAI()
+		if (shouldLaunchAI) launchAI()
 	}
 
 	override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -351,7 +354,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		when(gs.type){
 			Source.REMOTE -> requestRemoteUndo() // don't update success
 			Source.AI -> success = if (gs.nextSource() == Source.LOCAL) gs.undo(2)
-									else gs.undo()
+			else gs.undo()
 			Source.LOCAL -> success = gs.undo()
 		}
 
