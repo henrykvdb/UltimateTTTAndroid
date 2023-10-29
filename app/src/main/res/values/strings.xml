@@ -1,13 +1,13 @@
 <resources>
     <!--  App info -->
-    <string name="app_name">UTTT</string>
-    <string name="app_name_long">Ultimate Tic Tac Toe</string>
-	<string name="app_name_newline">Ultimate\nTic Tac Toe</string>
-	<string name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
-	<string name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+    <string translatable="false" name="app_name">UTTT</string>
+    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
+	<string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
+	<string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
+	<string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
 
     <!-- FireBase -->
-    <string name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
+    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
 
     <!--  Single word -->
 	<string name="online_join_code_hint">ABC123</string>
@@ -82,31 +82,23 @@
 	<string name="rate_app">Rate app</string>
 	<string name="you_won">You won!</string>
     <string name="undo_request_msg">Opponent is requesting undo, accept?</string>
+	<string name="no_undo_moves">Not enough moves</string>
 
 	<!--  Tutorial slides -->
-
 	<string name="tut0_title">Tutorial</string>
 	<string name="tut0_desc">Let\'s go over the basic rules</string>
-
 	<string name="tut1_title">The board</string>
 	<string name="tut1_desc">Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid</string>
-
 	<string name="tut2_title">Win grids</string>
 	<string name="tut2_desc">Win grids by getting three in a row, like you would in regular tic tac toe</string>
-
 	<string name="tut3_title">How to win</string>
 	<string name="tut3_desc">Win 3 grids in a row in order to win the game</string>
-
 	<string name="tut4_title">The colors</string>
 	<string name="tut4_desc">The allowed moves for the next player are indicated in that player\'s color. The last move is colored slightly lighter</string>
-
 	<string name="tut5_title">Allowed moves</string>
 	<string name="tut5_desc">You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid</string>
-
 	<string name="tut6_title">Free moves</string>
 	<string name="tut6_desc">If you get sent to a full or won grid you can play anywhere you want</string>
-
 	<string name="tut7_title">Ways to play</string>
 	<string name="tut7_desc">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
-	<string name="no_undo_moves">Not enough moves</string>
 </resources>

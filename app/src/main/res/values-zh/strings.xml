@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><resources>
+    <!--  App info -->
+    <string translatable="false" name="app_name">UTTT</string>
+    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
+    <string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
+    <string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
+    <string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+
+    <!-- FireBase -->
+    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
+
+    <!--  Single word -->
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="ways_computer">电脑</string>
+    <string name="difficulty">难度</string>
+    <string name="current_board">当前</string>
+    <string name="feedback">反馈</string>
+    <string name="tutorial">教程</string>
+    <string name="new_game">新游戏</string>
+    <string name="computer">电脑</string>
+    <string name="version">版本</string>
+    <string name="new_board">空的</string>
+    <string name="against">反对</string>
+    <string name="random">随机</string>
+    <string name="cancel">取消</string>
+    <string name="online">在线</string>
+    <string name="create">创建</string>
+    <string name="close">关闭</string>
+    <string name="later">稍后</string>
+    <string name="share">分享</string>
+    <string name="other">其他</string>
+    <string name="local">本地</string>
+    <string name="about">关于</string>
+    <string name="start">开始</string>
+    <string name="rate">评价</string>
+    <string name="join">加入</string>
+    <string name="undo">撤消</string>
+    <string name="you">你</string>
+    <string name="yes">是的</string>
+    <string name="no">否</string>
+
+    <!--  Multi word -->
+    <string name="host_desc">您正在托管游戏，请朋友加入&lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt;（您的游戏托管代码）</string>
+    <string name="rate_message">如果您喜欢使用 Ultimate Tic Tac Toe，请花点时间评价它。感谢您的支持！</string>
+    <string name="special_thanks">特别感谢 &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="undo_request">您的对手要求撤消最后一步，您接受吗？</string>
+    <string name="lets_play_together">嘿，让我们一起玩终极井字棋！</string>
+    <string name="online_join_desc">输入对手的主机代码</string>
+    <string name="check_internet_1">检查您的互联网连接（1）</string>
+    <string name="check_internet_2">检查您的互联网连接（2）</string>
+    <string name="check_internet_3">检查您的互联网连接 (3)</string>
+    <string name="navigation_drawer_close">关闭导航抽屉</string>
+    <string name="navigation_drawer_open">打开导航抽屉</string>
+    <string name="no_host_desc">准备好后按创建</string>
+    <string name="new_local_desc">创建一个新的双人游戏</string>
+    <string name="online_not_joinable">游戏不可加入</string>
+    <string name="open_source_title">可用源代码：</string>
+    <string name="online_not_exit">游戏不退出</string>
+    <string name="new_ai_title">开始一个新的人工智能游戏？</string>
+    <string name="new_local_title">开始新游戏？</string>
+    <string name="connection_lost">连接丢失</string>
+    <string name="starting_player">新手玩家</string>
+    <string name="enemy_turn">敌人在玩！</string>
+    <string name="no_prev_moves">没有之前的动作</string>
+    <string name="game_winner">%1$s赢得了比赛！</string>
+    <string name="computer_game">电脑游戏</string>
+    <string name="send_feedback">发送反馈</string>
+    <string name="author_credit">作者：Henrykvdb</string>
+    <string name="your_turn">轮到你了！</string>
+    <string name="ways_online">在线朋友</string>
+    <string name="select_board">选择棋盘</string>
+    <string name="tie_message">这是平局！</string>
+    <string name="ways_local">当地朋友</string>
+    <string name="online_game">在线游戏</string>
+    <string name="subtitle_remote">%1$s</string>
+    <string name="remove_ads">移除广告</string>
+    <string name="local_game">本地游戏</string>
+    <string name="share_with">分享给</string>
+    <string name="host_code">主机代码</string>
+    <string name="no_thanks">不，谢谢</string>
+    <string name="you_lost">你输了！</string>
+    <string name="rate_app">评价应用程序</string>
+    <string name="you_won">你赢了！</string>
+    <string name="undo_request_msg">对手请求撤消，接受？</string>
+    <string name="no_undo_moves">动作不够</string>
+
+    <!--  Tutorial slides -->
+    <string name="tut0_title">教程</string>
+    <string name="tut0_desc">让我们回顾一下基本规则</string>
+    <string name="tut1_title">董事会</string>
+    <string name="tut1_desc">玩家轮流玩九个井字棋格，排列在更大的井字棋格内</string>
+    <string name="tut2_title">赢得网格</string>
+    <string name="tut2_desc">像在常规井字棋中一样，通过连续获得三个来赢得网格</string>
+    <string name="tut3_title">如何获胜</string>
+    <string name="tut3_desc">连续赢得 3 个网格以赢得比赛</string>
+    <string name="tut4_title">颜色</string>
+    <string name="tut4_desc">下一个玩家允许的移动以该玩家的颜色指示。最后一步的颜色略浅</string>
+    <string name="tut5_title">允许的移动</string>
+    <string name="tut5_desc">你决定对手接下来可以玩的地方。示例：如果您在右上角的格子中玩，则对手必须在右上角的格子中玩</string>
+    <string name="tut6_title">自由移动</string>
+    <string name="tut6_desc">如果您被送入满员或获胜的网格，则可以在任何想要的地方玩</string>
+    <string name="tut7_title">游戏方式</string>
+    <string name="tut7_desc">在本地和在线挑战您的朋友。在电脑上练习，尝试在最困难的难度下击败它</string>
+</resources>

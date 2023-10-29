@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><resources>
+    <!--  App info -->
+    <string translatable="false" name="app_name">UTTT</string>
+    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
+    <string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
+    <string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
+    <string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+
+    <!-- FireBase -->
+    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
+
+    <!--  Single word -->
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="ways_computer">Computer</string>
+    <string name="difficulty">Difficoltà</string>
+    <string name="current_board">Attuale</string>
+    <string name="feedback">Feedback</string>
+    <string name="tutorial">Esercitazione</string>
+    <string name="new_game">Nuovo gioco</string>
+    <string name="computer">Computer</string>
+    <string name="version">Versione</string>
+    <string name="new_board">Vuoto</string>
+    <string name="against">Contro</string>
+    <string name="random">Casuale</string>
+    <string name="cancel">Annulla</string>
+    <string name="online">in linea</string>
+    <string name="create">Creare</string>
+    <string name="close">Vicino</string>
+    <string name="later">Dopo</string>
+    <string name="share">Condividere</string>
+    <string name="other">Altro</string>
+    <string name="local">Locale</string>
+    <string name="about">Di</string>
+    <string name="start">Inizio</string>
+    <string name="rate">Valutare</string>
+    <string name="join">Giuntura</string>
+    <string name="undo">Disfare</string>
+    <string name="you">Voi</string>
+    <string name="yes">SÌ</string>
+    <string name="no">NO</string>
+
+    <!--  Multi word -->
+    <string name="host_desc">Stai ospitando un gioco, chiedi a un amico di iscriversi a &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (il tuo codice host del gioco)</string>
+    <string name="rate_message">Se ti piace usare Ultimate Tic Tac Toe, prenditi un momento per valutarlo. Grazie per il vostro sostegno!</string>
+    <string name="special_thanks">Un ringraziamento speciale a &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="undo_request">Il tuo avversario richiede di annullare l\'ultima mossa, accetti?</string>
+    <string name="lets_play_together">Ehi, giochiamo insieme a Ultimate Tic Tac Toe!</string>
+    <string name="online_join_desc">Inserisci il codice host del tuo avversario</string>
+    <string name="check_internet_1">Controlla la tua connessione Internet (1)</string>
+    <string name="check_internet_2">Controlla la tua connessione Internet (2)</string>
+    <string name="check_internet_3">Controlla la tua connessione Internet (3)</string>
+    <string name="navigation_drawer_close">Chiudi il cassetto di navigazione</string>
+    <string name="navigation_drawer_open">Apri il cassetto di navigazione</string>
+    <string name="no_host_desc">Premi Crea una volta che sei pronto</string>
+    <string name="new_local_desc">Crea una nuova partita a due giocatori</string>
+    <string name="online_not_joinable">Gioco non collegabile</string>
+    <string name="open_source_title">Codice sorgente disponibile:</string>
+    <string name="online_not_exit">Il gioco non esce</string>
+    <string name="new_ai_title">Iniziare un nuovo gioco AI?</string>
+    <string name="new_local_title">Iniziare un nuovo gioco?</string>
+    <string name="connection_lost">Collegamento perso</string>
+    <string name="starting_player">Giocatore principiante</string>
+    <string name="enemy_turn">Il nemico sta giocando!</string>
+    <string name="no_prev_moves">Nessuna mossa precedente</string>
+    <string name="game_winner">%1$s ha vinto la partita!</string>
+    <string name="computer_game">Gioco per computer</string>
+    <string name="send_feedback">Invia feedback</string>
+    <string name="author_credit">di Henrykvdb</string>
+    <string name="your_turn">È il tuo turno!</string>
+    <string name="ways_online">Amico in linea</string>
+    <string name="select_board">Seleziona scheda</string>
+    <string name="tie_message">È un pareggio!</string>
+    <string name="ways_local">Amico locale</string>
+    <string name="online_game">Gioco online</string>
+    <string name="subtitle_remote"> %1$s</string>
+    <string name="remove_ads">Rimuovere gli annunci</string>
+    <string name="local_game">Gioco locale</string>
+    <string name="share_with">Condividi con</string>
+    <string name="host_code">Codice ospite</string>
+    <string name="no_thanks">No grazie</string>
+    <string name="you_lost">Hai perso!</string>
+    <string name="rate_app">Valuta l\'app</string>
+    <string name="you_won">Hai vinto!</string>
+    <string name="undo_request_msg">L\'avversario richiede l\'annullamento, accetti?</string>
+    <string name="no_undo_moves">Non abbastanza mosse</string>
+
+    <!--  Tutorial slides -->
+    <string name="tut0_title">Esercitazione</string>
+    <string name="tut0_desc">Esaminiamo le regole di base</string>
+    <string name="tut1_title">Il bordo</string>
+    <string name="tut1_desc">I giocatori, a turno, giocano con nove griglie di tris, disposte all\'interno di una griglia di tris più grande</string>
+    <string name="tut2_title">Vinci le griglie</string>
+    <string name="tut2_desc">Vinci le griglie ottenendone tre di fila, come faresti in un normale tris</string>
+    <string name="tut3_title">Come vincere</string>
+    <string name="tut3_desc">Vinci 3 griglie di fila per vincere la partita</string>
+    <string name="tut4_title">I colori</string>
+    <string name="tut4_desc">Le mosse consentite per il giocatore successivo sono indicate nel colore di quel giocatore. L\'ultima mossa è colorata leggermente più chiara</string>
+    <string name="tut5_title">Mosse consentite</string>
+    <string name="tut5_desc">Decidi tu dove l\'avversario potrà giocare dopo. Esempio: se giochi in alto a destra in una griglia, l\'avversario dovrà giocare nella griglia in alto a destra</string>
+    <string name="tut6_title">Movimenti gratuiti</string>
+    <string name="tut6_desc">Se vieni inviato in una griglia piena o vinta, puoi giocare dove vuoi</string>
+    <string name="tut7_title">Modi di giocare</string>
+    <string name="tut7_desc">Sfida i tuoi amici sia in locale che online. Esercitati contro il computer e prova a batterlo alla difficoltà più difficile</string>
+</resources>
