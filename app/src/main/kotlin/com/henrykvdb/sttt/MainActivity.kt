@@ -226,6 +226,7 @@ class MainActivity : MainActivityBaseRemote() {
     }
 
     class RemoteJoinFragment : Fragment() {
+        var shouldRefreshHost = true
         override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -237,7 +238,9 @@ class MainActivity : MainActivityBaseRemote() {
                 val editText = findViewById<EditText>(R.id.remote_join_edit)
                 editText.filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(6))
                 editText?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                    if(!hasFocus) {
+                    if (hasFocus)
+                        shouldRefreshHost = true // focus shift things around and makes a mess
+                    else {
                         val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(editText?.windowToken, 0)
                     }
@@ -280,6 +283,12 @@ class MainActivity : MainActivityBaseRemote() {
 
                 // Clear focus to trigger the listener
                 joinFragment.view?.findViewById<AppCompatEditText>(R.id.remote_join_edit)?.clearFocus()
+
+                // Force refresh fragment (keyboard might have caused a temporary resize)
+                if (pos == 0 && joinFragment.shouldRefreshHost){
+                    joinFragment.shouldRefreshHost = false
+                    viewPager.post { viewPager.adapter?.notifyItemChanged(0) }
+                }
             }
 
             override fun onPageSelected(position: Int) {
@@ -287,11 +296,6 @@ class MainActivity : MainActivityBaseRemote() {
 
                 // Remove database entry on switch
                 if (newGameId.isNotEmpty()){ removeOnlineGame(newGameId); newGameId = ""}
-
-                // Force refresh fragments (keyboard might have caused a temporary resize)
-                viewPager.post {
-                    viewPager.adapter?.notifyItemChanged(position)
-                }
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)
