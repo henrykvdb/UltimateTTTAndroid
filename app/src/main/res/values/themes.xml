@@ -11,6 +11,7 @@
 
     <style name="AppTheme.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="android:background">@color/colorBackground</item>
+        <item name="android:windowSoftInputMode">adjustPan</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

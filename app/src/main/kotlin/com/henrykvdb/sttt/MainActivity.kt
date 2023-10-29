@@ -19,7 +19,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.text.InputFilter
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
@@ -27,13 +26,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
@@ -217,7 +219,9 @@ class MainActivity : MainActivityBaseRemote() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
         ): View {
-            return inflater.inflate(R.layout.dialog_body_online_host, container, false)
+            return inflater.inflate(R.layout.dialog_body_online_merged, container, false).apply {
+                findViewById<LinearLayout>(R.id.layout_host).visibility = View.VISIBLE
+            }
         }
     }
 
@@ -227,9 +231,17 @@ class MainActivity : MainActivityBaseRemote() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
         ): View {
-            return inflater.inflate(R.layout.dialog_body_online_join, container, false).apply {
+            return inflater.inflate(R.layout.dialog_body_online_merged, container, false).apply {
+                findViewById<LinearLayout>(R.id.layout_join).visibility = View.VISIBLE
+
                 val editText = findViewById<EditText>(R.id.remote_join_edit)
                 editText.filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(6))
+                editText?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                    if(!hasFocus) {
+                        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.hideSoftInputFromWindow(editText?.windowToken, 0)
+                    }
+                }
             }
         }
     }
@@ -256,18 +268,30 @@ class MainActivity : MainActivityBaseRemote() {
             .setPositiveButton(tabs.getTabAt(0)?.text, null).show()
         openDialog = newDialog
 
+        // Add correct flags to dialog
+        newDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        newDialog.window?.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+
         // Set up viewpager listener
         val pageChangeCallback = object: ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(pos: Int, posOffset: Float, posOffsetPx: Int) {
+                super.onPageScrolled(pos, posOffset, posOffsetPx)
+
+                // Clear focus to trigger the listener
+                joinFragment.view?.findViewById<AppCompatEditText>(R.id.remote_join_edit)?.clearFocus()
+            }
+
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
 
                 // Remove database entry on switch
                 if (newGameId.isNotEmpty()){ removeOnlineGame(newGameId); newGameId = ""}
 
-                // Set correct flags to allow keyboard to open
-                newDialog.window?.setFlags(if (position == 1) 1 else 0,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+                // Force refresh fragments (keyboard might have caused a temporary resize)
+                viewPager.post {
+                    viewPager.adapter?.notifyItemChanged(position)
+                }
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)

@@ -8,7 +8,10 @@
     android:paddingLeft="24dp"
     android:paddingTop="9dp"
     android:paddingRight="24dp"
-    android:paddingBottom="0dp">
+    android:paddingBottom="0dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <TextView
         android:layout_width="match_parent"
@@ -32,7 +35,10 @@
         android:hint="@string/online_join_code_hint"
         android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         android:backgroundTint="@color/colorPrimary"
-        android:textColor="@color/colorTextSmall" />
+        android:textColor="@color/colorTextSmall"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
     <TextView
         android:layout_width="match_parent"
