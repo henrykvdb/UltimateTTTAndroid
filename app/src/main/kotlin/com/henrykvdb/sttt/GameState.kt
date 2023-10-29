@@ -12,6 +12,7 @@
 package com.henrykvdb.sttt
 
 import bots.MCTSBot
+import bots.MCTSBotDropoff
 import bots.RandomBot
 import common.Board
 import common.Bot
@@ -71,12 +72,12 @@ open class GameState : Serializable {
         this.extraBot = MCTSBot(25_000_000) // TODO based on difficulty
         this.extraBot = when(difficulty){
             0 -> RandomBot()
-            1 -> MCTSBot(350)
-            2 -> MCTSBot(2_200)
-            3 -> MCTSBot(8_000)
-            4 -> MCTSBot(20_000)
-            5 -> MCTSBot(50_000)
-            6 -> MCTSBot(100_000)
+            1 -> MCTSBotDropoff(6 * 350    , 350    , 20)
+            2 -> MCTSBotDropoff(6 * 2_200  , 2_200  , 20)
+            3 -> MCTSBotDropoff(6 * 8_000  , 8_000  , 20)
+            4 -> MCTSBotDropoff(6 * 20_000 , 20_000 , 20)
+            5 -> MCTSBotDropoff(6 * 50_000 , 50_000 , 20)
+            6 -> MCTSBotDropoff(6 * 100_000, 100_000, 20)
             else -> throw Exception("No such difficulty")
         }
         this.remoteId = ""
