@@ -131,10 +131,8 @@
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">游戏方式</string>
     <string name="tut7_desc">挑战您本机及线上的朋友。在电脑上练习，尝试在最难的难度下击败电脑</string>
-
-    <!--  Tutorial slides 8 -->
-    <string name="against">对手</string>
-    <string name="ways_computer">电脑</string>
-    <string name="ways_local">面对面的朋友</string>
-    <string name="ways_online">线上朋友</string>
+    <string name="tut7_against">对手</string>
+    <string name="tut7_ways_computer">电脑</string>
+    <string name="tut7_ways_local">面对面的朋友</string>
+    <string name="tut7_ways_online">线上朋友</string>
 </resources>
