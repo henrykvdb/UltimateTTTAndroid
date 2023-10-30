@@ -80,16 +80,16 @@ class MainActivity : MainActivityBaseRemote() {
         putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.app_name_long))
         putExtra(
             Intent.EXTRA_TEXT,
-            getString(R.string.lets_play_together) + " " + getString(R.string.market_url)
+            getString(R.string.share_message) + " " + getString(R.string.market_url)
         )
-    }, getString(R.string.share_with)))
+    }, getString(R.string.share_title)))
 
     override fun aboutDialog() {
         val layout = View.inflate(this, R.layout.dialog_body_about, null)
 
         (layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
             resources.getText(R.string.app_name_newline).toString() + "\n" +
-                    getString(R.string.version) + " " + BuildConfig.VERSION_NAME
+                    getString(R.string.about_version) + " " + BuildConfig.VERSION_NAME
         } catch (e: PackageManager.NameNotFoundException) {
             resources.getText(R.string.app_name_newline)
         }
@@ -97,7 +97,7 @@ class MainActivity : MainActivityBaseRemote() {
         openDialog?.dismiss()
         openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
-            .setPositiveButton(getString(R.string.close)) { dlg, _ -> dlg.dismiss() }
+            .setPositiveButton(getString(R.string.about_close)) { dlg, _ -> dlg.dismiss() }
             .show()
     }
 
@@ -162,10 +162,10 @@ class MainActivity : MainActivityBaseRemote() {
         openDialog?.dismiss()
         openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
-            .setTitle(getString(R.string.rate_app))
-            .setPositiveButton(getString(R.string.rate), dialogClickListener)
-            .setNeutralButton(getString(R.string.later), dialogClickListener)
-            .setNegativeButton(getString(R.string.no_thanks), dialogClickListener)
+            .setTitle(getString(R.string.rate_title))
+            .setPositiveButton(getString(R.string.rate_positive), dialogClickListener)
+            .setNeutralButton(getString(R.string.rate_neutral), dialogClickListener)
+            .setNegativeButton(getString(R.string.rate_negative), dialogClickListener)
             .show()
     }
 
@@ -178,13 +178,13 @@ class MainActivity : MainActivityBaseRemote() {
         }
 
         val layout = View.inflate(this, R.layout.dialog_body_basic, null)
-        layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_desc)
+        layout.findViewById<TextView>(R.id.textView).text = getString(R.string.new_local_message)
         openDialog?.dismiss()
         openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setTitle(getString(R.string.new_local_title))
             .setView(layout)
-            .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show()
+            .setPositiveButton(getString(R.string.dialog_start_game), dialogClickListener)
+            .setNegativeButton(getString(R.string.dialog_cancel), dialogClickListener).show()
 
     }
 
@@ -209,8 +209,8 @@ class MainActivity : MainActivityBaseRemote() {
         openDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
             .setTitle(getString(R.string.new_ai_title))
-            .setPositiveButton(getString(R.string.start), dialogClickListener)
-            .setNegativeButton(getString(R.string.cancel), dialogClickListener).show()
+            .setPositiveButton(getString(R.string.dialog_start_game), dialogClickListener)
+            .setNegativeButton(getString(R.string.dialog_cancel), dialogClickListener).show()
     }
 
     class RemoteHostFragment : Fragment() {
@@ -267,7 +267,7 @@ class MainActivity : MainActivityBaseRemote() {
         openDialog?.dismiss()
         val newDialog = MaterialAlertDialogBuilder(this, R.style.AppTheme_AlertDialogTheme)
             .setView(layout)
-            .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog?.dismiss() }
+            .setNegativeButton(getString(R.string.dialog_cancel)) { dialog, _ -> dialog?.dismiss() }
             .setPositiveButton(tabs.getTabAt(0)?.text, null).show()
         openDialog = newDialog
 
@@ -318,7 +318,7 @@ class MainActivity : MainActivityBaseRemote() {
                     buttonPositive.isEnabled = false
                     val textView = (layout.findViewById<View>(R.id.bt_host_desc) as TextView)
                     textView.text = HtmlCompat.fromHtml(
-                        getString(R.string.host_desc, gameId),
+                        getString(R.string.online_create_message_ready, gameId),
                         HtmlCompat.FROM_HTML_MODE_LEGACY
                     )
 
@@ -412,7 +412,7 @@ class MainActivity : MainActivityBaseRemote() {
                     if (selectedTab?.position != 0) {
                         val textView =
                             (hostFragment.view?.findViewById<View>(R.id.bt_host_desc) as TextView)
-                        textView.text = getString(R.string.no_host_desc)
+                        textView.text = getString(R.string.online_create_message_wait)
                     }
                 }
 

@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="6dp"
-        android:text="@string/author_credit"
+        android:text="@string/about_credit_0"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorTextSmall"
         android:textSize="20sp"
@@ -38,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="6dp"
-        android:text="@string/special_thanks"
+        android:text="@string/about_credit_1"
         android:textColor="@color/colorTextSmall"
         android:textColorLink="@color/colorTextSmall"/>
 
@@ -46,7 +46,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="@string/open_source_title"
+        android:text="@string/about_source"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorTextSmall"
         android:textSize="16sp"

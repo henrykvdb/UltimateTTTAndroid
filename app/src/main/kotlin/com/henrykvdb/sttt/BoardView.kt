@@ -124,17 +124,17 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                         it.setTextColor(if (board.nextPlayX) Color.BLUE else Color.RED)
                         val yourTurn = gs.nextSource() == Source.LOCAL
                         it.text =
-                            resources.getString(if (yourTurn) R.string.your_turn else R.string.enemy_turn)
+                            resources.getString(if (yourTurn) R.string.turn_yours else R.string.turn_enemy)
                     }
                 } else {
                     if (board.wonBy == Player.NEUTRAL) {
                         it.setTextColor(Color.BLACK)
-                        it.text = resources.getText(R.string.tie_message)
+                        it.text = resources.getText(R.string.winner_tie)
                     } else {
                         if (gs.type == Source.LOCAL) {
                             it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
                             it.text = resources.getString(
-                                R.string.game_winner,
+                                R.string.winner_generic,
                                 if (board.wonBy == Player.PLAYER) "X" else "O"
                             )
                         } else {
@@ -143,7 +143,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                                 if (board.wonBy == Player.PLAYER) gs.players.first == Source.LOCAL
                                 else gs.players.second == Source.LOCAL
                             it.text =
-                                resources.getString(if (youWon) R.string.you_won else R.string.you_lost)
+                                resources.getString(if (youWon) R.string.winner_you else R.string.winner_other)
                         }
                     }
                 }

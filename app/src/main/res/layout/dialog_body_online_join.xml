@@ -16,7 +16,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/host_code"
+        android:text="@string/online_join_code"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorText"
         android:textStyle="normal|bold" />
@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:text="@string/online_join_desc"
+        android:text="@string/online_join_message"
         android:textColor="@color/colorText"
         android:textStyle="normal" />
 </LinearLayout>

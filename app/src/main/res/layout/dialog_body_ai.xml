@@ -13,7 +13,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/difficulty"
+        android:text="@string/new_ai_difficulty"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorTextSmall"
         android:textStyle="normal|bold" />
@@ -29,7 +29,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/starting_player"
+        android:text="@string/dialog_start_player"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColor="@color/colorTextSmall"
         android:textStyle="normal|bold" />
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:checked="true"
-            android:text="@string/you"
+            android:text="@string/dialog_start_you"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textColor="@color/colorTextSmall" />
 
@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/computer"
+            android:text="@string/dialog_start_computer"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textColor="@color/colorTextSmall" />
 
@@ -63,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/random"
+            android:text="@string/dialog_start_random"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textColor="@color/colorTextSmall" />
     </RadioGroup>

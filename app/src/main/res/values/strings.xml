@@ -5,100 +5,144 @@
 	<string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
 	<string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
 	<string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
-
-    <!-- FireBase -->
     <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
 
-    <!--  Single word -->
-	<string name="online_join_code_hint">ABC123</string>
-	<string name="ways_computer">Computer</string>
-    <string name="difficulty">Difficulty</string>
-    <string name="current_board">Current</string>
-    <string name="feedback">Feedback</string>
-	<string name="tutorial">Tutorial</string>
-	<string name="new_game">New game</string>
-	<string name="computer">Computer</string>
-	<string name="version">Version</string>
-    <string name="new_board">Empty</string>
-	<string name="against">Against</string>
-    <string name="random">Random</string>
-	<string name="cancel">Cancel</string>
-	<string name="online">Online</string>
-	<string name="create">Create</string>
-	<string name="close">Close</string>
-	<string name="later">Later</string>
-	<string name="share">Share</string>
-	<string name="other">Other</string>
-	<string name="local">Local</string>
-	<string name="about">About</string>
-	<string name="start">Start</string>
-	<string name="rate">Rate</string>
-	<string name="join">Join</string>
-	<string name="undo">Undo</string>
-	<string name="you">You</string>
+	<!-- Extra hover-over info-->
+	<string name="hov_undo">Undo</string>
+	<string name="hov_nav_close">Close navigation drawer</string>
+	<string name="hov_nav_open">Open navigation drawer</string>
+
+	<!-- Online game undo request -->
+	<string name="undo_request_msg">Opponent is requesting undo, accept?</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
 
-	<!--  Multi word -->
-	<string name="host_desc">You are hosting a game, ask a friend to join &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (your game host code)</string>
-	<string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
-	<string name="special_thanks"><![CDATA[Special thanks to <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
-	<string name="undo_request">Your opponent requests to undo the last move, do you accept?</string>
-	<string name="lets_play_together">Hey, let\'s play Ultimate Tic Tac Toe together!</string>
-	<string name="online_join_desc">Enter the host code of your opponent</string>
-	<string name="check_internet_1">Check your internet connection (1)</string>
-	<string name="check_internet_2">Check your internet connection (2)</string>
-	<string name="check_internet_3">Check your internet connection (3)</string>
-	<string name="navigation_drawer_close">Close navigation drawer</string>
-	<string name="navigation_drawer_open">Open navigation drawer</string>
-	<string name="no_host_desc">Press create once you are ready</string>
-	<string name="new_local_desc">Create a new two player game</string>
-	<string name="online_not_joinable">Game not joinable</string>
-	<string name="open_source_title">Source code available:</string>
-	<string name="online_not_exit">Game does not exit</string>
-	<string name="new_ai_title">Start a new AI game?</string>
-	<string name="new_local_title">Start a new game?</string>
-	<string name="connection_lost">Connection lost</string>
-	<string name="starting_player">Beginning player</string>
-	<string name="enemy_turn">The enemy is playing!</string>
-	<string name="no_prev_moves">No previous moves</string>
-	<string name="game_winner">%1$s won the game!</string>
-	<string name="computer_game">Computer Game</string>
-	<string name="send_feedback">Send feedback</string>
-	<string name="author_credit">by Henrykvdb</string>
-	<string name="your_turn">It is your turn!</string>
-	<string name="ways_online">Online friend</string>
-	<string name="select_board">Select board</string>
-	<string name="tie_message">It is a tie!</string>
-	<string name="ways_local">Local friend</string>
-	<string name="online_game">Online Game</string>
-	<string name="subtitle_remote"> %1$s</string>
-	<string name="remove_ads">Remove ads</string>
-	<string name="local_game">Local Game</string>
-	<string name="share_with">Share with</string>
-	<string name="host_code">Host code</string>
-	<string name="no_thanks">No, thanks</string>
-	<string name="you_lost">You lost!</string>
-	<string name="rate_app">Rate app</string>
-	<string name="you_won">You won!</string>
-    <string name="undo_request_msg">Opponent is requesting undo, accept?</string>
-	<string name="no_undo_moves">Not enough moves</string>
+	<!--  Error messages -->
+	<string name="toast_internet_1">Check your internet connection (1)</string>
+	<string name="toast_internet_2">Check your internet connection (2)</string>
+	<string name="toast_internet_3">Check your internet connection (3)</string>
+	<string name="toast_online_not_joinable">Game not joinable</string>
+	<string name="toast_online_not_exist">Game does not exit</string>
+	<string name="toast_online_connection_ost">Connection lost</string>
+	<string name="toast_cant_undo">Not enough moves</string>
 
-	<!--  Tutorial slides -->
+	<!-- Window titles -->
+	<string name="title_computer">Computer Game</string>
+	<string name="title_local">Local Game</string>
+	<string name="title_online">Online Game</string>
+	<string name="subtitle_online"> %1$s</string>
+
+	<!-- Turn indicator -->
+	<string name="turn_yours">It is your turn!</string>
+	<string name="turn_enemy">The enemy is playing!</string>
+
+	<!-- Win indicator -->
+	<string name="winner_generic">%1$s won the game!</string>
+	<string name="winner_you">You won!</string>
+	<string name="winner_tie">It is a tie!</string>
+	<string name="winner_other">You lost!</string>
+
+	<!-- MAIN MENU: start a game -->
+	<string name="menu_title_new_game">New game</string>
+	<string name="menu_computer">Computer</string>
+	<string name="menu_local">Local</string>
+	<string name="menu_online">Online</string>
+
+	<!-- MAIN MENU: other -->
+	<string name="menu_title_others">Other</string>
+	<string name="menu_feedback">Feedback</string>
+	<string name="menu_remove_ads">Remove ads</string>
+	<string name="menu_tutorial">Tutorial</string>
+	<string name="menu_share">Share</string>
+	<string name="menu_about">About</string>
+
+	<!-- Rate dialog -->
+	<string name="rate_title">Rate app</string>
+	<string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
+	<string name="rate_positive">Rate</string>
+	<string name="rate_neutral">Later</string>
+	<string name="rate_negative">No, thanks</string>
+
+	<!--  Dialog new game  -->
+	<string name="dialog_start_game">Start</string>
+	<string name="dialog_cancel">Cancel</string>
+	<string name="dialog_start_player">Beginning player</string>
+	<string name="dialog_start_you">You</string>
+	<string name="dialog_start_other">Other</string>
+	<string name="dialog_start_computer">Computer</string>
+	<string name="dialog_start_random">Random</string>
+
+	<!--  Dialog new game: Computer  -->
+	<string name="new_ai_title">Start a new AI game?</string>
+	<string name="new_ai_difficulty">Difficulty</string>
+
+	<!--  Dialog new game: Local  -->
+	<string name="new_local_title">Start a new game?</string>
+	<string name="new_local_message">Create a new two player game</string>
+
+	<!--  Dialog new game: Online (create) -->
+	<string name="online_create">Create</string>
+	<string name="online_create_sel_board">Select board</string>
+	<string name="online_create_sel_board_new">Empty</string>
+	<string name="online_create_sel_board_current">Current</string>
+	<string name="online_create_message_wait">Press create once you are ready</string>
+	<string name="online_create_message_ready">You are hosting a game, ask a friend to join &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (your game host code)</string>
+
+	<!--  Dialog new game: Online (join) -->
+	<string name="online_join">Join</string>
+	<string name="online_join_code">Host code</string>
+	<string name="online_join_code_hint">ABC123</string>
+	<string name="online_join_message">Enter the host code of your opponent</string>
+
+	<!-- Dialog about-->
+	<string name="about_version">Version</string>
+	<string name="about_credit_0">by Henrykvdb</string>
+	<string name="about_credit_1"><![CDATA[Special thanks to <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
+	<string name="about_source">Source code available:</string>
+	<string name="about_close">Close</string>
+
+	<!-- Dialog feedback (title) -->
+	<string name="send_feedback">Send feedback</string>
+
+	<!-- Dialog share (body) -->
+	<string name="share_title">Share with</string>
+	<string name="share_message">Hey, let\'s play Ultimate Tic Tac Toe together!</string>
+
+	<!--  Tutorial slides 0 -->
 	<string name="tut0_title">Tutorial</string>
 	<string name="tut0_desc">Let\'s go over the basic rules</string>
+
+	<!--  Tutorial slides 1 -->
 	<string name="tut1_title">The board</string>
 	<string name="tut1_desc">Players take turns playing nine tic tac toe grids, arranged inside a bigger tic tac toe grid</string>
+
+	<!--  Tutorial slides 2 -->
 	<string name="tut2_title">Win grids</string>
 	<string name="tut2_desc">Win grids by getting three in a row, like you would in regular tic tac toe</string>
+
+	<!--  Tutorial slides 3 -->
 	<string name="tut3_title">How to win</string>
 	<string name="tut3_desc">Win 3 grids in a row in order to win the game</string>
+
+	<!--  Tutorial slides 4 -->
 	<string name="tut4_title">The colors</string>
 	<string name="tut4_desc">The allowed moves for the next player are indicated in that player\'s color. The last move is colored slightly lighter</string>
+
+	<!--  Tutorial slides 5 -->
 	<string name="tut5_title">Allowed moves</string>
 	<string name="tut5_desc">You decide where the opponent can play next. Example: If you play top right in a grid, the opponent has to play in the top right grid</string>
+
+	<!--  Tutorial slides 6 -->
 	<string name="tut6_title">Free moves</string>
 	<string name="tut6_desc">If you get sent to a full or won grid you can play anywhere you want</string>
+
+	<!--  Tutorial slides 7 -->
 	<string name="tut7_title">Ways to play</string>
 	<string name="tut7_desc">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
+
+	<!--  Tutorial slides 8 -->
+	<string name="against">Against</string>
+	<string name="ways_computer">Computer</string>
+	<string name="ways_local">Local friend</string>
+	<string name="ways_online">Online friend</string>
 </resources>

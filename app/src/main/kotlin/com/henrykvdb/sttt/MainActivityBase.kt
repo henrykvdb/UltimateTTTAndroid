@@ -122,8 +122,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		//Add listener to open and closeGame drawer
 		drawerToggle = ActionBarDrawerToggle(
 			this, binding.drawerLayout, binding.toolbar,
-			R.string.navigation_drawer_open,
-			R.string.navigation_drawer_close
+			R.string.hov_nav_open,
+			R.string.hov_nav_close
 		)
 		binding.drawerLayout.addDrawerListener(drawerToggle)
 		drawerToggle.syncState()
@@ -256,14 +256,14 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 
 		// Set title
 		supportActionBar?.title = when(gs.type){
-			Source.LOCAL -> getString(R.string.local_game)
-			Source.AI -> getString(R.string.computer_game)
-			Source.REMOTE -> getString(R.string.online_game)
+			Source.LOCAL -> getString(R.string.title_local)
+			Source.AI -> getString(R.string.title_computer)
+			Source.REMOTE -> getString(R.string.title_online)
 		}
 
 		// Set subtitle
 		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
-		else getString(R.string.subtitle_remote, gs.remoteId)
+		else getString(R.string.subtitle_online, gs.remoteId)
 
 		// Redraw board
 		binding.boardView.drawState(gs)
@@ -303,7 +303,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	@Synchronized fun turnLocal() {
-		if (gs.type == Source.REMOTE) toast(R.string.connection_lost)
+		if (gs.type == Source.REMOTE) toast(R.string.toast_online_connection_ost)
 		gs.turnLocal()
 		runOnUiThread { redraw() }
 	}
@@ -358,7 +358,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			Source.LOCAL -> success = gs.undo()
 		}
 
-		if (!success) toast(R.string.no_undo_moves)
+		if (!success) toast(R.string.toast_cant_undo)
 		else runOnUiThread { redraw() }
 		return success
 	}

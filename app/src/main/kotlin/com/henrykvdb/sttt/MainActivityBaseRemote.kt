@@ -105,7 +105,7 @@ open class MainActivityBaseRemote : MainActivityBase() {
                     remoteGameRef.setValue(RemoteDbEntry(idHost = idHost))
                     afterSuccess(gameId)
                 }
-            }.addOnFailureListener{ toast(R.string.check_internet_1) }
+            }.addOnFailureListener{ toast(R.string.toast_internet_1) }
         }
     }
 
@@ -126,9 +126,9 @@ open class MainActivityBaseRemote : MainActivityBase() {
                     else if (idRemote == "" || idRemote == idLocal) {
                         remoteGameRef.child("idRemote").setValue(idLocal)
                         afterSuccess(false)
-                    } else toast(R.string.online_not_joinable)
-                } else toast(R.string.online_not_exit)
-            }.addOnFailureListener{ toast(R.string.check_internet_2) }
+                    } else toast(R.string.toast_online_not_joinable)
+                } else toast(R.string.toast_online_not_exist)
+            }.addOnFailureListener{ toast(R.string.toast_internet_2) }
         }
     }
 
@@ -174,6 +174,6 @@ open class MainActivityBaseRemote : MainActivityBase() {
             afterSuccess(currentUser.uid)
         else Firebase.auth.signInAnonymously()
             .addOnSuccessListener(this) { runWithUid(afterSuccess) }
-            .addOnFailureListener { toast(R.string.check_internet_3) }
+            .addOnFailureListener { toast(R.string.toast_internet_3) }
     }
 }

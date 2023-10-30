@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="@string/new_game">
+    <item android:title="@string/menu_title_new_game">
         <menu>
             <item
                 android:id="@+id/nav_start_ai"
                 android:icon="@drawable/ic_menu_ai"
-                android:title="@string/computer"/>
+                android:title="@string/menu_computer"/>
             <item
                     android:id="@+id/nav_start_local"
                     android:icon="@drawable/ic_menu_human"
-                    android:title="@string/local"/>
+                    android:title="@string/menu_local"/>
             <item
                 android:id="@+id/nav_start_online"
                 android:icon="@drawable/ic_menu_online"
-                android:title="@string/online"/>
+                android:title="@string/menu_online"/>
         </menu>
     </item>
-    <item android:title="@string/other">
+    <item android:title="@string/menu_title_others">
         <menu>
             <item
                 android:id="@+id/nav_remove_ads"
                 android:icon="@drawable/ic_menu_remove_ads"
-                android:title="@string/remove_ads"/>
+                android:title="@string/menu_remove_ads"/>
             <item
                     android:id="@+id/nav_other_feedback"
                     android:icon="@drawable/ic_menu_feedback"
-                    android:title="@string/feedback"/>
+                    android:title="@string/menu_feedback"/>
             <item
                 android:id="@+id/nav_other_tutorial"
                 android:icon="@drawable/ic_menu_tutorial"
-                android:title="@string/tutorial"/>
+                android:title="@string/menu_tutorial"/>
             <item
                     android:id="@+id/nav_other_share"
                     android:icon="@drawable/ic_menu_share"
-                    android:title="@string/share"/>
+                    android:title="@string/menu_share"/>
             <item
                     android:id="@+id/nav_other_about"
                     android:icon="@drawable/ic_menu_about"
-                    android:title="@string/about"/>
+                    android:title="@string/menu_about"/>
         </menu>
     </item>
 </menu>
