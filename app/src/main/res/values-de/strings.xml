@@ -1,104 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?><resources>
-    <!--  App info -->
-    <string translatable="false" name="app_name">UTTT</string>
-    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
-    <string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
-    <string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
-    <string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+    <!-- Extra hover-over info-->
+    <string name="hov_undo">Rückgängig machen</string>
+    <string name="hov_nav_close">Navigationsschublade schließen</string>
+    <string name="hov_nav_open">Navigationsleiste öffnen</string>
 
-    <!-- FireBase -->
-    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
-
-    <!--  Single word -->
-    <string name="online_join_code_hint">ABC123</string>
-    <string name="ways_computer">Computer</string>
-    <string name="difficulty">Schwierigkeit</string>
-    <string name="current_board">Strom</string>
-    <string name="feedback">Feedback</string>
-    <string name="tutorial">Tutorial</string>
-    <string name="new_game">Neues Spiel</string>
-    <string name="computer">Computer</string>
-    <string name="version">Version</string>
-    <string name="new_board">Leer</string>
-    <string name="against">Gegen</string>
-    <string name="random">Zufällig</string>
-    <string name="cancel">Abbrechen</string>
-    <string name="online">Online</string>
-    <string name="create">Erstellen</string>
-    <string name="close">Schließen</string>
-    <string name="later">Später</string>
-    <string name="share">Teilen</string>
-    <string name="other">Andere</string>
-    <string name="local">Lokal</string>
-    <string name="about">Über</string>
-    <string name="start">Start</string>
-    <string name="rate">Bewerten</string>
-    <string name="join">Mitmachen</string>
-    <string name="undo">Rückgängig machen</string>
-    <string name="you">Du</string>
+    <!-- Online game undo request -->
+    <string name="undo_request_msg">Gegner bittet um Rückgängigmachen, akzeptieren?</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
 
-    <!--  Multi word -->
-    <string name="host_desc">Sie hosten ein Spiel. Bitten Sie einen Freund, beizutreten &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (Ihr Spiel-Host-Code)</string>
-    <string name="rate_message">Wenn dir Ultimate Tic Tac Toe gefällt, nimm dir bitte einen Moment Zeit, um es zu bewerten. Danke für deine Unterstützung!</string>
-    <string name="special_thanks">Besonderer Dank an &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="undo_request">Dein Gegner verlangt, den letzten Zug rückgängig zu machen, akzeptierst du?</string>
-    <string name="lets_play_together">Hey, lass uns gemeinsam Ultimate Tic Tac Toe spielen!</string>
-    <string name="online_join_desc">Gib den Host-Code deines Gegners ein</string>
-    <string name="check_internet_1">Überprüfe deine Internetverbindung (1)</string>
-    <string name="check_internet_2">Überprüfe deine Internetverbindung (2)</string>
-    <string name="check_internet_3">Überprüfe deine Internetverbindung (3)</string>
-    <string name="navigation_drawer_close">Navigationsschublade schließen</string>
-    <string name="navigation_drawer_open">Navigationsleiste öffnen</string>
-    <string name="no_host_desc">Drücke auf Erstellen, wenn du bereit bist</string>
-    <string name="new_local_desc">Erstelle ein neues Zwei-Spieler-Spiel</string>
-    <string name="online_not_joinable">Spiel kann nicht beigetreten werden</string>
-    <string name="open_source_title">Verfügbarer Quellcode:</string>
-    <string name="online_not_exit">Das Spiel wird nicht beendet</string>
-    <string name="new_ai_title">Ein neues KI-Spiel starten?</string>
-    <string name="new_local_title">Ein neues Spiel starten?</string>
-    <string name="connection_lost">Verbindung verloren</string>
-    <string name="starting_player">Anfänger</string>
-    <string name="enemy_turn">Der Feind spielt!</string>
-    <string name="no_prev_moves">Keine vorherigen Züge</string>
-    <string name="game_winner">%1$s hat das Spiel gewonnen!</string>
-    <string name="computer_game">Computerspiel</string>
-    <string name="send_feedback">Feedback senden</string>
-    <string name="author_credit">von Henrykvdb</string>
-    <string name="your_turn">Du bist an der Reihe!</string>
-    <string name="ways_online">Online-Freund</string>
-    <string name="select_board">Brett auswählen</string>
-    <string name="tie_message">Es ist ein Unentschieden!</string>
-    <string name="ways_local">Lokaler Freund</string>
-    <string name="online_game">Online-Spiel</string>
-    <string name="subtitle_remote"> %1$s</string>
-    <string name="remove_ads">Werbung entfernen</string>
-    <string name="local_game">Lokales Spiel</string>
-    <string name="share_with">Teilen mit</string>
-    <string name="host_code">Gastgebercode</string>
-    <string name="no_thanks">Nein, danke</string>
-    <string name="you_lost">Du hast verloren!</string>
-    <string name="rate_app">App bewerten</string>
-    <string name="you_won">Du hast gewonnen!</string>
-    <string name="undo_request_msg">Gegner bittet um Rückgängigmachen, akzeptieren?</string>
-    <string name="no_undo_moves">Nicht genug Züge</string>
+    <!--  Error messages -->
+    <string name="toast_internet_1">Überprüfe deine Internetverbindung (1)</string>
+    <string name="toast_internet_2">Überprüfe deine Internetverbindung (2)</string>
+    <string name="toast_internet_3">Überprüfe deine Internetverbindung (3)</string>
+    <string name="toast_online_not_joinable">Spiel kann nicht beigetreten werden</string>
+    <string name="toast_online_not_exist">Spiel existiert nicht</string>
+    <string name="toast_online_connection_ost">Verbindung verloren</string>
+    <string name="toast_cant_undo">Nicht genug Züge</string>
 
-    <!--  Tutorial slides -->
+    <!-- Window titles -->
+    <string name="title_computer">Computerspiel</string>
+    <string name="title_local">Lokales Spiel</string>
+    <string name="title_online">Online-Spiel</string>
+    <string name="subtitle_online"> %1$s</string>
+
+    <!-- Turn indicator -->
+    <string name="turn_yours">Du bist an der Reihe!</string>
+    <string name="turn_enemy">Der Feind spielt!</string>
+
+    <!-- Win indicator -->
+    <string name="winner_generic">%1$s hat das Spiel gewonnen!</string>
+    <string name="winner_you">Du hast gewonnen!</string>
+    <string name="winner_tie">Es ist ein Unentschieden!</string>
+    <string name="winner_other">Du hast verloren!</string>
+
+    <!-- MAIN MENU: start a game -->
+    <string name="menu_title_new_game">Neues Spiel</string>
+    <string name="menu_computer">Computer</string>
+    <string name="menu_local">Lokal</string>
+    <string name="menu_online">Online</string>
+
+    <!-- MAIN MENU: other -->
+    <string name="menu_title_others">Andere</string>
+    <string name="menu_feedback">Feedback</string>
+    <string name="menu_remove_ads">Werbung entfernen</string>
+    <string name="menu_tutorial">Tutorial</string>
+    <string name="menu_share">Teilen</string>
+    <string name="menu_about">Über</string>
+
+    <!-- Rate dialog -->
+    <string name="rate_title">App bewerten</string>
+    <string name="rate_message">Wenn dir Ultimate Tic Tac Toe gefällt, nimm dir bitte einen Moment Zeit, um es zu bewerten. Danke für deine Unterstützung!</string>
+    <string name="rate_positive">Bewerten</string>
+    <string name="rate_neutral">Später</string>
+    <string name="rate_negative">Nein, danke</string>
+
+    <!--  Dialog new game  -->
+    <string name="dialog_start_game">Start</string>
+    <string name="dialog_cancel">Abbrechen</string>
+    <string name="dialog_start_player">Anfänger</string>
+    <string name="dialog_start_you">Du</string>
+    <string name="dialog_start_other">Andere</string>
+    <string name="dialog_start_computer">Computer</string>
+    <string name="dialog_start_random">Zufällig</string>
+
+    <!--  Dialog new game: Computer  -->
+    <string name="new_ai_title">Ein neues KI-Spiel starten?</string>
+    <string name="new_ai_difficulty">Schwierigkeit</string>
+
+    <!--  Dialog new game: Local  -->
+    <string name="new_local_title">Ein neues Spiel starten?</string>
+    <string name="new_local_message">Erstelle ein neues Zwei-Spieler-Spiel</string>
+
+    <!--  Dialog new game: Online (create) -->
+    <string name="online_create">Erstellen</string>
+    <string name="online_create_sel_board">Brett auswählen</string>
+    <string name="online_create_sel_board_new">Leer</string>
+    <string name="online_create_sel_board_current">Strom</string>
+    <string name="online_create_message_wait">Drücke auf Erstellen, wenn du bereit bist</string>
+    <string name="online_create_message_ready">Sie hosten ein Spiel. Bitten Sie einen Freund, beizutreten &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (Ihr Spiel-Host-Code)</string>
+
+    <!--  Dialog new game: Online (join) -->
+    <string name="online_join">Mitmachen</string>
+    <string name="online_join_code">Gastgebercode</string>
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="online_join_message">Gib den Host-Code deines Gegners ein</string>
+
+    <!-- Dialog about-->
+    <string name="about_version">Version</string>
+    <string name="about_credit_0">von Henrykvdb</string>
+    <string name="about_credit_1">Besonderer Dank an &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="about_source">Verfügbarer Quellcode:</string>
+    <string name="about_close">Schließen</string>
+
+    <!-- Dialog feedback (title) -->
+    <string name="send_feedback">Feedback senden</string>
+
+    <!-- Dialog share (body) -->
+    <string name="share_title">Teilen mit</string>
+    <string name="share_message">Hey, lass uns gemeinsam Ultimate Tic Tac Toe spielen!</string>
+
+    <!--  Tutorial slides 0 -->
     <string name="tut0_title">Tutorial</string>
     <string name="tut0_desc">Lass uns die Grundregeln durchgehen</string>
+
+    <!--  Tutorial slides 1 -->
     <string name="tut1_title">Das Brett</string>
     <string name="tut1_desc">Die Spieler spielen abwechselnd neun Tic-Tac-Toe-Gitter, die in einem größeren Tic-Tac-Toe-Gitter angeordnet sind</string>
+
+    <!--  Tutorial slides 2 -->
     <string name="tut2_title">Gewinngitter</string>
     <string name="tut2_desc">Gewinnen Sie Gitter, indem Sie drei in einer Reihe erhalten, wie Sie es bei einem normalen Tic-Tac-Toe tun würden</string>
+
+    <!--  Tutorial slides 3 -->
     <string name="tut3_title">So gewinnst du</string>
     <string name="tut3_desc">Gewinne 3 Gitter in Folge, um das Spiel zu gewinnen</string>
+
+    <!--  Tutorial slides 4 -->
     <string name="tut4_title">Die Farben</string>
     <string name="tut4_desc">Die erlaubten Züge für den nächsten Spieler werden in der Farbe dieses Spielers angezeigt. Der letzte Zug ist etwas heller gefärbt</string>
+
+    <!--  Tutorial slides 5 -->
     <string name="tut5_title">Erlaubte Züge</string>
     <string name="tut5_desc">Du entscheidest, wo der Gegner als nächstes spielen kann. Beispiel: Wenn du oben rechts in einem Raster spielst, muss der Gegner rechts oben spielen</string>
+
+    <!--  Tutorial slides 6 -->
     <string name="tut6_title">Kostenlose Züge</string>
     <string name="tut6_desc">Wenn du zu einem vollen oder gewonnenen Raster geschickt wirst, kannst du überall spielen, wo du willst</string>
+
+    <!--  Tutorial slides 7 -->
     <string name="tut7_title">Spielmöglichkeiten</string>
     <string name="tut7_desc">Fordere deine Freunde lokal und online heraus. Übe gegen den Computer und versuche, ihn auf dem härtesten Schwierigkeitsgrad zu schlagen</string>
+    <string name="tut7_against">Gegen</string>
+    <string name="tut7_ways_computer">Computer</string>
+    <string name="tut7_ways_local">Lokaler Freund</string>
+    <string name="tut7_ways_online">Online-Freund</string>
 </resources>

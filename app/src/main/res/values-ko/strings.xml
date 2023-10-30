@@ -1,104 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?><resources>
-    <!--  App info -->
-    <string translatable="false" name="app_name">UTTT</string>
-    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
-    <string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
-    <string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
-    <string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+    <!-- Extra hover-over info-->
+    <string name="hov_undo">실행 취소</string>
+    <string name="hov_nav_close">탐색 창 닫기</string>
+    <string name="hov_nav_open">탐색 창 열기</string>
 
-    <!-- FireBase -->
-    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
-
-    <!--  Single word -->
-    <string name="online_join_code_hint">ABC123</string>
-    <string name="ways_computer">컴퓨터</string>
-    <string name="difficulty">난이도</string>
-    <string name="current_board">현재</string>
-    <string name="feedback">피드백</string>
-    <string name="tutorial">튜토리얼</string>
-    <string name="new_game">새 게임</string>
-    <string name="computer">컴퓨터</string>
-    <string name="version">버전</string>
-    <string name="new_board">비어 있음</string>
-    <string name="against">반대</string>
-    <string name="random">무작위</string>
-    <string name="cancel">취소</string>
-    <string name="online">온라인</string>
-    <string name="create">만들기</string>
-    <string name="close">닫기</string>
-    <string name="later">나중에</string>
-    <string name="share">공유</string>
-    <string name="other">기타</string>
-    <string name="local">로컬</string>
-    <string name="about">정보</string>
-    <string name="start">시작</string>
-    <string name="rate">평가</string>
-    <string name="join">가입</string>
-    <string name="undo">실행 취소</string>
-    <string name="you">당신</string>
+    <!-- Online game undo request -->
+    <string name="undo_request_msg">상대가 실행 취소를 요청합니다. 수락하시겠습니까?</string>
     <string name="yes">예</string>
     <string name="no">아니요</string>
 
-    <!--  Multi word -->
-    <string name="host_desc">게임을 호스팅하고 있습니다. 친구에게 &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (게임 호스트 코드)에 가입하도록 요청하세요.</string>
-    <string name="rate_message">Ultimate Tic Tac Toe가 마음에 드셨다면 잠시 시간을 내어 평가해 주세요. 지원해 주셔서 감사합니다!</string>
-    <string name="special_thanks">&lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;에게 특별히 감사드립니다.</string>
-    <string name="undo_request">상대가 마지막 이동을 취소해 달라고 요청합니다. 수락하시겠습니까?</string>
-    <string name="lets_play_together">이봐, Ultimate Tic Tac Toe를 함께 플레이합시다!</string>
-    <string name="online_join_desc">상대방의 호스트 코드를 입력하세요</string>
-    <string name="check_internet_1">인터넷 연결 확인 (1)</string>
-    <string name="check_internet_2">인터넷 연결 확인 (2)</string>
-    <string name="check_internet_3">인터넷 연결 확인 (3)</string>
-    <string name="navigation_drawer_close">탐색 창 닫기</string>
-    <string name="navigation_drawer_open">탐색 창 열기</string>
-    <string name="no_host_desc">준비가 되면 만들기를 누르세요</string>
-    <string name="new_local_desc">새로운 2인용 게임 만들기</string>
-    <string name="online_not_joinable">게임에 참여할 수 없음</string>
-    <string name="open_source_title">사용 가능한 소스 코드:</string>
-    <string name="online_not_exit">게임이 종료되지 않습니다</string>
-    <string name="new_ai_title">새로운 AI 게임을 시작하시겠습니까?</string>
-    <string name="new_local_title">새 게임을 시작하시겠습니까?</string>
-    <string name="connection_lost">연결 끊김</string>
-    <string name="starting_player">시작 플레이어</string>
-    <string name="enemy_turn">적이 플레이 중입니다!</string>
-    <string name="no_prev_moves">이전 이동 없음</string>
-    <string name="game_winner">%1$s이(가) 게임에서 승리했습니다!</string>
-    <string name="computer_game">컴퓨터 게임</string>
-    <string name="send_feedback">피드백 보내기</string>
-    <string name="author_credit">by Henrykvdb</string>
-    <string name="your_turn">당신 차례입니다!</string>
-    <string name="ways_online">온라인 친구</string>
-    <string name="select_board">보드 선택</string>
-    <string name="tie_message">넥타이입니다!</string>
-    <string name="ways_local">지역 친구</string>
-    <string name="online_game">온라인 게임</string>
-    <string name="subtitle_remote"> %1$s</string>
-    <string name="remove_ads">광고 제거</string>
-    <string name="local_game">로컬 게임</string>
-    <string name="share_with">공유 대상</string>
-    <string name="host_code">호스트 코드</string>
-    <string name="no_thanks">아니요, 감사합니다</string>
-    <string name="you_lost">패배했습니다!</string>
-    <string name="rate_app">앱 평가하기</string>
-    <string name="you_won">이겼습니다!</string>
-    <string name="undo_request_msg">상대가 실행 취소를 요청합니다. 수락하시겠습니까?</string>
-    <string name="no_undo_moves">움직임이 충분하지 않습니다</string>
+    <!--  Error messages -->
+    <string name="toast_internet_1">인터넷 연결 확인 (1)</string>
+    <string name="toast_internet_2">인터넷 연결 확인 (2)</string>
+    <string name="toast_internet_3">인터넷 연결 확인 (3)</string>
+    <string name="toast_online_not_joinable">게임에 참여할 수 없음</string>
+    <string name="toast_online_not_exist">게임이 존재하지 않습니다</string>
+    <string name="toast_online_connection_ost">연결 끊김</string>
+    <string name="toast_cant_undo">움직임이 충분하지 않습니다</string>
 
-    <!--  Tutorial slides -->
+    <!-- Window titles -->
+    <string name="title_computer">컴퓨터 게임</string>
+    <string name="title_local">로컬 게임</string>
+    <string name="title_online">온라인 게임</string>
+    <string name="subtitle_online"> %1$s</string>
+
+    <!-- Turn indicator -->
+    <string name="turn_yours">당신 차례입니다!</string>
+    <string name="turn_enemy">적이 플레이 중입니다!</string>
+
+    <!-- Win indicator -->
+    <string name="winner_generic">%1$s이(가) 게임에서 승리했습니다!</string>
+    <string name="winner_you">이겼습니다!</string>
+    <string name="winner_tie">넥타이입니다!</string>
+    <string name="winner_other">패배했습니다!</string>
+
+    <!-- MAIN MENU: start a game -->
+    <string name="menu_title_new_game">새 게임</string>
+    <string name="menu_computer">컴퓨터</string>
+    <string name="menu_local">로컬</string>
+    <string name="menu_online">온라인</string>
+
+    <!-- MAIN MENU: other -->
+    <string name="menu_title_others">기타</string>
+    <string name="menu_feedback">피드백</string>
+    <string name="menu_remove_ads">광고 제거</string>
+    <string name="menu_tutorial">튜토리얼</string>
+    <string name="menu_share">공유</string>
+    <string name="menu_about">정보</string>
+
+    <!-- Rate dialog -->
+    <string name="rate_title">앱 평가하기</string>
+    <string name="rate_message">Ultimate Tic Tac Toe가 마음에 드셨다면 잠시 시간을 내어 평가해 주세요. 지원해 주셔서 감사합니다!</string>
+    <string name="rate_positive">평가</string>
+    <string name="rate_neutral">나중에</string>
+    <string name="rate_negative">아니요, 감사합니다</string>
+
+    <!--  Dialog new game  -->
+    <string name="dialog_start_game">시작</string>
+    <string name="dialog_cancel">취소</string>
+    <string name="dialog_start_player">시작 플레이어</string>
+    <string name="dialog_start_you">당신</string>
+    <string name="dialog_start_other">기타</string>
+    <string name="dialog_start_computer">컴퓨터</string>
+    <string name="dialog_start_random">무작위</string>
+
+    <!--  Dialog new game: Computer  -->
+    <string name="new_ai_title">새로운 AI 게임을 시작하시겠습니까?</string>
+    <string name="new_ai_difficulty">난이도</string>
+
+    <!--  Dialog new game: Local  -->
+    <string name="new_local_title">새 게임을 시작하시겠습니까?</string>
+    <string name="new_local_message">새로운 2인용 게임 만들기</string>
+
+    <!--  Dialog new game: Online (create) -->
+    <string name="online_create">만들기</string>
+    <string name="online_create_sel_board">보드 선택</string>
+    <string name="online_create_sel_board_new">비어 있음</string>
+    <string name="online_create_sel_board_current">현재</string>
+    <string name="online_create_message_wait">준비가 되면 만들기를 누르세요</string>
+    <string name="online_create_message_ready">게임을 호스팅하고 있습니다. 친구에게 &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (게임 호스트 코드)에 가입하도록 요청하세요.</string>
+
+    <!--  Dialog new game: Online (join) -->
+    <string name="online_join">가입</string>
+    <string name="online_join_code">호스트 코드</string>
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="online_join_message">상대방의 호스트 코드를 입력하세요</string>
+
+    <!-- Dialog about-->
+    <string name="about_version">버전</string>
+    <string name="about_credit_0">by Henrykvdb</string>
+    <string name="about_credit_1">&lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;에게 특별히 감사드립니다.</string>
+    <string name="about_source">사용 가능한 소스 코드:</string>
+    <string name="about_close">닫기</string>
+
+    <!-- Dialog feedback (title) -->
+    <string name="send_feedback">피드백 보내기</string>
+
+    <!-- Dialog share (body) -->
+    <string name="share_title">공유 대상</string>
+    <string name="share_message">이봐, Ultimate Tic Tac Toe를 함께 플레이합시다!</string>
+
+    <!--  Tutorial slides 0 -->
     <string name="tut0_title">튜토리얼</string>
     <string name="tut0_desc">기본 규칙을 살펴 보겠습니다.</string>
+
+    <!--  Tutorial slides 1 -->
     <string name="tut1_title">보드</string>
     <string name="tut1_desc">플레이어는 더 큰 틱택토 그리드 안에 배열된 9개의 틱택토 그리드를 번갈아 가며 플레이합니다.</string>
+
+    <!--  Tutorial slides 2 -->
     <string name="tut2_title">승리 그리드</string>
     <string name="tut2_desc">일반 tic tac toe처럼 연속으로 3개를 얻어 그리드에서 승리하세요.</string>
+
+    <!--  Tutorial slides 3 -->
     <string name="tut3_title">승리 방법</string>
     <string name="tut3_desc">게임에서 이기려면 연속으로 3개의 그리드를 이겨야 합니다.</string>
+
+    <!--  Tutorial slides 4 -->
     <string name="tut4_title">색상</string>
     <string name="tut4_desc">다음 플레이어에게 허용된 이동은 해당 플레이어의 색상으로 표시됩니다. 마지막 이동은 약간 더 밝은 색으로 표시됩니다.</string>
+
+    <!--  Tutorial slides 5 -->
     <string name="tut5_title">허용된 이동</string>
     <string name="tut5_desc">상대가 다음에 플레이할 수 있는 위치를 결정합니다. 예: 오른쪽 상단 그리드에서 플레이하면 상대는 오른쪽 상단 그리드에서 플레이해야 합니다.</string>
+
+    <!--  Tutorial slides 6 -->
     <string name="tut6_title">자유 이동</string>
     <string name="tut6_desc">풀 그리드 또는 원 그리드로 보내지면 원하는 곳 어디에서나 플레이할 수 있습니다.</string>
+
+    <!--  Tutorial slides 7 -->
     <string name="tut7_title">플레이 방법</string>
     <string name="tut7_desc">로컬 및 온라인에서 친구들에게 도전하세요. 컴퓨터와 연습하고 가장 어려운 난이도에서 이겨보세요</string>
+    <string name="tut7_against">반대</string>
+    <string name="tut7_ways_computer">컴퓨터</string>
+    <string name="tut7_ways_local">지역 친구</string>
+    <string name="tut7_ways_online">온라인 친구</string>
 </resources>

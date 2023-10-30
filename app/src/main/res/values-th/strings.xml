@@ -1,104 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?><resources>
-    <!--  App info -->
-    <string translatable="false" name="app_name">UTTT</string>
-    <string translatable="false" name="app_name_long">Ultimate Tic Tac Toe</string>
-    <string translatable="false" name="app_name_newline">Ultimate\nTic Tac Toe</string>
-    <string translatable="false" name="market_url">https://play.google.com/store/apps/details?id=com.henrykvdb.sttt</string>
-    <string translatable="false" name="github_url">github.com/henrykvdb/UltimateTTTAndroid</string>
+    <!-- Extra hover-over info-->
+    <string name="hov_undo">เลิกทำ</string>
+    <string name="hov_nav_close">ปิดแถบเมนูเลื่อนด้านข้าง</string>
+    <string name="hov_nav_open">เปิดลิ้นชักการนำทาง</string>
 
-    <!-- FireBase -->
-    <string translatable="false" name="admob_app_id">ca-app-pub-6464324284979557~3924211424</string>
-
-    <!--  Single word -->
-    <string name="online_join_code_hint">เอบีซี123</string>
-    <string name="ways_computer">คอมพิวเตอร์</string>
-    <string name="difficulty">ความยาก</string>
-    <string name="current_board">ปัจจุบัน</string>
-    <string name="feedback">ข้อเสนอแนะ</string>
-    <string name="tutorial">บทช่วยสอน</string>
-    <string name="new_game">เกมส์ใหม่</string>
-    <string name="computer">คอมพิวเตอร์</string>
-    <string name="version">เวอร์ชัน</string>
-    <string name="new_board">ว่างเปล่า</string>
-    <string name="against">ขัดต่อ</string>
-    <string name="random">สุ่ม</string>
-    <string name="cancel">ยกเลิก</string>
-    <string name="online">ออนไลน์</string>
-    <string name="create">สร้าง</string>
-    <string name="close">ปิด</string>
-    <string name="later">ภายหลัง</string>
-    <string name="share">แบ่งปัน</string>
-    <string name="other">อื่น</string>
-    <string name="local">ท้องถิ่น</string>
-    <string name="about">เกี่ยวกับ</string>
-    <string name="start">เริ่ม</string>
-    <string name="rate">ประเมิน</string>
-    <string name="join">เข้าร่วม</string>
-    <string name="undo">เลิกทำ</string>
-    <string name="you">คุณ</string>
+    <!-- Online game undo request -->
+    <string name="undo_request_msg">ฝ่ายตรงข้ามกำลังขอเลิกทำ ยอมรับไหม?</string>
     <string name="yes">ใช่</string>
     <string name="no">เลขที่</string>
 
-    <!--  Multi word -->
-    <string name="host_desc">คุณกำลังโฮสต์เกม ขอให้เพื่อนเข้าร่วม &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (รหัสโฮสต์เกมของคุณ)</string>
-    <string name="rate_message">หากคุณสนุกกับการใช้ Ultimate Tic Tac Toe โปรดสละเวลาสักครู่เพื่อให้คะแนน ขอบคุณสำหรับการสนับสนุน!</string>
-    <string name="special_thanks">ขอขอบคุณเป็นพิเศษสำหรับ &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="undo_request">ฝ่ายตรงข้ามของคุณร้องขอให้ยกเลิกการเคลื่อนไหวครั้งล่าสุด คุณยอมรับหรือไม่?</string>
-    <string name="lets_play_together">เฮ้ มาเล่น Ultimate Tic Tac Toe ด้วยกัน!</string>
-    <string name="online_join_desc">ป้อนรหัสโฮสต์ของคู่ต่อสู้ของคุณ</string>
-    <string name="check_internet_1">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (1)</string>
-    <string name="check_internet_2">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (2)</string>
-    <string name="check_internet_3">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (3)</string>
-    <string name="navigation_drawer_close">ปิดแถบเมนูเลื่อนด้านข้าง</string>
-    <string name="navigation_drawer_open">เปิดลิ้นชักการนำทาง</string>
-    <string name="no_host_desc">กดสร้างเมื่อคุณพร้อม</string>
-    <string name="new_local_desc">สร้างเกมผู้เล่นสองคนใหม่</string>
-    <string name="online_not_joinable">เกมเข้าไม่ได้</string>
-    <string name="open_source_title">มีซอร์สโค้ด:</string>
-    <string name="online_not_exit">เกมไม่ออก</string>
-    <string name="new_ai_title">เริ่มเกม AI ใหม่เหรอ?</string>
-    <string name="new_local_title">เริ่มเกมใหม่?</string>
-    <string name="connection_lost">การเชื่อมต่อขาดหายไป</string>
-    <string name="starting_player">ผู้เล่นเริ่มต้น</string>
-    <string name="enemy_turn">ศัตรูกำลังเล่น!</string>
-    <string name="no_prev_moves">ไม่มีการเคลื่อนไหวก่อนหน้านี้</string>
-    <string name="game_winner">%1$s ชนะเกมนี้!</string>
-    <string name="computer_game">เกมคอมพิวเตอร์</string>
-    <string name="send_feedback">ส่งความคิดเห็น</string>
-    <string name="author_credit">โดย Henrykvdb</string>
-    <string name="your_turn">ถึงตาคุณแล้ว!</string>
-    <string name="ways_online">เพื่อนออนไลน์</string>
-    <string name="select_board">เลือกบอร์ด</string>
-    <string name="tie_message">มันเสมอกัน!</string>
-    <string name="ways_local">เพื่อนท้องถิ่น</string>
-    <string name="online_game">เกมออนไลน์</string>
-    <string name="subtitle_remote"> %1$s</string>
-    <string name="remove_ads">ลบโฆษณา</string>
-    <string name="local_game">เกมท้องถิ่น</string>
-    <string name="share_with">ร่วมกับ</string>
-    <string name="host_code">รหัสโฮสต์</string>
-    <string name="no_thanks">ไม่เป็นไรขอบคุณ</string>
-    <string name="you_lost">คุณแพ้!</string>
-    <string name="rate_app">ให้คะแนนแอพ</string>
-    <string name="you_won">คุณได้รับรางวัล!</string>
-    <string name="undo_request_msg">ฝ่ายตรงข้ามกำลังขอเลิกทำ ยอมรับไหม?</string>
-    <string name="no_undo_moves">การเคลื่อนไหวไม่เพียงพอ</string>
+    <!--  Error messages -->
+    <string name="toast_internet_1">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (1)</string>
+    <string name="toast_internet_2">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (2)</string>
+    <string name="toast_internet_3">ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ (3)</string>
+    <string name="toast_online_not_joinable">เกมเข้าไม่ได้</string>
+    <string name="toast_online_not_exist">ไม่มีเกม</string>
+    <string name="toast_online_connection_ost">การเชื่อมต่อขาดหายไป</string>
+    <string name="toast_cant_undo">การเคลื่อนไหวไม่เพียงพอ</string>
 
-    <!--  Tutorial slides -->
+    <!-- Window titles -->
+    <string name="title_computer">เกมคอมพิวเตอร์</string>
+    <string name="title_local">เกมท้องถิ่น</string>
+    <string name="title_online">เกมออนไลน์</string>
+    <string name="subtitle_online"> %1$s</string>
+
+    <!-- Turn indicator -->
+    <string name="turn_yours">ถึงตาคุณแล้ว!</string>
+    <string name="turn_enemy">ศัตรูกำลังเล่น!</string>
+
+    <!-- Win indicator -->
+    <string name="winner_generic">%1$s ชนะเกมนี้!</string>
+    <string name="winner_you">คุณได้รับรางวัล!</string>
+    <string name="winner_tie">มันเสมอกัน!</string>
+    <string name="winner_other">คุณแพ้!</string>
+
+    <!-- MAIN MENU: start a game -->
+    <string name="menu_title_new_game">เกมส์ใหม่</string>
+    <string name="menu_computer">คอมพิวเตอร์</string>
+    <string name="menu_local">ท้องถิ่น</string>
+    <string name="menu_online">ออนไลน์</string>
+
+    <!-- MAIN MENU: other -->
+    <string name="menu_title_others">อื่น</string>
+    <string name="menu_feedback">ข้อเสนอแนะ</string>
+    <string name="menu_remove_ads">ลบโฆษณา</string>
+    <string name="menu_tutorial">บทช่วยสอน</string>
+    <string name="menu_share">แบ่งปัน</string>
+    <string name="menu_about">เกี่ยวกับ</string>
+
+    <!-- Rate dialog -->
+    <string name="rate_title">ให้คะแนนแอพ</string>
+    <string name="rate_message">หากคุณสนุกกับการใช้ Ultimate Tic Tac Toe โปรดสละเวลาสักครู่เพื่อให้คะแนน ขอบคุณสำหรับการสนับสนุน!</string>
+    <string name="rate_positive">ประเมิน</string>
+    <string name="rate_neutral">ภายหลัง</string>
+    <string name="rate_negative">ไม่เป็นไรขอบคุณ</string>
+
+    <!--  Dialog new game  -->
+    <string name="dialog_start_game">เริ่ม</string>
+    <string name="dialog_cancel">ยกเลิก</string>
+    <string name="dialog_start_player">ผู้เล่นเริ่มต้น</string>
+    <string name="dialog_start_you">คุณ</string>
+    <string name="dialog_start_other">อื่น</string>
+    <string name="dialog_start_computer">คอมพิวเตอร์</string>
+    <string name="dialog_start_random">สุ่ม</string>
+
+    <!--  Dialog new game: Computer  -->
+    <string name="new_ai_title">เริ่มเกม AI ใหม่เหรอ?</string>
+    <string name="new_ai_difficulty">ความยาก</string>
+
+    <!--  Dialog new game: Local  -->
+    <string name="new_local_title">เริ่มเกมใหม่?</string>
+    <string name="new_local_message">สร้างเกมผู้เล่นสองคนใหม่</string>
+
+    <!--  Dialog new game: Online (create) -->
+    <string name="online_create">สร้าง</string>
+    <string name="online_create_sel_board">เลือกบอร์ด</string>
+    <string name="online_create_sel_board_new">ว่างเปล่า</string>
+    <string name="online_create_sel_board_current">ปัจจุบัน</string>
+    <string name="online_create_message_wait">กดสร้างเมื่อคุณพร้อม</string>
+    <string name="online_create_message_ready">คุณกำลังโฮสต์เกม ขอให้เพื่อนเข้าร่วม &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (รหัสโฮสต์เกมของคุณ)</string>
+
+    <!--  Dialog new game: Online (join) -->
+    <string name="online_join">เข้าร่วม</string>
+    <string name="online_join_code">รหัสโฮสต์</string>
+    <string name="online_join_code_hint">เอบีซี123</string>
+    <string name="online_join_message">ป้อนรหัสโฮสต์ของคู่ต่อสู้ของคุณ</string>
+
+    <!-- Dialog about-->
+    <string name="about_version">เวอร์ชัน</string>
+    <string name="about_credit_0">โดย Henrykvdb</string>
+    <string name="about_credit_1">ขอขอบคุณเป็นพิเศษสำหรับ &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="about_source">มีซอร์สโค้ด:</string>
+    <string name="about_close">ปิด</string>
+
+    <!-- Dialog feedback (title) -->
+    <string name="send_feedback">ส่งความคิดเห็น</string>
+
+    <!-- Dialog share (body) -->
+    <string name="share_title">ร่วมกับ</string>
+    <string name="share_message">เฮ้ มาเล่น Ultimate Tic Tac Toe ด้วยกัน!</string>
+
+    <!--  Tutorial slides 0 -->
     <string name="tut0_title">บทช่วยสอน</string>
     <string name="tut0_desc">มาดูกฎพื้นฐานกันดีกว่า</string>
+
+    <!--  Tutorial slides 1 -->
     <string name="tut1_title">คณะกรรมการ</string>
     <string name="tut1_desc">ผู้เล่นผลัดกันเล่นตารางโอเอกซ์เก้าตาราง ซึ่งจัดเรียงอยู่ภายในตารางโอเอกซ์ที่ใหญ่กว่า</string>
+
+    <!--  Tutorial slides 2 -->
     <string name="tut2_title">ชนะกริด</string>
     <string name="tut2_desc">ชนะกริดโดยได้สามแต้มติดต่อกัน เช่นเดียวกับที่คุณทำในโอเอกซ์ปกติ</string>
+
+    <!--  Tutorial slides 3 -->
     <string name="tut3_title">ทำอย่างไรจึงจะชนะ</string>
     <string name="tut3_desc">ชนะ 3 ตารางติดต่อกันเพื่อชนะเกม</string>
+
+    <!--  Tutorial slides 4 -->
     <string name="tut4_title">สี</string>
     <string name="tut4_desc">การเคลื่อนไหวที่อนุญาตสำหรับผู้เล่นคนถัดไปจะระบุด้วยสีของผู้เล่นนั้น การเคลื่อนไหวครั้งสุดท้ายมีสีจางลงเล็กน้อย</string>
+
+    <!--  Tutorial slides 5 -->
     <string name="tut5_title">อนุญาตให้เคลื่อนย้ายได้</string>
     <string name="tut5_desc">คุณเป็นผู้ตัดสินใจว่าคู่ต่อสู้จะเล่นต่อไปได้ที่ไหน ตัวอย่าง: หากคุณเล่นที่มุมขวาบนในตาราง คู่ต่อสู้จะต้องเล่นในตารางด้านขวาบน</string>
+
+    <!--  Tutorial slides 6 -->
     <string name="tut6_title">เคลื่อนไหวฟรี</string>
     <string name="tut6_desc">หากคุณถูกส่งไปที่กริดเต็มหรือชนะ คุณสามารถเล่นได้ทุกที่ที่คุณต้องการ</string>
+
+    <!--  Tutorial slides 7 -->
     <string name="tut7_title">วิธีการเล่น</string>
     <string name="tut7_desc">ท้าทายเพื่อนของคุณทั้งในประเทศและออนไลน์ ฝึกฝนกับคอมพิวเตอร์และพยายามเอาชนะมันในระดับความยากที่ยากที่สุด</string>
+    <string name="tut7_against">ขัดต่อ</string>
+    <string name="tut7_ways_computer">คอมพิวเตอร์</string>
+    <string name="tut7_ways_local">เพื่อนท้องถิ่น</string>
+    <string name="tut7_ways_online">เพื่อนออนไลน์</string>
 </resources>
