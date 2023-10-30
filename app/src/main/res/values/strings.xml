@@ -22,7 +22,7 @@
 	<string name="toast_internet_2">Check your internet connection (2)</string>
 	<string name="toast_internet_3">Check your internet connection (3)</string>
 	<string name="toast_online_not_joinable">Game not joinable</string>
-	<string name="toast_online_not_exist">Game does not exit</string>
+	<string name="toast_online_not_exist">Game does not exist</string>
 	<string name="toast_online_connection_ost">Connection lost</string>
 	<string name="toast_cant_undo">Not enough moves</string>
 
@@ -139,10 +139,8 @@
 	<!--  Tutorial slides 7 -->
 	<string name="tut7_title">Ways to play</string>
 	<string name="tut7_desc">Challenge your friends both locally and online. Practice against the computer and try to beat it on the hardest difficulty</string>
-
-	<!--  Tutorial slides 8 -->
-	<string name="against">Against</string>
-	<string name="ways_computer">Computer</string>
-	<string name="ways_local">Local friend</string>
-	<string name="ways_online">Online friend</string>
+	<string name="tut7_against">Against</string>
+	<string name="tut7_ways_computer">Computer</string>
+	<string name="tut7_ways_local">Local friend</string>
+	<string name="tut7_ways_online">Online friend</string>
 </resources>
