@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?><resources>
+<resources>
     <!-- Extra hover-over info-->
-    <string name="hov_undo">Rückgängig machen</string>
-    <string name="hov_nav_close">Navigationsschublade schließen</string>
+    <string name="hov_undo">Widerrufen</string>
+    <string name="hov_nav_close">Navigationsleiste schließen</string>
     <string name="hov_nav_open">Navigationsleiste öffnen</string>
 
     <!-- Online game undo request -->
-    <string name="undo_request_msg">Gegner bittet um Rückgängigmachen, akzeptieren?</string>
+    <string name="undo_request_msg">Gegner bittet um Widerrufung, akzeptieren?</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
 
@@ -26,12 +26,12 @@
 
     <!-- Turn indicator -->
     <string name="turn_yours">Du bist an der Reihe!</string>
-    <string name="turn_enemy">Der Feind spielt!</string>
+    <string name="turn_enemy">Der Gegner spielt!</string>
 
     <!-- Win indicator -->
     <string name="winner_generic">%1$s hat das Spiel gewonnen!</string>
     <string name="winner_you">Du hast gewonnen!</string>
-    <string name="winner_tie">Es ist ein Unentschieden!</string>
+    <string name="winner_tie">Unentschieden!</string>
     <string name="winner_other">Du hast verloren!</string>
 
     <!-- MAIN MENU: start a game -->
@@ -76,13 +76,13 @@
     <string name="online_create">Erstellen</string>
     <string name="online_create_sel_board">Brett auswählen</string>
     <string name="online_create_sel_board_new">Leer</string>
-    <string name="online_create_sel_board_current">Strom</string>
+    <string name="online_create_sel_board_current">Derzeitiges</string>
     <string name="online_create_message_wait">Drücke auf Erstellen, wenn du bereit bist</string>
-    <string name="online_create_message_ready">Sie hosten ein Spiel. Bitten Sie einen Freund, beizutreten &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (Ihr Spiel-Host-Code)</string>
+    <string name="online_create_message_ready">Du hostest ein Spiel. Bitte einen Freund beizutreten &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (Ihr Spiel-Host-Code)</string>
 
     <!--  Dialog new game: Online (join) -->
-    <string name="online_join">Mitmachen</string>
-    <string name="online_join_code">Gastgebercode</string>
+    <string name="online_join">Beitreten</string>
+    <string name="online_join_code">Host-Code</string>
     <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">Gib den Host-Code deines Gegners ein</string>
 
@@ -90,7 +90,7 @@
     <string name="about_version">Version</string>
     <string name="about_credit_0">von Henrykvdb</string>
     <string name="about_credit_1">Besonderer Dank an &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="about_source">Verfügbarer Quellcode:</string>
+    <string name="about_source">Quellcode verfügbar:</string>
     <string name="about_close">Schließen</string>
 
     <!-- Dialog feedback (title) -->
@@ -98,7 +98,7 @@
 
     <!-- Dialog share (body) -->
     <string name="share_title">Teilen mit</string>
-    <string name="share_message">Hey, lass uns gemeinsam Ultimate Tic Tac Toe spielen!</string>
+    <string name="share_message">Hey, lass uns Ultimate Tic Tac Toe spielen!</string>
 
     <!--  Tutorial slides 0 -->
     <string name="tut0_title">Tutorial</string>
@@ -106,27 +106,27 @@
 
     <!--  Tutorial slides 1 -->
     <string name="tut1_title">Das Brett</string>
-    <string name="tut1_desc">Die Spieler spielen abwechselnd neun Tic-Tac-Toe-Gitter, die in einem größeren Tic-Tac-Toe-Gitter angeordnet sind</string>
+    <string name="tut1_desc">Die Spieler spielen abwechselnd neun Tic-Tac-Toe-Felder, die in einem größeren Tic-Tac-Toe-Feld angeordnet sind</string>
 
     <!--  Tutorial slides 2 -->
-    <string name="tut2_title">Gewinngitter</string>
-    <string name="tut2_desc">Gewinnen Sie Gitter, indem Sie drei in einer Reihe erhalten, wie Sie es bei einem normalen Tic-Tac-Toe tun würden</string>
+    <string name="tut2_title">Gewinn-Felder</string>
+    <string name="tut2_desc">Gewinne Felder, indem du drei in einer Reihe erhältst, wie du es von einem normalen Tic-Tac-Toe kennst</string>
 
     <!--  Tutorial slides 3 -->
     <string name="tut3_title">So gewinnst du</string>
-    <string name="tut3_desc">Gewinne 3 Gitter in Folge, um das Spiel zu gewinnen</string>
+    <string name="tut3_desc">Gewinne 3 Felder in Reihe, um das Spiel zu gewinnen</string>
 
     <!--  Tutorial slides 4 -->
     <string name="tut4_title">Die Farben</string>
-    <string name="tut4_desc">Die erlaubten Züge für den nächsten Spieler werden in der Farbe dieses Spielers angezeigt. Der letzte Zug ist etwas heller gefärbt</string>
+    <string name="tut4_desc">Die erlaubten Züge für den nächsten Spieler werden in der Farbe des Spielers angezeigt. Der letzte Zug ist etwas heller gefärbt</string>
 
     <!--  Tutorial slides 5 -->
     <string name="tut5_title">Erlaubte Züge</string>
-    <string name="tut5_desc">Du entscheidest, wo der Gegner als nächstes spielen kann. Beispiel: Wenn du oben rechts in einem Raster spielst, muss der Gegner rechts oben spielen</string>
+    <string name="tut5_desc">Du entscheidest, wo der Gegner als nächstes spielen kann. Beispiel: Wenn du oben rechts in einem Feld spielst, muss der Gegner rechts oben spielen</string>
 
     <!--  Tutorial slides 6 -->
     <string name="tut6_title">Kostenlose Züge</string>
-    <string name="tut6_desc">Wenn du zu einem vollen oder gewonnenen Raster geschickt wirst, kannst du überall spielen, wo du willst</string>
+    <string name="tut6_desc">Wenn du zu einem vollen oder gewonnenen Feld geschickt wirst, kannst du überall spielen, wo du willst</string>
 
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">Spielmöglichkeiten</string>
