@@ -409,7 +409,7 @@ class MainActivity : MainActivityBaseRemote() {
                     newDialog.getButton(AlertDialog.BUTTON_POSITIVE).text = selectedTab?.text
                     newDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
 
-                    if (selectedTab?.position != 0) {
+                    if (selectedTab?.position == 1) {
                         val textView =
                             (hostFragment.view?.findViewById<View>(R.id.bt_host_desc) as TextView)
                         textView.text = getString(R.string.online_create_message_wait)
