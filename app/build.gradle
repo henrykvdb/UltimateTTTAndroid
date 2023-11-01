@@ -15,7 +15,7 @@ android {
         targetSdk 33
         versionCode 32
         versionName '2.3.1'
-        resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl'/*, 'de'*/]
+        resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl', 'in'/*, 'de'*/]
     }
 
     buildTypes {

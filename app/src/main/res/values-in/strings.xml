@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?><resources>
     <!-- Extra hover-over info-->
-    <string name="hov_undo">Urungkan</string>
+    <string name="hov_undo">Undo</string>
     <string name="hov_nav_close">Tutup panel samping navigasi</string>
     <string name="hov_nav_open">Buka laci navigasi</string>
 
     <!-- Online game undo request -->
-    <string name="undo_request_msg">Lawan meminta batalkan, terima?</string>
+    <string name="undo_request_msg">Lawan meminta undo, terima?</string>
     <string name="yes">Ya</string>
     <string name="no">Tidak</string>
 
@@ -13,26 +13,26 @@
     <string name="toast_internet_1">Periksa koneksi internet Anda (1)</string>
     <string name="toast_internet_2">Periksa koneksi internet Anda (2)</string>
     <string name="toast_internet_3">Periksa koneksi internet Anda (3)</string>
-    <string name="toast_online_not_joinable">Game tidak dapat diikuti</string>
-    <string name="toast_online_not_exist">Game tidak ada</string>
+    <string name="toast_online_not_joinable">Permainan tidak dapat diikuti</string>
+    <string name="toast_online_not_exist">Permainan tidak ada</string>
     <string name="toast_online_connection_ost">Koneksi terputus</string>
     <string name="toast_cant_undo">Gerakan tidak cukup</string>
 
     <!-- Window titles -->
-    <string name="title_computer">Game Komputer</string>
+    <string name="title_computer">Permainan Komputer</string>
     <string name="title_local">Permainan Lokal</string>
-    <string name="title_online">Game Online</string>
+    <string name="title_online">Permainan Online</string>
     <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
-    <string name="turn_yours">Sekarang giliranmu!</string>
+    <string name="turn_yours">Sekarang giliran Anda!</string>
     <string name="turn_enemy">Musuh sedang bermain!</string>
 
     <!-- Win indicator -->
     <string name="winner_generic">%1$s memenangkan permainan!</string>
-    <string name="winner_you">Kamu menang!</string>
-    <string name="winner_tie">Ini seri!</string>
-    <string name="winner_other">Kamu kalah!</string>
+    <string name="winner_you">Anda menang!</string>
+    <string name="winner_tie">Seri!</string>
+    <string name="winner_other">Anda kalah!</string>
 
     <!-- MAIN MENU: start a game -->
     <string name="menu_title_new_game">Permainan baru</string>
@@ -42,7 +42,7 @@
 
     <!-- MAIN MENU: other -->
     <string name="menu_title_others">Lainnya</string>
-    <string name="menu_feedback">Umpan balik</string>
+    <string name="menu_feedback">Tanggapan</string>
     <string name="menu_remove_ads">Hapus iklan</string>
     <string name="menu_tutorial">Tutorial</string>
     <string name="menu_share">Bagikan</string>
@@ -50,17 +50,17 @@
 
     <!-- Rate dialog -->
     <string name="rate_title">Nilai aplikasi</string>
-    <string name="rate_message">Jika kamu senang menggunakan Ultimate Tic Tac Toe, luangkan waktu sejenak untuk menilainya. Terima kasih atas dukunganmu!</string>
+    <string name="rate_message">Jika Anda suka memainkan Ultimate Tic Tac Toe, harap luangkan waktu sejenak untuk memberikan nilai. Terima kasih banyak atas dukungan Anda!</string>
     <string name="rate_positive">Nilai</string>
-    <string name="rate_neutral">Nanti</string>
+    <string name="rate_neutral">Nanti saja</string>
     <string name="rate_negative">Tidak, terima kasih</string>
 
     <!--  Dialog new game  -->
     <string name="dialog_start_game">Mulai</string>
     <string name="dialog_cancel">Batal</string>
     <string name="dialog_start_player">Pemain pemula</string>
-    <string name="dialog_start_you">Kamu</string>
-    <string name="dialog_start_other">Lainnya</string>
+    <string name="dialog_start_you">Anda</string>
+    <string name="dialog_start_other">Lawan</string>
     <string name="dialog_start_computer">Komputer</string>
     <string name="dialog_start_random">Acak</string>
 
@@ -70,7 +70,7 @@
 
     <!--  Dialog new game: Local  -->
     <string name="new_local_title">Mulai permainan baru?</string>
-    <string name="new_local_message">Buat game dua pemain baru</string>
+    <string name="new_local_message">Buat permainan dua pemain baru</string>
 
     <!--  Dialog new game: Online (create) -->
     <string name="online_create">Buat</string>
@@ -78,23 +78,21 @@
     <string name="online_create_sel_board_new">Kosong</string>
     <string name="online_create_sel_board_current">Saat ini</string>
     <string name="online_create_message_wait">Tekan buat setelah Anda siap</string>
-    <string name="online_create_message_ready">Anda menyelenggarakan game, minta teman untuk bergabung dengan &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (kode host game Anda)</string>
+    <string name="online_create_message_ready">Anda menjadi tuan rumah permainan, minta teman untuk bergabung dengan ABC123 (kode hosting permainan Anda)</string>
 
     <!--  Dialog new game: Online (join) -->
-    <string name="online_join">Bergabunglah</string>
-    <string name="online_join_code">Kode tuan rumah</string>
+    <string name="online_join">Bergabung</string>
+    <string name="online_join_code">Kode hosting</string>
     <string name="online_join_code_hint">ABC123</string>
-    <string name="online_join_message">Masukkan kode host lawan Anda</string>
+    <string name="online_join_message">Masukkan kode hosting lawan Anda</string>
 
     <!-- Dialog about-->
     <string name="about_version">Versi</string>
     <string name="about_credit_0">oleh Henrykvdb</string>
-    <string name="about_credit_1">Terima kasih khusus kepada &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="about_source">Kode sumber tersedia:</string>
-    <string name="about_close">Tutup</string>
+    <string name="about_credit_1">Terima kasih secara khusus kepada KarelPeeters</string>
 
     <!-- Dialog feedback (title) -->
-    <string name="send_feedback">Kirim masukan</string>
+    <string name="send_feedback">Kirim tanggapan</string>
 
     <!-- Dialog share (body) -->
     <string name="share_title">Bagikan dengan</string>
@@ -114,23 +112,23 @@
 
     <!--  Tutorial slides 3 -->
     <string name="tut3_title">Cara menang</string>
-    <string name="tut3_desc">Menangkan 3 grid berturut-turut untuk memenangkan permainan</string>
+    <string name="tut3_desc">Menangkan 3 petak secara berturut-turut untuk memenangkan permainan</string>
 
     <!--  Tutorial slides 4 -->
-    <string name="tut4_title">Warnanya</string>
-    <string name="tut4_desc">Gerakan yang diizinkan untuk pemain berikutnya ditunjukkan dengan warna pemain itu. Langkah terakhir diwarnai sedikit lebih terang</string>
+    <string name="tut4_title">Warna</string>
+    <string name="tut4_desc">Gerakan yang diizinkan untuk pemain berikutnya ditunjukkan dengan warna pemain tersebut. Langkah terakhir memiliki warna yang sedikit lebih terang</string>
 
     <!--  Tutorial slides 5 -->
     <string name="tut5_title">Gerakan yang diizinkan</string>
-    <string name="tut5_desc">Kamu memutuskan di mana lawan bisa bermain selanjutnya. Contoh: Jika kamu bermain di kanan atas dalam grid, lawan harus bermain di grid kanan atas</string>
+    <string name="tut5_desc">Anda memutuskan di area mana lawan bisa bermain selanjutnya. Contoh: Jika Anda bermain di kanan atas dalam petak, lawan harus bermain di petak kanan atas</string>
 
     <!--  Tutorial slides 6 -->
     <string name="tut6_title">Gerakan bebas</string>
-    <string name="tut6_desc">Jika Anda dikirim ke kotak penuh atau dimenangkan, Anda dapat bermain di mana pun Anda mau</string>
+    <string name="tut6_desc">Jika Anda dikirim ke petak yang telah penuh atau telah dimenangkan, Anda dapat bermain di mana pun Anda mau</string>
 
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">Cara bermain</string>
-    <string name="tut7_desc">Tantang temanmu baik secara lokal maupun online. Berlatihlah melawan komputer dan cobalah untuk mengalahkannya pada tingkat kesulitan tersulit</string>
+    <string name="tut7_desc">Tantang teman Anda baik secara lokal maupun online. Berlatihlah melawan komputer dan cobalah untuk mengalahkannya pada tingkat kesulitan paling sulit</string>
     <string name="tut7_against">Melawan</string>
     <string name="tut7_ways_computer">Komputer</string>
     <string name="tut7_ways_local">Teman lokal</string>
