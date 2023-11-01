@@ -1,0 +1,138 @@
+<resources>
+    <!-- Extra hover-over info-->
+    <string name="hov_undo">Ongedaan maken</string>
+    <string name="hov_nav_close">Sluit navigatie</string>
+    <string name="hov_nav_open">Open navigatie</string>
+
+    <!-- Online game undo request -->
+    <string name="undo_request_msg">Tegenstander vraagt om zet ongedaan te maken, accepteer?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nee</string>
+
+    <!--  Error messages -->
+    <string name="toast_internet_1">Check je internet verbinding (1)</string>
+    <string name="toast_internet_2">Check je internet verbinding (2)</string>
+    <string name="toast_internet_3">Check je internet verbinding (3)</string>
+    <string name="toast_online_not_joinable">Probleem met spel openen</string>
+    <string name="toast_online_not_exist">Spel bestaat niet</string>
+    <string name="toast_online_connection_ost">Connectie verloren</string>
+    <string name="toast_cant_undo">Niet genoeg zetten</string>
+
+    <!-- Window titles -->
+    <string name="title_computer">Computer Spel</string>
+    <string name="title_local">Lokaal Spel</string>
+    <string name="title_online">Online Spel</string>
+    <string name="subtitle_online"> %1$s</string>
+
+    <!-- Turn indicator -->
+    <string name="turn_yours">Jouw beurt!</string>
+    <string name="turn_enemy">Tegenstander zijn beurt!</string>
+
+    <!-- Win indicator -->
+    <string name="winner_generic">%1$s heeft gewonnen!</string>
+    <string name="winner_you">Je hebt gewonnen!</string>
+    <string name="winner_tie">Het is gelijkspel!</string>
+    <string name="winner_other">Je hebt verloren!</string>
+
+    <!-- MAIN MENU: start a game -->
+    <string name="menu_title_new_game">Nieuw spel</string>
+    <string name="menu_computer">Computer</string>
+    <string name="menu_local">Lokaal</string>
+    <string name="menu_online">Online</string>
+
+    <!-- MAIN MENU: other -->
+    <string name="menu_title_others">Andere opties</string>
+    <string name="menu_feedback">Feedback</string>
+    <string name="menu_remove_ads">Ads uitzetten</string>
+    <string name="menu_tutorial">Spelregels</string>
+    <string name="menu_share">Spel delen</string>
+    <string name="menu_about">Over</string>
+
+    <!-- Rate dialog -->
+    <string name="rate_title">Beoordeel app</string>
+    <string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
+    <string name="rate_positive">Beoordeel</string>
+    <string name="rate_neutral">Later</string>
+    <string name="rate_negative">Nee, bedankt</string>
+
+    <!--  Dialog new game  -->
+    <string name="dialog_start_game">Start</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_start_player">Beginnende speler</string>
+    <string name="dialog_start_you">Jij</string>
+    <string name="dialog_start_other">Andere</string>
+    <string name="dialog_start_computer">Computer</string>
+    <string name="dialog_start_random">Willekeurig</string>
+
+    <!--  Dialog new game: Computer  -->
+    <string name="new_ai_title">Start een nieuw AI spel?</string>
+    <string name="new_ai_difficulty">Moeilijkheid</string>
+
+    <!--  Dialog new game: Local  -->
+    <string name="new_local_title">Start een nieuw spel?</string>
+    <string name="new_local_message">Start een nieuw twee speler spel</string>
+
+    <!--  Dialog new game: Online (create) -->
+        <string name="online_create">Maken</string>
+    <string name="online_create_sel_board">Selecteer bord</string>
+    <string name="online_create_sel_board_new">Leeg</string>
+    <string name="online_create_sel_board_current">Huidig</string>
+    <string name="online_create_message_wait">Duw maken wanneer je klaar bent</string>
+    <string name="online_create_message_ready">Je hebt een spel geopent, vraag je vriend om mee te doen met &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (je spel code)</string>
+
+    <!--  Dialog new game: Online (join) -->
+    <string name="online_join">Meedoen</string>
+    <string name="online_join_code">Spel code</string>
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="online_join_message">Geef de spel code van de tegenstander in</string>
+
+    <!-- Dialog about-->
+    <string name="about_version">Versie</string>
+    <string name="about_credit_0">door Henrykvdb</string>
+    <string name="about_credit_1"><![CDATA[Speciale dank aan <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
+    <string name="about_source">Source code beschikbaar:</string>
+    <string name="about_close">Sluit</string>
+
+    <!-- Dialog feedback (title) -->
+    <string name="send_feedback">Stuur feedback</string>
+
+    <!-- Dialog share (body) -->
+    <string name="share_title">Delen met</string>
+    <string name="share_message">Hey, laten we samen Ultimate Tic Tac Toe spelen!</string>
+
+    <!--  Tutorial slides 0 -->
+    <string name="tut0_title">Spelregels</string>
+    <string name="tut0_desc">Laten we over de spelregels gaan</string>
+
+    <!--  Tutorial slides 1 -->
+    <string name="tut1_title">Het bord</string>
+    <string name="tut1_desc">Spelers spelen afwisselend in een van de negen tic tac toe velden, gerangschikt binnen een groter veld</string>
+
+    <!--  Tutorial slides 2 -->
+    <string name="tut2_title">Velden winnen</string>
+    <string name="tut2_desc">Win velden door drie op een rij te halen, net zoals in gewone tic tac toe</string>
+
+    <!--  Tutorial slides 3 -->
+    <string name="tut3_title">Hoe winnen</string>
+    <string name="tut3_desc">Door drie veldjes op een rij te winnen win je het spel</string>
+
+    <!--  Tutorial slides 4 -->
+    <string name="tut4_title">De kleuren</string>
+    <string name="tut4_desc">Waar je mag spelen is aangeduid in je kleur. De laatste zet is iets lichter gekleurd</string>
+
+    <!--  Tutorial slides 5 -->
+    <string name="tut5_title">Mogelijke zetten</string>
+    <string name="tut5_desc">Jij kiest waar de tegenstander mag spelen. Bijvoorbeeld: Als je rechtsboven in een veldje hebt gespeeld dan moet de tegenstander in het veld rechtsbovenaan spelen.</string>
+
+    <!--  Tutorial slides 6 -->
+    <string name="tut6_title">Vrije zetten</string>
+    <string name="tut6_desc">Als je naar een vol of gewonnen veld gestuurd wordt mag je eender waar op het bord spelen</string>
+
+    <!--  Tutorial slides 7 -->
+    <string name="tut7_title">Speelwijzen</string>
+    <string name="tut7_desc">Daag je vrienden zowel lokaal als online uit. Oefen tegen de computer en probeer hem te verslaan op de moeilijkste moeilijkheidsgraad</string>
+    <string name="tut7_against">Tegen</string>
+    <string name="tut7_ways_computer">Computer</string>
+    <string name="tut7_ways_local">Lokale vriend</string>
+    <string name="tut7_ways_online">Online vriend</string>
+</resources>
