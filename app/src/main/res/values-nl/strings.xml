@@ -50,7 +50,7 @@
 
     <!-- Rate dialog -->
     <string name="rate_title">Beoordeel app</string>
-    <string name="rate_message">If you enjoy using Ultimate Tic Tac Toe, please take a moment to rate it. Thanks for your support!</string>
+    <string name="rate_message">Als je het spel leuk vindt, neem dan even de tijd om hem te beoordelen. Bedankt voor je hulp!</string>
     <string name="rate_positive">Beoordeel</string>
     <string name="rate_neutral">Later</string>
     <string name="rate_negative">Nee, bedankt</string>
