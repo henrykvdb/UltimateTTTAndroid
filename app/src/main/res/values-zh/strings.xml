@@ -5,7 +5,7 @@
     <string name="hov_nav_open">打开目录</string>
 
     <!-- Online game undo request -->
-    <string name="undo_request_msg">对手请求撤消，你接受吗？</string>
+    <string name="undo_request_msg">对手希望悔棋，你接受吗？</string>
     <string name="yes">是的</string>
     <string name="no">否</string>
 
@@ -16,11 +16,11 @@
     <string name="toast_online_not_joinable">此线上游戏不可加入</string>
     <string name="toast_online_not_exist">此线上游戏不存在</string>
     <string name="toast_online_connection_ost">连接丢失</string>
-    <string name="toast_cant_undo">没有可撤回动作了!</string>
+    <string name="toast_cant_undo">无可撤回动作</string>
 
     <!-- Window titles -->
-    <string name="title_computer">电脑对峙游戏</string>
-    <string name="title_local">运用本机创建您与面对面朋友的棋盘</string>
+    <string name="title_computer">与电脑对峙</string>
+    <string name="title_local">双人本机游戏</string>
     <string name="title_online">线上游戏</string>
     <string name="subtitle_online"> %1$s</string>
 
@@ -31,19 +31,19 @@
     <!-- Win indicator -->
     <string name="winner_generic">%1$s赢得了比赛！</string>
     <string name="winner_you">你赢了！</string>
-    <string name="winner_tie">这是平局！</string>
+    <string name="winner_tie">平局！</string>
     <string name="winner_other">你输了！</string>
 
     <!-- MAIN MENU: start a game -->
     <string name="menu_title_new_game">新游戏</string>
     <string name="menu_computer">电脑</string>
-    <string name="menu_local">本机(与面对面的朋友在本机上进行游戏)</string>
+    <string name="menu_local">本机</string>
     <string name="menu_online">线上</string>
 
     <!-- MAIN MENU: other -->
     <string name="menu_title_others">其他</string>
     <string name="menu_feedback">反馈</string>
-    <string name="menu_remove_ads">移除广告</string>
+    <string name="menu_remove_ads">关闭广告</string>
     <string name="menu_tutorial">教程</string>
     <string name="menu_share">分享</string>
     <string name="menu_about">关于</string>
@@ -58,18 +58,18 @@
     <!--  Dialog new game  -->
     <string name="dialog_start_game">开始</string>
     <string name="dialog_cancel">取消</string>
-    <string name="dialog_start_player">新手玩家</string>
+    <string name="dialog_start_player">先手玩家</string>
     <string name="dialog_start_you">你</string>
-    <string name="dialog_start_other">其他</string>
+    <string name="dialog_start_other">对手</string>
     <string name="dialog_start_computer">电脑</string>
     <string name="dialog_start_random">随机</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">开始一个新的人工智能游戏？</string>
+    <string name="new_ai_title">开始新人机游戏？</string>
     <string name="new_ai_difficulty">难度</string>
 
     <!--  Dialog new game: Local  -->
-    <string name="new_local_title">开始新的面对面游戏？</string>
+    <string name="new_local_title">开启新棋局？</string>
     <string name="new_local_message">创建一个新的面对面双人游戏</string>
 
     <!--  Dialog new game: Online (create) -->
@@ -78,13 +78,13 @@
     <string name="online_create_sel_board_new">空白</string>
     <string name="online_create_sel_board_current">当前</string>
     <string name="online_create_message_wait">准备好后请按创建键</string>
-    <string name="online_create_message_ready">您正在托管游戏，请朋友加入&lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt;（您的游戏托管代码）</string>
+    <string name="online_create_message_ready">您做东创建了棋局，邀请朋友加入&lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt;（您的东家代码）</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">加入</string>
-    <string name="online_join_code">主机代码</string>
+    <string name="online_join_code">东家代码</string>
     <string name="online_join_code_hint">ABC123</string>
-    <string name="online_join_message">输入线上对手的主机代码</string>
+    <string name="online_join_message">输入线上东家代码</string>
 
     <!-- Dialog about-->
     <string name="about_version">版本</string>
@@ -106,15 +106,15 @@
 
     <!--  Tutorial slides 1 -->
     <string name="tut1_title">棋盘</string>
-    <string name="tut1_desc">玩家轮流玩九个井字棋格，排列在更大的井字棋格内</string>
+    <string name="tut1_desc">玩家轮流在九个形成大井字格的小井字棋格中下棋</string>
 
     <!--  Tutorial slides 2 -->
-    <string name="tut2_title">赢得棋格</string>
-    <string name="tut2_desc">像在常规井字棋中一样，通过连续获得三个来赢得棋格</string>
+    <string name="tut2_title">赢取井字格</string>
+    <string name="tut2_desc">像在常规井字棋中一样，通过连续获得三个来赢得井字格</string>
 
     <!--  Tutorial slides 3 -->
     <string name="tut3_title">如何获胜</string>
-    <string name="tut3_desc">连续赢得 3 个棋格以赢得比赛</string>
+    <string name="tut3_desc">连续赢得 3 个井字格以赢得比赛</string>
 
     <!--  Tutorial slides 4 -->
     <string name="tut4_title">颜色</string>
@@ -125,14 +125,14 @@
     <string name="tut5_desc">你决定对手接下来可以下棋的区域。示例：如果您将棋子下在小井字格右上角的格子中，则对手必须在整个棋盘右上角的井字格子中下棋</string>
 
     <!--  Tutorial slides 6 -->
-    <string name="tut6_title">无限制下棋区域情况</string>
-    <string name="tut6_desc">如果您被送入满员或获胜的网格，则可以在任何格子内下棋</string>
+    <string name="tut6_title">无限制情况</string>
+    <string name="tut6_desc">如果您已赢得对手指定您下棋的井字格，您则可以在任何格子内下棋</string>
 
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">游戏方式</string>
-    <string name="tut7_desc">挑战您本机及线上的朋友。在电脑上练习，尝试在最难的难度下击败电脑</string>
+    <string name="tut7_desc">挑战您本机及线上的朋友。在电脑上练习，尝试在最高难度下击败电脑</string>
     <string name="tut7_against">对手</string>
-    <string name="tut7_ways_computer">电脑</string>
+    <string name="tut7_ways_computer">人机游戏</string>
     <string name="tut7_ways_local">面对面的朋友</string>
     <string name="tut7_ways_online">线上朋友</string>
 </resources>

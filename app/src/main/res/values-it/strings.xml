@@ -42,7 +42,7 @@
 
     <!-- MAIN MENU: other -->
     <string name="menu_title_others">Altro</string>
-    <string name="menu_feedback">Valutaci</string>
+    <string name="menu_feedback">Contattaci</string>
     <string name="menu_remove_ads">Rimuovere gli annunci</string>
     <string name="menu_tutorial">Tutorial</string>
     <string name="menu_share">Condividi</string>
@@ -51,7 +51,7 @@
     <!-- Rate dialog -->
     <string name="rate_title">Valuta l\'app</string>
     <string name="rate_message">Ti piace Ultimate Tic Tac Toe? Lascia una recensione. Grazie per il tuo sostegno!</string>
-    <string name="rate_positive">Recensione positiva</string>
+    <string name="rate_positive">Valuta l’app</string>
     <string name="rate_neutral">Più tardi</string>
     <string name="rate_negative">No grazie</string>
 
@@ -59,18 +59,18 @@
     <string name="dialog_start_game">Inizio</string>
     <string name="dialog_cancel">Annulla</string>
     <string name="dialog_start_player">Giocatore principiante</string>
-    <string name="dialog_start_you">Parti tu!</string>
-    <string name="dialog_start_other">Parte l’avversario!</string>
-    <string name="dialog_start_computer">Inizia l’AI!</string>
+    <string name="dialog_start_you">Inizia</string>
+    <string name="dialog_start_other">Avversario</string>
+    <string name="dialog_start_computer">AI</string>
     <string name="dialog_start_random">Random</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">Vuoi iniziare un nuovo gioco contro AI?</string>
+    <string name="new_ai_title">Nuova partita contro AI?</string>
     <string name="new_ai_difficulty">Difficoltà</string>
 
     <!--  Dialog new game: Local  -->
-    <string name="new_local_title">Vuoi iniziare una nuova partita?</string>
-    <string name="new_local_message">Inizia una nuova partita 1vs1</string>
+    <string name="new_local_title">Nuova partita?</string>
+    <string name="new_local_message">Inizia una nuova partita</string>
 
     <!--  Dialog new game: Online (create) -->
     <string name="online_create">Crea</string>
@@ -131,8 +131,8 @@
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">Modalità di gioco</string>
     <string name="tut7_desc">Sfida i tuoi amici sia in locale che online. Esercitati contro il computer e prova a batterlo in varie difficoltà</string>
-    <string name="tut7_against">Contro</string>
+    <string name="tut7_against">Sfida</string>
     <string name="tut7_ways_computer">Computer</string>
-    <string name="tut7_ways_local">Rete locale</string>
-    <string name="tut7_ways_online">Online</string>
+    <string name="tut7_ways_local">Amico/a locale</string>
+    <string name="tut7_ways_online">Amico/a online</string>
 </resources>

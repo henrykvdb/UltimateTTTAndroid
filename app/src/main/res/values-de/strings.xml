@@ -133,6 +133,6 @@
     <string name="tut7_desc">Fordere deine Freunde lokal und online heraus. Übe gegen den Computer und versuche, ihn auf dem härtesten Schwierigkeitsgrad zu schlagen</string>
     <string name="tut7_against">Gegen</string>
     <string name="tut7_ways_computer">Computer</string>
-    <string name="tut7_ways_local">Lokaler Freund</string>
-    <string name="tut7_ways_online">Online-Freund</string>
+    <string name="tut7_ways_local">Freund (Lokal)</string>
+    <string name="tut7_ways_online">Freund (Online)</string>
 </resources>
