@@ -65,7 +65,7 @@
     <string name="dialog_start_random">随机</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">开始新人机游戏？</string>
+    <string name="new_ai_title">开始新的人机游戏？</string>
     <string name="new_ai_difficulty">难度</string>
 
     <!--  Dialog new game: Local  -->
@@ -76,7 +76,7 @@
     <string name="online_create">创建</string>
     <string name="online_create_sel_board">选择棋盘</string>
     <string name="online_create_sel_board_new">空白</string>
-    <string name="online_create_sel_board_current">当前</string>
+    <string name="online_create_sel_board_current">当前已有棋局</string>
     <string name="online_create_message_wait">准备好后请按创建键</string>
     <string name="online_create_message_ready">您做东创建了棋局，邀请朋友加入&lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt;（您的东家代码）</string>
 
