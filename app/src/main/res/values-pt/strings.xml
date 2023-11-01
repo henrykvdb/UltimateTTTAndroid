@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?><resources>
+<resources>
     <!-- Extra hover-over info-->
     <string name="hov_undo">Desfazer</string>
-    <string name="hov_nav_close">Fechar gaveta de navegação</string>
-    <string name="hov_nav_open">Abrir gaveta de navegação</string>
+    <string name="hov_nav_close">Fechar janela de navegação</string>
+    <string name="hov_nav_open">Abrir janela de navegação</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">O oponente está solicitando desfazer, aceitar?</string>
@@ -19,9 +19,9 @@
     <string name="toast_cant_undo">Movimentos insuficientes</string>
 
     <!-- Window titles -->
-    <string name="title_computer">Jogo de computador</string>
+    <string name="title_computer">Jogo com computador</string>
     <string name="title_local">Jogo local</string>
-    <string name="title_online">Jogo on-line</string>
+    <string name="title_online">Jogo online</string>
     <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
@@ -38,7 +38,7 @@
     <string name="menu_title_new_game">Novo jogo</string>
     <string name="menu_computer">Computador</string>
     <string name="menu_local">Local</string>
-    <string name="menu_online">On-line</string>
+    <string name="menu_online">Online</string>
 
     <!-- MAIN MENU: other -->
     <string name="menu_title_others">Outro</string>
@@ -50,7 +50,7 @@
 
     <!-- Rate dialog -->
     <string name="rate_title">Classificar aplicativo</string>
-    <string name="rate_message">Se você gosta de usar o Ultimate Tic Tac Toe, reserve um momento para avaliá-lo. Obrigado pelo seu apoio!</string>
+    <string name="rate_message">Se você gosta de usar o Ultimate Tic Tac Toe, por favor tire um tempo para avaliar. Obrigado pelo seu apoio!</string>
     <string name="rate_positive">Avaliar</string>
     <string name="rate_neutral">Mais tarde</string>
     <string name="rate_negative">Não, obrigado</string>
@@ -78,19 +78,19 @@
     <string name="online_create_sel_board_new">Vazio</string>
     <string name="online_create_sel_board_current">Atual</string>
     <string name="online_create_message_wait">Pressione criar quando estiver pronto</string>
-    <string name="online_create_message_ready">Você está hospedando um jogo, convide um amigo para participar &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (seu código de host do jogo)</string>
+    <string name="online_create_message_ready">Você está organizando um jogo, convide um amigo para participar ABC123 (seu código de organizador)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Junte-se</string>
-    <string name="online_join_code">Código do host</string>
+    <string name="online_join_code">Código do organizador</string>
     <string name="online_join_code_hint">ABC123</string>
-    <string name="online_join_message">Digite o código do host do seu oponente</string>
+    <string name="online_join_message">Digite o código de organizador do seu oponente</string>
 
     <!-- Dialog about-->
     <string name="about_version">Versão</string>
     <string name="about_credit_0">por Henrykvdb</string>
-    <string name="about_credit_1">Agradecimentos especiais a &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="about_source">Código-fonte disponível:</string>
+    <string name="about_credit_1">Agradecimentos especiais a KarelPeeters</string>
+    <string name="about_source">Código fonte disponível:</string>
     <string name="about_close">Fechar</string>
 
     <!-- Dialog feedback (title) -->
@@ -118,7 +118,7 @@
 
     <!--  Tutorial slides 4 -->
     <string name="tut4_title">As cores</string>
-    <string name="tut4_desc">Os movimentos permitidos para o próximo jogador são indicados na cor desse jogador. O último movimento é colorido um pouco mais claro</string>
+    <string name="tut4_desc">Os movimentos permitidos para o próximo jogador são indicados na cor. O último movimento é colorido um pouco mais claro</string>
 
     <!--  Tutorial slides 5 -->
     <string name="tut5_title">Movimentos permitidos</string>
@@ -134,5 +134,5 @@
     <string name="tut7_against">Contra</string>
     <string name="tut7_ways_computer">Computador</string>
     <string name="tut7_ways_local">Amigo local</string>
-    <string name="tut7_ways_online">Amigo on-line</string>
+    <string name="tut7_ways_online">Amigo online</string>
 </resources>
