@@ -32,9 +32,8 @@ typealias ds = DrawSettings
 
 object DrawSettings {
     //Availability color settings; 0(=full) -> 255(=transparant)
-    const val alphaSymbolMacro = 60            // alpha symbol over won macros
-    const val alphaWinnerSymbolMacro = 160     // alpha symbol over won macros (for winning player)
-    const val alphaWinnerBackgroundMacro = 100 // alpha background won macros (for winning players)
+    const val alphaOverlayFront = 200 // alpha symbol over won macros (symbols)
+    const val alphaOverlayBack = 100  // alpha background won macros  (bg fill & symbols)
 
     //Symbol stroke width
     const val tileSymbolStrokeRel = 16f / 984
@@ -195,7 +194,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 drawTile(
                     canvas, isX = true, size = tileSize, color = when {
                         coord == board.lastMove -> getColor(R.color.xColorLight)
-                        darkTiles -> getColor(R.color.xColorDark)
+                        darkTiles -> getColorAlpha(R.color.xColorDark, ds.alphaOverlayBack)
                         else -> getColor(R.color.xColor)
                     }, strokeWidth = tileSymbolStroke, border = xBorder
                 )
@@ -203,7 +202,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 drawTile(
                     canvas, isX = false, size = tileSize, color = when {
                         coord == board.lastMove -> getColor(R.color.oColorLight)
-                        darkTiles -> getColor(R.color.oColorDark)
+                        darkTiles -> getColorAlpha(R.color.oColorDark, ds.alphaOverlayBack)
                         else -> getColor(R.color.oColor)
                     }, strokeWidth = tileSymbolStroke, border = oBorder
                 )
@@ -219,8 +218,7 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             if (macroPartOfWin) {
                 val xMacro = board.macro(om) == Player.PLAYER
                 paint.color = getColorAlpha(
-                    if (xMacro) R.color.xColor else R.color.oColor,
-                    ds.alphaWinnerBackgroundMacro
+                    if (xMacro) R.color.xColor else R.color.oColor, ds.alphaOverlayBack
                 )
                 canvas.drawRect(0f, 0f, macroSizeSmall, macroSizeSmall, paint)
             }
@@ -230,18 +228,16 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
 
         //Draw big x and y over macros
-        val alphaSymbolMacro = if (board.wonBy != Player.NEUTRAL && macroPartOfWin)
-            ds.alphaWinnerSymbolMacro else ds.alphaSymbolMacro
         if (board.macro(om) == Player.PLAYER) {
             drawTile(
                 canvas, true, macroSizeSmall,
-                getColorAlpha(R.color.xColor, alphaSymbolMacro),
+                getColorAlpha(R.color.xColor, ds.alphaOverlayFront),
                 macroSymbolStroke, xBorder
             )
         } else if (board.macro(om) == Player.ENEMY) {
             drawTile(
                 canvas, false, macroSizeSmall,
-                getColorAlpha(R.color.oColor, alphaSymbolMacro),
+                getColorAlpha(R.color.oColor, ds.alphaOverlayFront),
                 macroSymbolStroke, oBorder
             )
         }
