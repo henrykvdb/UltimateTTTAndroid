@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Extra hover-over info-->
+    <string name="hov_undo">Отменить</string>
+    <string name="hov_nav_close">Закрыть боковую панель</string>
+    <string name="hov_nav_open">Открыть боковую панель</string>
+
+    <!-- Online game undo request -->
+    <string name="undo_request_msg">Оппонент запрашивает отмену, принять?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+
+    <!--  Error messages -->
+    <string name="toast_internet_1">Проверьте подключение к интернету (1)</string>
+    <string name="toast_internet_2">Проверьте подключение к интернету (2)</string>
+    <string name="toast_internet_3">Проверьте подключение к интернету (3)</string>
+    <string name="toast_online_not_joinable">К игре нельзя присоединиться</string>
+    <string name="toast_online_not_exist">Игры не существует</string>
+    <string name="toast_online_connection_ost">Соединение потеряно</string>
+    <string name="toast_cant_undo">Недостаточно ходов</string>
+
+    <!-- Window titles -->
+    <string name="title_computer">Компьютерная игра</string>
+    <string name="title_local">Локальная игра</string>
+    <string name="title_online">Онлайн игра</string>
+    <string name="subtitle_online"> %1$s</string>
+
+    <!-- Turn indicator -->
+    <string name="turn_yours">Ваш ход!</string>
+    <string name="turn_enemy">Ход противника!</string>
+
+    <!-- Win indicator -->
+    <string name="winner_generic">%1$s выиграл игру!</string>
+    <string name="winner_you">Вы выиграли!</string>
+    <string name="winner_tie">Ничья!</string>
+    <string name="winner_other">Вы проиграли!</string>
+
+    <!-- MAIN MENU: start a game -->
+    <string name="menu_title_new_game">Новая игра</string>
+    <string name="menu_computer">Компьютерная</string>
+    <string name="menu_local">Локальная</string>
+    <string name="menu_online">Онлайн</string>
+
+    <!-- MAIN MENU: other -->
+    <string name="menu_title_others">Другое</string>
+    <string name="menu_feedback">Отзыв</string>
+    <string name="menu_remove_ads">Удалить рекламу</string>
+    <string name="menu_tutorial">Обучение</string>
+    <string name="menu_share">Поделиться</string>
+    <string name="menu_about">О приложении</string>
+
+    <!-- Rate dialog -->
+    <string name="rate_title">Оценить приложение</string>
+    <string name="rate_message">Если вам понравилось использовать приложение Ultimate Tic Tac Toe, пожалуйста, поставьте оценку. Спасибо за поддержку!</string>
+    <string name="rate_positive">Оценить</string>
+    <string name="rate_neutral">Позже</string>
+    <string name="rate_negative">Нет, спасибо</string>
+
+    <!--  Dialog new game  -->
+    <string name="dialog_start_game">Начать</string>
+    <string name="dialog_cancel">Отмена</string>
+    <string name="dialog_start_player">Начинающий игрок</string>
+    <string name="dialog_start_you">Вы</string>
+    <string name="dialog_start_other">Другой игрок</string>
+    <string name="dialog_start_computer">Компьютер</string>
+    <string name="dialog_start_random">Случайный</string>
+
+    <!--  Dialog new game: Computer  -->
+    <string name="new_ai_title">Начать новую игру с ИИ?</string>
+    <string name="new_ai_difficulty">Сложность</string>
+
+    <!--  Dialog new game: Local  -->
+    <string name="new_local_title">Начать новую игру?</string>
+    <string name="new_local_message">Создать новую игру для двух игроков</string>
+
+    <!--  Dialog new game: Online (create) -->
+    <string name="online_create">Создать</string>
+    <string name="online_create_sel_board">Выбрать доску</string>
+    <string name="online_create_sel_board_new">Пустая</string>
+    <string name="online_create_sel_board_current">Текущая</string>
+    <string name="online_create_message_wait">Нажмите Создать, когда будете готовы</string>
+    <string name="online_create_message_ready">Вы ведете игру, пригласите друга присоединиться к игре ABC123 (код хоста вашей игры)</string>
+
+    <!--  Dialog new game: Online (join) -->
+    <string name="online_join">Присоединиться</string>
+    <string name="online_join_code">Код хоста</string>
+    <string name="online_join_code_hint">ABC123</string>
+    <string name="online_join_message">Введите код хоста вашего противника</string>
+
+    <!-- Dialog about-->
+    <string name="about_version">Версия</string>
+    <string name="about_credit_0">автор Henrykvdb</string>
+    <string name="about_credit_1">Особая благодарность KarelPeeters</string>
+    <string name="about_source">Исходный код доступен:</string>
+    <string name="about_close">Закрыть</string>
+
+    <!-- Dialog feedback (title) -->
+    <string name="send_feedback">Отправить отзыв</string>
+
+
+    <!-- Dialog share (body) -->
+    <string name="share_title">Поделиться</string>
+    <string name="share_message">Давайте вместе поиграем в Ultimate Tic Tac Toe!</string>
+
+    <!--  Tutorial slides 0 -->
+    <string name="tut0_title">Обучение</string>
+    <string name="tut0_desc">Давайте рассмотрим основные правила</string>
+
+    <!--  Tutorial slides 1 -->
+    <string name="tut1_title">Доска</string>
+    <string name="tut1_desc">Игроки по очереди играют в девяти сетках кресиков-ноликов, расположенных внутри большей сетки крестиков-ноликов</string>
+
+    <!--  Tutorial slides 2 -->
+    <string name="tut2_title">Выиграть в сетках</string>
+    <string name="tut2_desc">Выигрывайте в сетках, собирая три сетки в ряд, как в обычных крестиках-ноликах</string>
+
+    <!--  Tutorial slides 3 -->
+    <string name="tut3_title">Как выиграть</string>
+    <string name="tut3_desc">Выиграйте ряд из 3 сеток, чтобы победить в игре</string>
+
+    <!--  Tutorial slides 4 -->
+    <string name="tut4_title">Цвета</string>
+    <string name="tut4_desc">Ходы, разрешенные следующему игроку, обозначаются цветом этого игрока. Последний ход окрашивается в более светлый цвет</string>
+
+    <!--  Tutorial slides 5 -->
+    <string name="tut5_title">Разрешенные ходы</string>
+    <string name="tut5_desc">Вы решаете, где противник может играть дальше. Пример: Если вы играете в сетке сверху справа, то противник должен играть в сетке сверху справа</string>
+
+    <!--  Tutorial slides 6 -->
+    <string name="tut6_title">Свободные ходы</string>
+    <string name="tut6_desc">Если вас отправили на заполненную или выигранную сетку, вы можете играть где угодно</string>
+
+    <!--  Tutorial slides 7 -->
+    <string name="tut7_title">Способы игры</string>
+    <string name="tut7_desc">Соревнуйтесь с друзьями как по локальной сети, так и онлайн. Потренируйтесь против компьютера и попытайтесь победить его на самом сложном уровне</string>
+    <string name="tut7_against">Против</string>
+    <string name="tut7_ways_computer">Компьютера</string>
+    <string name="tut7_ways_local">Друга локально</string>
+    <string name="tut7_ways_online">Друга онлайн</string>
+</resources>
