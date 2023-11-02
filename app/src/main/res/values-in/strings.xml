@@ -89,7 +89,7 @@
     <!-- Dialog about-->
     <string name="about_version">Versi</string>
     <string name="about_credit_0">oleh Henrykvdb</string>
-    <string name="about_credit_1">Terima kasih secara khusus kepada KarelPeeters</string>
+    <string name="about_credit_1">Terima kasih kepada KarelPeeters</string>
 
     <!-- Dialog feedback (title) -->
     <string name="send_feedback">Kirim tanggapan</string>
@@ -127,7 +127,7 @@
     <string name="tut6_desc">Jika Anda dikirim ke petak yang telah penuh atau telah dimenangkan, Anda dapat bermain di mana pun Anda mau</string>
 
     <!--  Tutorial slides 7 -->
-    <string name="tut7_title">Cara bermain</string>
+    <string name="tut7_title">Cara main</string>
     <string name="tut7_desc">Tantang teman Anda baik secara lokal maupun online. Berlatihlah melawan komputer dan cobalah untuk mengalahkannya pada tingkat kesulitan paling sulit</string>
     <string name="tut7_against">Melawan</string>
     <string name="tut7_ways_computer">Komputer</string>
