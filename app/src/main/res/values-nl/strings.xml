@@ -78,7 +78,7 @@
     <string name="online_create_sel_board_new">Leeg</string>
     <string name="online_create_sel_board_current">Huidig</string>
     <string name="online_create_message_wait">Duw maken wanneer je klaar bent</string>
-    <string name="online_create_message_ready">Je hebt een spel geopent, vraag je vriend om mee te doen met &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (je spel code)</string>
+    <string name="online_create_message_ready">Je hebt een spel geopent, vraag je vriend om mee te doen met &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (je spel code)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Meedoen</string>
@@ -89,7 +89,7 @@
     <!-- Dialog about-->
     <string name="about_version">Versie</string>
     <string name="about_credit_0">door Henrykvdb</string>
-    <string name="about_credit_1"><![CDATA[Speciale dank aan <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
+    <string name="about_credit_1">Speciale dank aan &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
     <string name="about_source">Source code beschikbaar:</string>
     <string name="about_close">Sluit</string>
 

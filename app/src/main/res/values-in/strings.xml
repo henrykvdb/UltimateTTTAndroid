@@ -78,7 +78,7 @@
     <string name="online_create_sel_board_new">Kosong</string>
     <string name="online_create_sel_board_current">Saat ini</string>
     <string name="online_create_message_wait">Tekan buat setelah Anda siap</string>
-    <string name="online_create_message_ready">Anda menjadi tuan rumah permainan, minta teman untuk bergabung dengan ABC123 (kode hosting permainan Anda)</string>
+    <string name="online_create_message_ready">Anda menjadi tuan rumah permainan, minta teman untuk bergabung dengan &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (kode hosting permainan Anda)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Bergabung</string>
@@ -89,7 +89,9 @@
     <!-- Dialog about-->
     <string name="about_version">Versi</string>
     <string name="about_credit_0">oleh Henrykvdb</string>
-    <string name="about_credit_1">Terima kasih kepada KarelPeeters</string>
+    <string name="about_credit_1">Terima kasih kepada &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="about_source">Kode sumber tersedia:</string>
+    <string name="about_close">Tutup</string>
 
     <!-- Dialog feedback (title) -->
     <string name="send_feedback">Kirim tanggapan</string>

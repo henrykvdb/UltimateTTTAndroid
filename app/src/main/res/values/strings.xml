@@ -97,7 +97,7 @@
 	<!-- Dialog about-->
 	<string name="about_version">Version</string>
 	<string name="about_credit_0">by Henrykvdb</string>
-	<string name="about_credit_1"><![CDATA[Special thanks to <a href=https://github.com/KarelPeeters>KarelPeeters</a>]]></string>
+	<string name="about_credit_1">Special thanks to &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
 	<string name="about_source">Source code available:</string>
 	<string name="about_close">Close</string>
 

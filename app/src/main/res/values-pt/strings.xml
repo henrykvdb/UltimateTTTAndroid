@@ -78,7 +78,7 @@
     <string name="online_create_sel_board_new">Vazio</string>
     <string name="online_create_sel_board_current">Atual</string>
     <string name="online_create_message_wait">Pressione criar quando estiver pronto</string>
-    <string name="online_create_message_ready">Você está organizando um jogo, convide um amigo para participar ABC123 (seu código de organizador)</string>
+    <string name="online_create_message_ready">Você está organizando um jogo, convide um amigo para participar &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (seu código de organizador)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Junte-se</string>
@@ -89,7 +89,7 @@
     <!-- Dialog about-->
     <string name="about_version">Versão</string>
     <string name="about_credit_0">por Henrykvdb</string>
-    <string name="about_credit_1">Agradecimentos especiais a KarelPeeters</string>
+    <string name="about_credit_1">Agradecimentos especiais a &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
     <string name="about_source">Código fonte disponível:</string>
     <string name="about_close">Fechar</string>
 

@@ -79,7 +79,7 @@
     <string name="online_create_sel_board_new">Пустая</string>
     <string name="online_create_sel_board_current">Текущая</string>
     <string name="online_create_message_wait">Нажмите Создать, когда будете готовы</string>
-    <string name="online_create_message_ready">Вы ведете игру, пригласите друга присоединиться к игре ABC123 (код хоста вашей игры)</string>
+    <string name="online_create_message_ready">Вы ведете игру, пригласите друга присоединиться к игре &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (код хоста вашей игры)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Присоединиться</string>
@@ -90,7 +90,7 @@
     <!-- Dialog about-->
     <string name="about_version">Версия</string>
     <string name="about_credit_0">автор Henrykvdb</string>
-    <string name="about_credit_1">Особая благодарность KarelPeeters</string>
+    <string name="about_credit_1">Особая благодарность &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
     <string name="about_source">Исходный код доступен:</string>
     <string name="about_close">Закрыть</string>
 
