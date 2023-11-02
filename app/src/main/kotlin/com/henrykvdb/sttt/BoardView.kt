@@ -32,7 +32,7 @@ typealias ds = DrawSettings
 
 object DrawSettings {
     //Availability color settings; 0(=full) -> 255(=transparant)
-    const val alphaOverlayFront = 200 // alpha symbol over won macros (symbols)
+    const val alphaOverlayFront = 190 // alpha symbol over won macros (symbols)
     const val alphaOverlayBack = 100  // alpha background won macros  (bg fill & symbols)
 
     //Symbol stroke width

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Main color palette -->
+    <color name="colorPrimary">#303F9F</color>
+    <color name="colorPrimaryDark">#2A3788</color>
+    <color name="colorAccent">#276CA8</color>
+
     <!-- dark theme colors -->
     <color name="colorText">#FAFAFA</color>
     <color name="colorTextSmall">#b4b5b5</color>
-    <color name="colorBackground">#131313</color>
+    <color name="colorBackground">#2d2f31</color>
 
     <!-- dark theme board colors -->
     <color name="xColorLight">#4BBBFF</color>
