@@ -61,8 +61,8 @@
     <string name="dialog_cancel">Отмена</string>
     <string name="dialog_start_player">Начинающий игрок</string>
     <string name="dialog_start_you">Вы</string>
-    <string name="dialog_start_other">Другой игрок</string>
-    <string name="dialog_start_computer">Компьютер</string>
+    <string name="dialog_start_other">Другой</string>
+    <string name="dialog_start_computer">ИИ</string>
     <string name="dialog_start_random">Случайный</string>
 
     <!--  Dialog new game: Computer  -->
