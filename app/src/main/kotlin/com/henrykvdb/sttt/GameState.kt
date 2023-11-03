@@ -11,7 +11,8 @@
 
 package com.henrykvdb.sttt
 
-import bots.MCTSBot
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import bots.MCTSBotDropoff
 import bots.RandomBot
 import common.Board
@@ -19,19 +20,26 @@ import common.Bot
 import java.io.Serializable
 
 enum class Source { LOCAL, AI, REMOTE }
+private fun sourceFromOrdinal(ordinal: Int): Source {
+    return enumValues<Source>().firstOrNull { it.ordinal == ordinal }!!
+}
 
 open class GameState : Serializable {
+    // State
     var players = Pair(Source.LOCAL, Source.LOCAL); private set
-    var board = Board(); private set
     var history = mutableListOf(-1)
-    var extraBot: Bot = RandomBot(); private set
+    private var extraBotDifficulty = 0
     var remoteId = ""; private set
+
+    // Derived from state
+    var board = Board(); private set
+    var extraBot: Bot = RandomBot(); private set
+
 
     /** Access methods (not extendable) **/
 
     // Player access methods
     @Synchronized fun nextSource() = if (history.size % 2 == 1) players.first else players.second
-    @Synchronized fun otherSource() = if (history.size % 2 == 0) players.second else players.first
     @get:Synchronized val swapped : Boolean get() = players.second == Source.LOCAL
     @get:Synchronized val type : Source get() = when {
         players.first == Source.REMOTE || players.second == Source.REMOTE -> Source.REMOTE
@@ -61,25 +69,18 @@ open class GameState : Serializable {
     }
 
     @Synchronized open fun turnLocal(){
-        this.players = Pair(Source.LOCAL, Source.LOCAL)
         this.remoteId = ""
+        if (this.type == Source.REMOTE){
+            this.players = Pair(Source.LOCAL, Source.LOCAL)
+        }
     }
 
     @Synchronized open fun newAi(swapped: Boolean, difficulty: Int){
         this.players = if (swapped) Pair(Source.AI, Source.LOCAL) else Pair(Source.LOCAL, Source.AI)
         this.board = Board()
         this.history = mutableListOf(-1)
-        this.extraBot = MCTSBot(25_000_000) // TODO based on difficulty
-        this.extraBot = when(difficulty){
-            0 -> RandomBot()
-            1 -> MCTSBotDropoff(6 * 350    , 350    , 20)
-            2 -> MCTSBotDropoff(6 * 2_200  , 2_200  , 20)
-            3 -> MCTSBotDropoff(6 * 8_000  , 8_000  , 20)
-            4 -> MCTSBotDropoff(6 * 20_000 , 20_000 , 20)
-            5 -> MCTSBotDropoff(6 * 50_000 , 50_000 , 20)
-            6 -> MCTSBotDropoff(6 * 100_000, 100_000, 20)
-            else -> throw Exception("No such difficulty")
-        }
+        this.extraBotDifficulty = difficulty
+        this.extraBot = createBot(difficulty)
         this.remoteId = ""
     }
 
@@ -104,6 +105,60 @@ open class GameState : Serializable {
 
         private fun boardFromHistory(history: List<Int>) = Board().apply {
                 history.forEachIndexed { idx, mv -> if (idx > 0) this.play(mv.toByte()) }
+        }
+
+        fun createBot(difficulty: Int): Bot {
+            return when(difficulty){
+                0 -> RandomBot()
+                1 -> MCTSBotDropoff(6 * 350    , 350    , 20)
+                2 -> MCTSBotDropoff(6 * 2_200  , 2_200  , 20)
+                3 -> MCTSBotDropoff(6 * 8_000  , 8_000  , 20)
+                4 -> MCTSBotDropoff(6 * 20_000 , 20_000 , 20)
+                5 -> MCTSBotDropoff(6 * 50_000 , 50_000 , 20)
+                6 -> MCTSBotDropoff(6 * 100_000, 100_000, 20)
+                else -> throw Exception("No such difficulty")
+            }
+        }
+
+        fun sharedPrefStore(sharedPref: SharedPreferences, gs: GameState) {
+            sharedPref.edit {
+                log(gs.history.toString())
+                gs.history.forEachIndexed { i, move -> putInt("MOVE$i", move) }
+                putInt("X", gs.players.first.ordinal)
+                putInt("O", gs.players.second.ordinal)
+                putInt("difficulty", gs.extraBotDifficulty)
+            }
+        }
+
+        fun sharedPrefCreate(sharedPref: SharedPreferences): GameState {
+            val gs = GameState()
+            val x = sharedPref.getInt("X",-1)
+            val o = sharedPref.getInt("O", -1)
+
+            // No previous save game, early return
+            if(x == -1 || o == -1)
+                return gs
+            else return gs.apply {
+                // Re-create players
+                players = Pair(sourceFromOrdinal(x), sourceFromOrdinal(o))
+
+                // Re-create bot
+                val difficulty = sharedPref.getInt("difficulty", 0)
+                if (difficulty > 0){
+                    extraBotDifficulty = difficulty
+                    extraBot = createBot(difficulty)
+                }
+
+                // Re-create board
+                for (i in 1..81){
+                    val move = sharedPref.getInt("MOVE$i", Int.MAX_VALUE)
+                    if (move != Int.MAX_VALUE)
+                        history.add(move)
+                    else break
+
+                }
+                board = boardFromHistory(history)
+            }
         }
     }
 }

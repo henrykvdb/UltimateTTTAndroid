@@ -136,10 +136,14 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		onBackPressedDispatcher.addCallback(this, onBackCallback)
 
 		// Restore gamestate if rotate / re-create
-		gs = if (savedInstanceState == null) GameState()
-		else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-			savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
-		else @Suppress("DEPRECATION") savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
+		if (savedInstanceState == null){
+			val sharedPref = getSharedPreferences(GAMESTATE_KEY, 0)
+			gs = GameState.sharedPrefCreate(sharedPref).apply { turnLocal() }
+		} else @Suppress("DEPRECATION") {
+			gs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+				savedInstanceState.getSerializable(GAMESTATE_KEY, GameState::class.java)!!
+			else savedInstanceState.getSerializable(GAMESTATE_KEY) as GameState
+		}
 
 		// Set up board and draw
 		binding.boardView.setup({ coord -> play(Source.LOCAL, coord) },	binding.nextMoveTextview)
@@ -195,8 +199,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	override fun onDestroy() {
-		super.onDestroy()
-
 		// Remove listeners
 		binding.drawerLayout.addDrawerListener(drawerToggle)
 		onBackCallback.remove()
@@ -204,11 +206,14 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		// Dismiss ask dialog
 		openDialog?.setOnDismissListener(null)
 		openDialog?.dismiss()
+
+		super.onDestroy()
 	}
 
 	override fun onPause() {
-		super.onPause()
 		aiJob?.cancel()
+
+		super.onPause()
 	}
 
 	override fun onStart() {
@@ -217,6 +222,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
+		val sharedPref = getSharedPreferences(GAMESTATE_KEY, 0)
+		GameState.sharedPrefStore(sharedPref, gs)
 		outState.putSerializable(GAMESTATE_KEY, gs)
 		super.onSaveInstanceState(outState)
 	}
