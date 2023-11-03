@@ -19,7 +19,7 @@
     <string name="toast_cant_undo">Movimentos insuficientes</string>
 
     <!-- Window titles -->
-    <string name="title_computer">Jogo com computador</string>
+    <string name="title_computer">Jogo com IA</string>
     <string name="title_local">Jogo local</string>
     <string name="title_online">Jogo online</string>
     <string name="subtitle_online"> %1$s</string>
@@ -125,7 +125,7 @@
     <string name="tut5_desc">Você decide onde o oponente pode jogar em seguida. Exemplo: se você jogar no canto superior direito de uma grade, o oponente terá que jogar na grade superior direita</string>
 
     <!--  Tutorial slides 6 -->
-    <string name="tut6_title">Movimentos grátis</string>
+    <string name="tut6_title">Movimentos livres</string>
     <string name="tut6_desc">Se você for enviado para uma grade cheia ou vencida, poderá jogar onde quiser</string>
 
     <!--  Tutorial slides 7 -->
