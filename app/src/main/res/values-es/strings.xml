@@ -2,17 +2,17 @@
     <!-- Extra hover-over info-->
     <string name="hov_undo">Deshacer</string>
     <string name="hov_nav_close">Cerrar el menú</string>
-    <string name="hov_nav_open">Abrir  el menú</string>
+    <string name="hov_nav_open">Abrir el menú</string>
 
     <!-- Online game undo request -->
-    <string name="undo_request_msg">El oponente está solicitando deshacer, ¿aceptar?</string>
+    <string name="undo_request_msg">El oponente está solicitando deshacer la última jugada/último movimiento , ¿aceptar?</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
 
     <!--  Error messages -->
-    <string name="toast_internet_1">Comprueba tu conexión de Internet (1)</string>
-    <string name="toast_internet_2">Comprueba tu conexión de Internet (2)</string>
-    <string name="toast_internet_3">Comprueba tu conexión de Internet (3)</string>
+    <string name="toast_internet_1">Comprueba tu conexión a Internet (1)</string>
+    <string name="toast_internet_2">Comprueba tu conexión a Internet (2)</string>
+    <string name="toast_internet_3">Comprueba tu conexión a Internet (3)</string>
     <string name="toast_online_not_joinable">No se puede unir al juego</string>
     <string name="toast_online_not_exist">El juego no existe</string>
     <string name="toast_online_connection_ost">Conexión perdida</string>
@@ -26,7 +26,7 @@
 
     <!-- Turn indicator -->
     <string name="turn_yours">¡Es tu turno!</string>
-    <string name="turn_enemy">¡El enemigo está jugando!</string>
+    <string name="turn_enemy">¡Tu oponente está jugando!</string>
 
     <!-- Win indicator -->
     <string name="winner_generic">¡%1$s ganó el juego!</string>
@@ -75,16 +75,16 @@
     <!--  Dialog new game: Online (create) -->
     <string name="online_create">Crear</string>
     <string name="online_create_sel_board">Seleccionar tablero</string>
-    <string name="online_create_sel_board_new">Vacío</string>
+    <string name="online_create_sel_board_new">Nuevo</string>
     <string name="online_create_sel_board_current">Actual</string>
     <string name="online_create_message_wait">Presiona crear una vez que estés listo</string>
-    <string name="online_create_message_ready">Estás organizando un juego, pídele a un amigo que se una &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (tu código de anfitrión del juego)</string>
+    <string name="online_create_message_ready">Estás organizando un juego, pídele a un amigo que se una &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (código de la partida)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Unirse</string>
-    <string name="online_join_code">Código de host</string>
+    <string name="online_join_code">Código de la partida</string>
     <string name="online_join_code_hint">ABC123</string>
-    <string name="online_join_message">Introduce el código de host de tu oponente</string>
+    <string name="online_join_message">Introduce el código de la partida de tu oponente</string>
 
     <!-- Dialog about-->
     <string name="about_version">Versión</string>
@@ -106,7 +106,7 @@
 
     <!--  Tutorial slides 1 -->
     <string name="tut1_title">El tablero</string>
-    <string name="tut1_desc">Los jugadores se turnan para jugar nueve cuadrículas de tres en raya, dispuestas dentro de una cuadrícula de tres en raya más grande</string>
+    <string name="tut1_desc">Los jugadores se turnan jugando en nueve cuadrículas pequeñas, cada una en una casilla de una cuadrícula clásica de tic tac toe más grande</string>
 
     <!--  Tutorial slides 2 -->
     <string name="tut2_title">Cuadrículas de victorias</string>
@@ -118,7 +118,7 @@
 
     <!--  Tutorial slides 4 -->
     <string name="tut4_title">Los colores</string>
-    <string name="tut4_desc">Los movimientos permitidos para el siguiente jugador se indican en el color de ese jugador. El último movimiento es de color ligeramente más claro</string>
+    <string name="tut4_desc">Los movimientos permitidos para el siguiente jugador se indican en el color del jugador. El último movimiento es de color ligeramente más claro</string>
 
     <!--  Tutorial slides 5 -->
     <string name="tut5_title">Movimientos permitidos</string>
@@ -130,7 +130,7 @@
 
     <!--  Tutorial slides 7 -->
     <string name="tut7_title">Formas de jugar</string>
-    <string name="tut7_desc">Desafía a tus amigos tanto localmente como en línea. Practica contra el ordenador e intenta vencerla en la dificultad más difícil</string>
+    <string name="tut7_desc">Desafía a tus amigos tanto localmente como en línea. Practica contra el ordenador e intenta vencerlo en la dificultad más alta</string>
     <string name="tut7_against">Contra</string>
     <string name="tut7_ways_computer">ordenador</string>
     <string name="tut7_ways_local">Amigo local</string>
