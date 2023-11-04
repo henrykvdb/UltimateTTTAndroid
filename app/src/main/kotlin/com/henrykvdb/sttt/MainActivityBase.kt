@@ -156,10 +156,17 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		if (savedInstanceState == null) triggerDialogs()
 	}
 
+	private var consentRequestOngoing = false
 	private fun requestConsent(callback: () -> Unit){
+		// Avoid double triggers
+		if (consentRequestOngoing) return
+		consentRequestOngoing = true
+
+		// Launch consent requester
 		val params = ConsentRequestParameters.Builder().build()
 		consentInformation.requestConsentInfoUpdate(this, params, {
 			UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { formError ->
+				consentRequestOngoing = false
 				if (formError != null) { // Consent not obtained in current session.
 					log("Error ${formError.errorCode}: ${formError.message}")
 				} else if (consentInformation.canRequestAds()){
