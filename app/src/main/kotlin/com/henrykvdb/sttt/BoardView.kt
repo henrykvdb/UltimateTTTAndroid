@@ -120,29 +120,36 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 it.text = null
                 if (!board.isDone) {
                     if (gs.type != Source.LOCAL) {
-                        it.setTextColor(if (board.nextPlayX) Color.BLUE else Color.RED)
+                        // Set text color
+                        if (board.nextPlayX)
+                            it.setTextColor(getColor(R.color.xColor))
+                        else it.setTextColor(getColor(R.color.oColor))
+
+                        // Set text string
                         val yourTurn = gs.nextSource() == Source.LOCAL
-                        it.text =
-                            resources.getString(if (yourTurn) R.string.turn_yours else R.string.turn_enemy)
+                        if (yourTurn) it.text = resources.getString(R.string.turn_yours)
+                        else it.text = resources.getString(R.string.turn_enemy)
                     }
                 } else {
                     if (board.wonBy == Player.NEUTRAL) {
-                        it.setTextColor(Color.BLACK)
+                        it.setTextColor(getColor(R.color.colorText))
                         it.text = resources.getText(R.string.winner_tie)
                     } else {
+                        // Set the text color
+                        if (board.wonBy == Player.PLAYER)
+                            it.setTextColor(getColor(R.color.xColor))
+                        else it.setTextColor(getColor(R.color.oColor))
+
+                        // Set the text string
                         if (gs.type == Source.LOCAL) {
-                            it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
-                            it.text = resources.getString(
-                                R.string.winner_generic,
-                                if (board.wonBy == Player.PLAYER) "X" else "O"
-                            )
+                            val winner = if (board.wonBy == Player.PLAYER) "X" else "O"
+                            it.text = resources.getString(R.string.winner_generic, winner)
                         } else {
-                            it.setTextColor(if (board.wonBy == Player.PLAYER) Color.BLUE else Color.RED)
                             val youWon =
                                 if (board.wonBy == Player.PLAYER) gs.players.first == Source.LOCAL
                                 else gs.players.second == Source.LOCAL
-                            it.text =
-                                resources.getString(if (youWon) R.string.winner_you else R.string.winner_other)
+                            if (youWon) it.text = resources.getString(R.string.winner_you)
+                            else it.text = resources.getString(R.string.winner_other)
                         }
                     }
                 }
