@@ -23,7 +23,6 @@
     <string name="title_computer">Компьютерная игра</string>
     <string name="title_local">Локальная игра</string>
     <string name="title_online">Онлайн игра</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">Ваш ход!</string>
@@ -84,7 +83,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Присоединиться</string>
     <string name="online_join_code">Код хоста</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">Введите код хоста вашего противника</string>
 
     <!-- Dialog about-->

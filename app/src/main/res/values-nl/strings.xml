@@ -22,7 +22,6 @@
     <string name="title_computer">Computer Spel</string>
     <string name="title_local">Lokaal Spel</string>
     <string name="title_online">Online Spel</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">Jouw beurt!</string>
@@ -83,7 +82,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Meedoen</string>
     <string name="online_join_code">Spel code</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">Geef de spel code van de tegenstander in</string>
 
     <!-- Dialog about-->

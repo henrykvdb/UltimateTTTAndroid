@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bt_join_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -32,13 +33,14 @@
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:textCursorDrawable="@null"
-        android:hint="@string/online_join_code_hint"
+        android:hint="ABC123"
         android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         android:backgroundTint="@color/colorPrimary"
         android:textColor="@color/colorTextSmall"
         android:clickable="true"
         android:focusable="true"
-        android:focusableInTouchMode="true" />
+        android:focusableInTouchMode="true"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:layout_width="match_parent"

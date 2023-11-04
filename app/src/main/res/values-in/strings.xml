@@ -22,7 +22,6 @@
     <string name="title_computer">Permainan Komputer</string>
     <string name="title_local">Permainan Lokal</string>
     <string name="title_online">Permainan Online</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">Sekarang giliran Anda!</string>
@@ -83,7 +82,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Bergabung</string>
     <string name="online_join_code">Kode hosting</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">Masukkan kode hosting lawan Anda</string>
 
     <!-- Dialog about-->

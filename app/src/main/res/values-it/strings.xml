@@ -22,7 +22,6 @@
     <string name="title_computer">Gioco per computer</string>
     <string name="title_local">Gioca in locale</string>
     <string name="title_online">Gioca online</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">È il tuo turno!</string>
@@ -83,7 +82,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Partecipa</string>
     <string name="online_join_code">Codice host</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">Inserisci il codice host del tuo avversario</string>
 
     <!-- Dialog about-->

@@ -22,7 +22,6 @@
     <string name="title_computer">与电脑对峙</string>
     <string name="title_local">双人本机游戏</string>
     <string name="title_online">线上游戏</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">轮到你了！</string>
@@ -83,7 +82,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">加入</string>
     <string name="online_join_code">东家代码</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">输入线上东家代码</string>
 
     <!-- Dialog about-->

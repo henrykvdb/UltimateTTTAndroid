@@ -276,8 +276,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		}
 
 		// Set subtitle
-		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
-		else getString(R.string.subtitle_online, gs.remoteId)
+		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null else " ${gs.remoteId}"
 
 		// Redraw board and update text
 		binding.boardView.drawState(gs)

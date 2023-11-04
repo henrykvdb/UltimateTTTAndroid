@@ -30,7 +30,6 @@
 	<string name="title_computer">Computer Game</string>
 	<string name="title_local">Local Game</string>
 	<string name="title_online">Online Game</string>
-	<string name="subtitle_online"> %1$s</string>
 
 	<!-- Turn indicator -->
 	<string name="turn_yours">It is your turn!</string>
@@ -86,12 +85,11 @@
 	<string name="online_create_sel_board_new">Empty</string>
 	<string name="online_create_sel_board_current">Current</string>
 	<string name="online_create_message_wait">Press create once you are ready</string>
-	<string name="online_create_message_ready">You are hosting a game, ask a friend to join &lt;b>&lt;font color="#FF0000">%1$s&lt;/font>&lt;/b> (your game host code)</string>
+	<string name="online_create_message_ready">You are hosting a game, ask a friend to join &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (your game host code)</string>
 
 	<!--  Dialog new game: Online (join) -->
 	<string name="online_join">Join</string>
 	<string name="online_join_code">Host code</string>
-	<string name="online_join_code_hint">ABC123</string>
 	<string name="online_join_message">Enter the host code of your opponent</string>
 
 	<!-- Dialog about-->

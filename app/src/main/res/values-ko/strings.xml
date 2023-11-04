@@ -22,7 +22,6 @@
     <string name="title_computer">컴퓨터 게임</string>
     <string name="title_local">로컬 게임</string>
     <string name="title_online">온라인 게임</string>
-    <string name="subtitle_online"> %1$s</string>
 
     <!-- Turn indicator -->
     <string name="turn_yours">차례가 되었습니다!</string>
@@ -83,7 +82,6 @@
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">가입</string>
     <string name="online_join_code">호스트 코드</string>
-    <string name="online_join_code_hint">ABC123</string>
     <string name="online_join_message">상대방의 호스트 코드를 입력하세요</string>
 
     <!-- Dialog about-->
