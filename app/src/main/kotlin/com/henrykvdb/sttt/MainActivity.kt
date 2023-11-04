@@ -226,7 +226,7 @@ class MainActivity : MainActivityBaseRemote() {
     }
 
     class RemoteJoinFragment : Fragment() {
-        var shouldRefreshHost = true
+        var shouldRefreshHost = false
         override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
