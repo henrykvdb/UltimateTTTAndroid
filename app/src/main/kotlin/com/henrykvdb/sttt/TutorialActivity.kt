@@ -55,8 +55,8 @@ class TutorialActivity : AppIntro() {
 		addSlide(ModeSlide())
 
 		//Set bottom navigation bar colors
-		setBarColor(R.color.colorPrimary.getC())
-		setSeparatorColor(R.color.colorAccent.getC())
+		setBarColor(R.color.colorNav.getC())
+		setSeparatorColor(R.color.colorNavAccent.getC())
 
 		//Set navigation button colors
 		setColorDoneText(R.color.colorWhite.getC())
@@ -66,7 +66,7 @@ class TutorialActivity : AppIntro() {
 
 		setIndicatorColor(
 			selectedIndicatorColor = R.color.colorWhite.getC(),
-			unselectedIndicatorColor = R.color.colorPrimaryDark.getC()
+			unselectedIndicatorColor = R.color.colorNavDark.getC()
 		)
 	}
 

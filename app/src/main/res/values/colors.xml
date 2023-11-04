@@ -4,6 +4,11 @@
     <color name="colorWhite">#FAFAFA</color>
     <color name="colorGrey">#c6c6c6</color>
 
+    <!-- Navigation color palette -->
+    <color name="colorNav">@color/colorPrimary</color>
+    <color name="colorNavDark">@color/colorPrimaryDark</color>
+    <color name="colorNavAccent">@color/colorAccent</color>
+
     <!-- Main color palette -->
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>

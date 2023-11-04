@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Navigation color palette -->
+    <color name="colorNav">#303F9F</color>
+    <color name="colorNavDark">#2A3788</color>
+    <color name="colorNavAccent">#276CA8</color>
+
     <!-- Main color palette -->
-    <color name="colorPrimary">#303F9F</color>
-    <color name="colorPrimaryDark">#2A3788</color>
-    <color name="colorAccent">#276CA8</color>
+    <color name="colorPrimary">@color/xColor</color>
+    <color name="colorPrimaryDark">@color/xColorDark</color>
+    <color name="colorAccent">@color/xColorLight</color>
 
     <!-- dark theme colors -->
     <color name="colorText">#FAFAFA</color>

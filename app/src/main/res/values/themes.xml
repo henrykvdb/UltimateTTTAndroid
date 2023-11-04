@@ -4,7 +4,7 @@
         <item name="colorPrimary">@color/colorPrimary</item> <!-- @color/colorPrimary -->
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item> <!-- @color/colorPrimaryDark -->
         <item name="colorAccent">@color/colorAccent</item> <!-- @color/colorAccent -->
-        <item name="android:textColorSecondary">#FFFF00</item> <!-- SHOULD NOT APPEAR -->
+        <item name="android:textColorSecondary">@color/colorText</item> <!-- SHOULD NOT APPEAR -->
         <item name="colorControlNormal">@color/colorPrimary</item>
         <item name="colorControlActivated">@color/colorPrimary</item>
     </style>
@@ -18,6 +18,6 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@color/colorNav</item>
     </style>
 </resources>
