@@ -20,7 +20,7 @@
         android:textSize="28sp"
         android:textStyle="bold" />
 
-    <com.henrykvdb.sttt.BoardView
+    <com.henrykvdb.sttt.TutorialBoardView
         android:layout_centerInParent="true"
         android:id="@+id/boardView"
         android:layout_width="match_parent"

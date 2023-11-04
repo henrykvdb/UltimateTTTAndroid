@@ -15,10 +15,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import common.Board
@@ -29,7 +27,6 @@ import kotlin.math.sqrt
 
 @Suppress("com/henrykvdb/sttt/unused")
 typealias ds = DrawSettings
-
 object DrawSettings {
     //Availability color settings; 0(=full) -> 255(=transparant)
     const val alphaOverlayFront = 190 // alpha symbol over won macros (symbols)
@@ -50,24 +47,23 @@ object DrawSettings {
     const val borderORel = 0.15f / 9
 }
 
-class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
-    private val paint = Paint().apply { isAntiAlias = true }
+open class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+    protected val paint = Paint().apply { isAntiAlias = true }
     private val path = Path()
 
-    private var boardGs: GameState? = null
-    private var nextPlayerView: TextView? = null
-    private var moveCallback: (Byte) -> Unit = {}
+    protected var boardGs: GameState? = null
+    protected var moveCallback: (Byte) -> Unit = {}
 
-    private var macroSizeSmall = 0.0f
-    private var macroSizeFull = 0.0f
-    private var whiteSpace = 0.0f
+    protected var macroSizeSmall = 0.0f
+    protected var macroSizeFull = 0.0f
+    protected var whiteSpace = 0.0f
     private var fieldSize = 0.0f
-    private var tileSize = 0.0f
+    protected var tileSize = 0.0f
     private var xBorder = 0.0f
     private var oBorder = 0.0f
 
     private var macroSymbolStroke = 0
-    private var tileSymbolStroke = 0
+    protected var tileSymbolStroke = 0
     private var smallGridStroke = 0
     private var wonSymbolStroke = 0
     private var bigGridStroke = 0
@@ -81,9 +77,8 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         postInvalidate()
     }
 
-    fun setup(moveCallback: (Byte) -> Unit, nextPlayerView: TextView) {
+    fun setup(moveCallback: (Byte) -> Unit) {
         this.moveCallback = moveCallback
-        this.nextPlayerView = nextPlayerView
     }
 
     fun drawState(gameState: GameState?) {
@@ -114,108 +109,53 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         boardGs?.let { gs ->
             val board = gs.board
 
-            // Set the helper text
-            // TODO nice to have: move the code for this text view out of the boardview
-            nextPlayerView?.let {
-                it.text = null
-                if (!board.isDone) {
-                    if (gs.type != Source.LOCAL) {
-                        // Set text color
-                        if (board.nextPlayX)
-                            it.setTextColor(getColor(R.color.xColor))
-                        else it.setTextColor(getColor(R.color.oColor))
-
-                        // Set text string
-                        val yourTurn = gs.nextSource() == Source.LOCAL
-                        if (yourTurn) it.text = resources.getString(R.string.turn_yours)
-                        else it.text = resources.getString(R.string.turn_enemy)
-                    }
-                } else {
-                    if (board.wonBy == Player.NEUTRAL) {
-                        it.setTextColor(getColor(R.color.colorText))
-                        it.text = resources.getText(R.string.winner_tie)
-                    } else {
-                        // Set the text color
-                        if (board.wonBy == Player.PLAYER)
-                            it.setTextColor(getColor(R.color.xColor))
-                        else it.setTextColor(getColor(R.color.oColor))
-
-                        // Set the text string
-                        if (gs.type == Source.LOCAL) {
-                            val winner = if (board.wonBy == Player.PLAYER) "X" else "O"
-                            it.text = resources.getString(R.string.winner_generic, winner)
-                        } else {
-                            val youWon =
-                                if (board.wonBy == Player.PLAYER) gs.players.first == Source.LOCAL
-                                else gs.players.second == Source.LOCAL
-                            if (youWon) it.text = resources.getString(R.string.winner_you)
-                            else it.text = resources.getString(R.string.winner_other)
-                        }
-                    }
-                }
-            }
-
             //Draw the macros
-            for (om in 0 until 9) drawMacro(canvas, board, om)
+            canvas.translateToStart()
+            for (om in 0 until 9){
+                val xm = om % 3
+                val ym = om / 3
+                canvas.translateToMacro(xm, ym)
+                drawMacro(canvas, board, om)
+                canvas.translateToMacro(-xm, -ym)
+            }
+            canvas.translateToStart(true)
 
             //Bigger macro separate lines
             drawGridBarriers(canvas, fieldSize, getColor(R.color.colorTextSmall), bigGridStroke)
         }
     }
 
+    // Translate the x and y whitespace away
+    protected fun Canvas.translateToStart(invert: Boolean = false){
+        if (invert) translate(-whiteSpace, -whiteSpace) else translate(whiteSpace, whiteSpace)
+    }
+
+    // Translate to chosen macro from end of whitespace ( after translateToStart() )
+    protected fun Canvas.translateToMacro(xm: Int, ym: Int){
+        val xmt = macroSizeFull * xm
+        val ymt = macroSizeFull * ym
+        translate(xmt, ymt)
+    }
+
+    // Translate to chosen tile from the base coord of any macro ( after translateToMacro() )
+    private fun Canvas.translateToTile(xs: Int, ys: Int){
+        val xst = tileSize * xs
+        val yst = tileSize * ys
+        translate(xst, yst)
+    }
+
+    // Note: can only be called after translated to correct macro ( with translateToMacro() )
     private fun drawMacro(canvas: Canvas, board: Board, om: Int) {
-        val xm = om % 3
-        val ym = om / 3
-
-        //Translate to macro
-        val xmt = macroSizeFull * xm + whiteSpace
-        val ymt = macroSizeFull * ym + whiteSpace
-        canvas.translate(xmt, ymt)
-
         //Draw macro lines
         drawGridBarriers(canvas, macroSizeSmall, getColor(R.color.colorText), smallGridStroke)
 
         // Draw individual tiles
         for (os in 0 until 9) {
-            val coord = ((om.toInt() shl 4) + os).toByte()
-            val player = board.tile(coord)
-
-            //Translate to tile
-            val xt = os % 3 * tileSize
-            val yt = os / 3 * tileSize
-            canvas.translate(xt, yt)
-
-            //Color tile if available
-            paint.style = Paint.Style.FILL
-            paint.color =
-                if (board.nextPlayX) getColor(R.color.xColor) else getColor(R.color.oColor)
-            paint.alpha = 50
-
-            board.availableMoves.forEach {
-                if (it == coord) canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
-            }
-
-            //Draw the correct symbol on the tile
-            val darkTiles = (board.wonBy != Player.NEUTRAL || (board.macro(om) != Player.NEUTRAL) || (board.macroTied(om)))
-            if (player == Player.PLAYER) {
-                drawTile(
-                    canvas, isX = true, size = tileSize, color = when {
-                        coord == board.lastMove -> getColor(R.color.xColorLight)
-                        darkTiles -> getColorAlpha(R.color.xColorDark, ds.alphaOverlayBack)
-                        else -> getColor(R.color.xColor)
-                    }, strokeWidth = tileSymbolStroke, border = xBorder
-                )
-            } else if (player == Player.ENEMY) {
-                drawTile(
-                    canvas, isX = false, size = tileSize, color = when {
-                        coord == board.lastMove -> getColor(R.color.oColorLight)
-                        darkTiles -> getColorAlpha(R.color.oColorDark, ds.alphaOverlayBack)
-                        else -> getColor(R.color.oColor)
-                    }, strokeWidth = tileSymbolStroke, border = oBorder
-                )
-            }
-
-            canvas.translate(-xt, -yt)
+            val xs = os % 3
+            val ys = os / 3
+            canvas.translateToTile(xs, ys)
+            drawTile(canvas, board, om, os)
+            canvas.translateToTile(-xs, -ys)
         }
 
         // Set the background color for the macro
@@ -236,23 +176,58 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         //Draw big x and y over macros
         if (board.macro(om) == Player.PLAYER) {
-            drawTile(
+            drawSymbol(
                 canvas, true, macroSizeSmall,
                 getColorAlpha(R.color.xColor, ds.alphaOverlayFront),
                 macroSymbolStroke, xBorder
             )
         } else if (board.macro(om) == Player.ENEMY) {
-            drawTile(
+            drawSymbol(
                 canvas, false, macroSizeSmall,
                 getColorAlpha(R.color.oColor, ds.alphaOverlayFront),
                 macroSymbolStroke, oBorder
             )
         }
-
-        canvas.translate(-xmt, -ymt)
     }
 
-    private fun drawTile(canvas: Canvas, isX: Boolean, size: Float, color: Int, strokeWidth: Int, border: Float) {
+    // Note: can only be called after translated to correct tile ( with translateToTile() )
+    private fun drawTile(canvas: Canvas, board: Board, om: Int, os: Int) {
+        // Extract details from board
+        val coord = ((om shl 4) + os).toByte()
+        val player = board.tile(coord)
+
+        //Color tile if available
+        paint.style = Paint.Style.FILL
+        paint.color =
+            if (board.nextPlayX) getColor(R.color.xColor) else getColor(R.color.oColor)
+        paint.alpha = 50
+
+        board.availableMoves.forEach {
+            if (it == coord) canvas.drawRect(0f, 0f, tileSize, tileSize, paint)
+        }
+
+        //Draw the correct symbol on the tile
+        val darkTiles = (board.wonBy != Player.NEUTRAL || (board.macro(om) != Player.NEUTRAL) || (board.macroTied(om)))
+        if (player == Player.PLAYER) {
+            drawSymbol(
+                canvas, isX = true, size = tileSize, color = when {
+                    coord == board.lastMove -> getColor(R.color.xColorLight)
+                    darkTiles -> getColorAlpha(R.color.xColorDark, ds.alphaOverlayBack)
+                    else -> getColor(R.color.xColor)
+                }, strokeWidth = tileSymbolStroke, border = xBorder
+            )
+        } else if (player == Player.ENEMY) {
+            drawSymbol(
+                canvas, isX = false, size = tileSize, color = when {
+                    coord == board.lastMove -> getColor(R.color.oColorLight)
+                    darkTiles -> getColorAlpha(R.color.oColorDark, ds.alphaOverlayBack)
+                    else -> getColor(R.color.oColor)
+                }, strokeWidth = tileSymbolStroke, border = oBorder
+            )
+        }
+    }
+
+    private fun drawSymbol(canvas: Canvas, isX: Boolean, size: Float, color: Int, strokeWidth: Int, border: Float) {
         val realSize = size - 2 * border
         canvas.translate(border, border)
 
@@ -290,33 +265,41 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(e: MotionEvent): Boolean {
-        val x = e.x
-        val y = e.y
-
         if (e.action == MotionEvent.ACTION_DOWN) {
             pressedX = e.x
             pressedY = e.y
-        } else if (e.action == MotionEvent.ACTION_UP && distance(pressedX, pressedY, e.x, e.y) < 30) {
-            if (x < 0 || y < 0 || x > fieldSize || y > fieldSize) {
-                Log.d("ClickEvent", "Clicked outside of board")
+        } else if (e.action == MotionEvent.ACTION_UP) {
+            // Avoid drag events
+            if (distance(pressedX, pressedY, e.x, e.y) >= 30) {
+                log("ClickEvent: drag (ingored)")
+                return true
+            }
+
+            // Avoid events outside board
+            if (e.x < 0 || e.y < 0 || e.x > fieldSize || e.y > fieldSize) {
+                log("ClickEvent: outside of board (ignored)")
                 return true
             }
 
             //Get event's macro
-            val xm = (x / macroSizeFull).toInt()
-            val ym = (y / macroSizeFull).toInt()
+            val xm = (e.x / macroSizeFull).toInt()
+            val ym = (e.y / macroSizeFull).toInt()
 
             //Get event's tile
-            var xs = ((x - xm * macroSizeFull) / (macroSizeSmall / 3)).toInt()
-            var ys = ((y - ym * macroSizeFull) / (macroSizeSmall / 3)).toInt()
+            var xs = ((e.x - xm * macroSizeFull) / (macroSizeSmall / 3)).toInt()
+            var ys = ((e.y - ym * macroSizeFull) / (macroSizeSmall / 3)).toInt()
 
             //Fix coordinates being too big due to whitespace
             xs = if (xs > 2) --xs else xs
             ys = if (ys > 2) --ys else ys
 
+            // Convert to (x, y)
+            val x = xm * 3 + xs
+            val y = ym * 3 + ys
+
             performClick()
-            moveCallback.invoke(toCoord(xm * 3 + xs, ym * 3 + ys))
-            Log.d("ClickEvent", "Clicked: (" + (xm * 3 + xs) + "," + (ym * 3 + ys) + ")")
+            moveCallback.invoke(toCoord(x, y))
+            log("ClickEvent: ($x, $y)")
         }
 
         return true
@@ -336,9 +319,9 @@ class BoardView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         this.setMeasuredDimension(fieldSize, fieldSize)
     }
+}
 
-    private fun getColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
-    private fun getColorAlpha(colorRes: Int, a: Int): Int {
-        return ColorUtils.setAlphaComponent(getColor(colorRes), a)
-    }
+fun View.getColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
+fun View.getColorAlpha(colorRes: Int, a: Int): Int {
+    return ColorUtils.setAlphaComponent(getColor(colorRes), a)
 }

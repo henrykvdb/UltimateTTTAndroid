@@ -48,7 +48,7 @@ class TutorialActivity : AppIntro() {
 		addSlide(BoardSlide.newInstance(R.string.tut2_title.getS(),	R.string.tut2_desc.getS(), b1))
 		addSlide(BoardSlide.newInstance(R.string.tut3_title.getS(),	R.string.tut3_desc.getS(), b2))
 		addSlide(BoardSlide.newInstance(R.string.tut4_title.getS(),	R.string.tut4_desc.getS(), b3))
-		addSlide(BoardSlide.newInstance(R.string.tut5_title.getS(),	R.string.tut5_desc.getS(), b4))
+		addSlide(BoardSlide.newInstance(R.string.tut5_title.getS(),	R.string.tut5_desc.getS(), b4, true))
 		addSlide(BoardSlide.newInstance(R.string.tut6_title.getS(),	R.string.tut6_desc.getS(), b5))
 
 		// Add final slide
@@ -89,6 +89,7 @@ class ModeSlide : Fragment(R.layout.tutorial_body_modes)
 class BoardSlide : Fragment(R.layout.tutorial_body_boardview) {
 	private val title get() = requireArguments().getString("title") ?: ""
 	private val desc get() = requireArguments().getString("desc") ?: ""
+	private val showRule get() = requireArguments().getBoolean("showRule")
 	private val gs: GameState? get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
 			requireArguments().getSerializable("gameState", GameState::class.java)
 				else @Suppress("DEPRECATION") requireArguments().getSerializable("gameState") as GameState?
@@ -97,17 +98,19 @@ class BoardSlide : Fragment(R.layout.tutorial_body_boardview) {
 		return super.onCreateView(inflater, container, savedInstanceState)?.apply {
 			findViewById<TextView>(R.id.title).text = title
 			findViewById<TextView>(R.id.description).text = desc
-			findViewById<BoardView>(R.id.boardView).drawState(gs)
+			findViewById<TutorialBoardView>(R.id.boardView).drawState(gs)
+			findViewById<TutorialBoardView>(R.id.boardView).explainNextMove = showRule
 		}
 	}
 
 	companion object {
-		fun newInstance(title: String, desc: String, gameState: GameState): BoardSlide {
+		fun newInstance(title: String, desc: String, gameState: GameState, showRule: Boolean = false): BoardSlide {
 			return BoardSlide().apply {
 				arguments = Bundle().apply {
 					putString("title", title)
 					putString("desc", desc)
 					putSerializable("gameState", gameState)
+					putBoolean("showRule", showRule)
 				}
 			}
 		}

@@ -146,7 +146,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		}
 
 		// Set up board and draw
-		binding.boardView.setup({ coord -> play(Source.LOCAL, coord) },	binding.nextMoveTextview)
+		binding.boardView.setup { coord -> play(Source.LOCAL, coord) }
 		redraw(shouldLaunchAI = false)
 
 		//Add ads in portrait
@@ -279,8 +279,9 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		supportActionBar?.subtitle = if (gs.type != Source.REMOTE) null
 		else getString(R.string.subtitle_online, gs.remoteId)
 
-		// Redraw board
+		// Redraw board and update text
 		binding.boardView.drawState(gs)
+		binding.nextMoveTextview.updateText(gs)
 
 		// Generate AI move if necessary
 		if (shouldLaunchAI) launchAI()
