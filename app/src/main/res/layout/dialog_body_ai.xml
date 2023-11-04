@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/new_ai_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -40,31 +41,32 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/start_ai"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:checked="true"
             android:text="@string/dialog_start_random"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textColor="@color/colorTextSmall" />
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/start_you"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/dialog_start_you"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textColor="@color/colorTextSmall" />
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/start_other"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/dialog_start_computer"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textColor="@color/colorTextSmall" />
+            android:textColor="@color/colorTextSmall"
+            app:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
 </LinearLayout>
