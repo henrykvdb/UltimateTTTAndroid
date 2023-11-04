@@ -19,7 +19,7 @@
     <string name="toast_cant_undo">Pas assez de mouvements</string>
 
     <!-- Window titles -->
-    <string name="title_computer">Jeu d’IA</string>
+    <string name="title_computer">Jeu contre l’IA</string>
     <string name="title_local">Jeu local</string>
     <string name="title_online">Jeu en ligne</string>
     <string name="subtitle_online"> %1$s</string>
@@ -56,7 +56,7 @@
     <string name="rate_negative">Non, merci</string>
 
     <!--  Dialog new game  -->
-    <string name="dialog_start_game">Démarrer</string>
+    <string name="dialog_start_game">Lancer</string>
     <string name="dialog_cancel">Annuler</string>
     <string name="dialog_start_player">Joueur débutant</string>
     <string name="dialog_start_you">Vous</string>
@@ -65,11 +65,11 @@
     <string name="dialog_start_random">Aléatoire</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">Démarrer un nouveau jeu IA ?</string>
+    <string name="new_ai_title">Lancer un nouveau jeu IA ?</string>
     <string name="new_ai_difficulty">Difficulté</string>
 
     <!--  Dialog new game: Local  -->
-    <string name="new_local_title">Commencer une nouvelle partie ?</string>
+    <string name="new_local_title">Lancer une nouvelle partie?</string>
     <string name="new_local_message">Créez un nouvelle partie à deux joueurs</string>
 
     <!--  Dialog new game: Online (create) -->
@@ -89,7 +89,7 @@
     <!-- Dialog about-->
     <string name="about_version">Version</string>
     <string name="about_credit_0">par Henrykvdb</string>
-    <string name="about_credit_1">Remerciements particuliers à KarelPeeters</string>
+    <string name="about_credit_1">Merci à &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
     <string name="about_source">Code source disponible:</string>
     <string name="about_close">Fermer</string>
 
@@ -106,11 +106,11 @@
 
     <!--  Tutorial slides 1 -->
     <string name="tut1_title">Le plateau</string>
-    <string name="tut1_desc">Les joueurs jouent à tour de rôle dans neuf grilles de tic tac toe, disposées à l\'intérieur d\'une plus grande grille de tic tac toe</string>
+    <string name="tut1_desc">Les joueurs jouent à tour de rôle dans neuf grilles de tic tac toe, disposées à l\'intérieur d\'une plus grande grille</string>
 
     <!--  Tutorial slides 2 -->
     <string name="tut2_title">Gagner des grilles</string>
-    <string name="tut2_desc">Gagnez des grilles en en obtenant trois de suite, comme vous le feriez avec un tic tac toe ordinaire</string>
+    <string name="tut2_desc">Gagnez des grilles en alignant votre signe trois fois, comme vous le feriez avec un tic tac toe ordinaire</string>
 
     <!--  Tutorial slides 3 -->
     <string name="tut3_title">Comment gagner</string>
@@ -125,13 +125,13 @@
     <string name="tut5_desc">Vous décidez où l\'adversaire peut jouer ensuite. Exemple: Si vous jouez en haut à droite dans une grille, l\'adversaire doit jouer dans la grille en haut à droite</string>
 
     <!--  Tutorial slides 6 -->
-    <string name="tut6_title">Coups gratuits</string>
+    <string name="tut6_title">Coups libres</string>
     <string name="tut6_desc">Si vous êtes envoyé sur une grille complète ou gagnée, vous pouvez jouer où vous voulez</string>
 
     <!--  Tutorial slides 7 -->
-    <string name="tut7_title">Façons de jouer</string>
-    <string name="tut7_desc">Défiez vos amis localement et en ligne. Entraînez-vous contre l\'ordinateur et essayez de le battre dans la difficulté la plus élevée</string>
-    <string name="tut7_against">Contre</string>
+    <string name="tut7_title">Mode de jeu</string>
+    <string name="tut7_desc">Défiez vos amis en local ou en ligne. Jouez contre l’ordinateur et choisissez la difficulté</string>
+    <string name="tut7_against">Versus</string>
     <string name="tut7_ways_computer">Ordinateur</string>
     <string name="tut7_ways_local">Ami local</string>
     <string name="tut7_ways_online">Ami en ligne</string>
