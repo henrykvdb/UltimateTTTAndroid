@@ -334,8 +334,10 @@ class MainActivity : MainActivityBaseRemote() {
 
                     // Update dialog
                     buttonPositive.isEnabled = false
-                    val textView = (layout.findViewById<View>(R.id.bt_host_desc) as TextView)
-                    textView.text = HtmlCompat.fromHtml(
+                    val textView = layout.findViewById<TextView?>(R.id.bt_host_desc)
+                    if (textView == null) // at time callback dialog may be destroyed
+                        return@createOnlineGame
+                    else textView.text = HtmlCompat.fromHtml(
                         getString(R.string.online_create_message_ready, gameId),
                         HtmlCompat.FROM_HTML_MODE_LEGACY
                     )
