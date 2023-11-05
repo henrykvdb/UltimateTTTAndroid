@@ -45,6 +45,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import java.util.Random
 
+
 private const val DAYS_UNTIL_RATE = 3      //Min number of days needed before asking for rating
 private const val LAUNCHES_UNTIL_RATE = 3  //Min number of launches before asking for rating
 
@@ -226,7 +227,7 @@ class MainActivity : MainActivityBaseRemote() {
     }
 
     class RemoteJoinFragment : Fragment() {
-        var shouldRefreshHost = false
+        var forceRefreshHost = false
         override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -239,7 +240,7 @@ class MainActivity : MainActivityBaseRemote() {
                 editText.filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(6))
                 editText?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
                     if (hasFocus)
-                        shouldRefreshHost = true // focus shift things around and makes a mess
+                        forceRefreshHost = true // focus shift things around and makes a mess
                     else {
                         val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(editText?.windowToken, 0)
@@ -285,8 +286,8 @@ class MainActivity : MainActivityBaseRemote() {
                 joinFragment.view?.findViewById<AppCompatEditText>(R.id.remote_join_edit)?.clearFocus()
 
                 // Force refresh fragment (keyboard might have caused a temporary resize)
-                if (pos == 0 && joinFragment.shouldRefreshHost){
-                    joinFragment.shouldRefreshHost = false
+                if (pos == 0 && joinFragment.forceRefreshHost){
+                    joinFragment.forceRefreshHost = false
                     viewPager.post { viewPager.adapter?.notifyItemChanged(0) }
                 }
             }
@@ -295,7 +296,23 @@ class MainActivity : MainActivityBaseRemote() {
                 super.onPageSelected(position)
 
                 // Remove database entry on switch
-                if (newGameId.isNotEmpty()){ removeOnlineGame(newGameId); newGameId = ""}
+                if (newGameId.isNotEmpty()){
+                    removeOnlineGame(newGameId)
+                    newGameId = ""
+                }
+
+                // Reset host description
+                if (position == 1) {
+                    val textView =
+                        (hostFragment.view?.findViewById<View>(R.id.bt_host_desc) as TextView)
+                    textView.text = getString(R.string.online_create_message_wait)
+                }
+
+                // Select correct tab
+                val selectedTab = tabs.getTabAt(position)
+                selectedTab?.select()
+                newDialog.getButton(AlertDialog.BUTTON_POSITIVE).text = selectedTab?.text
+                newDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
             }
         }
         viewPager.registerOnPageChangeCallback(pageChangeCallback)
@@ -311,6 +328,7 @@ class MainActivity : MainActivityBaseRemote() {
         buttonPositive.setOnClickListener {
             // Host game
             if (viewPager.currentItem == 0) {
+                buttonPositive.isEnabled = false
                 createOnlineGame(afterSuccess = { gameId ->
                     newGameId = gameId // Store value for viewpager
 
@@ -353,13 +371,17 @@ class MainActivity : MainActivityBaseRemote() {
                             newDialog.dismiss()
                         }
                     })
+                }, afterFail = { errMsgRes ->
+                    buttonPositive.isEnabled = true
+                    toast(errMsgRes)
                 }, attempts=3)
             }
             else if (viewPager.currentItem == 1){
                 var handshakeComplete = false
-                val gameId = layout.findViewById<EditText>(R.id.remote_join_edit).text.toString()
-                if (gameId.length != 6) log("Enter valid host code")
+                val gameId = layout.findViewById<EditText?>(R.id.remote_join_edit)?.text.toString()
+                if (gameId.length != 6) toast(R.string.toast_online_not_exist)
                 else {
+                    buttonPositive.isEnabled = false
                     joinOnlineGame(gameId, afterSuccess = { isHost ->
                         createListener(gameId, onChange = { data ->
                             if (handshakeComplete)
@@ -385,6 +407,9 @@ class MainActivity : MainActivityBaseRemote() {
                                 newDialog.dismiss()
                             }
                         })
+                    }, afterFail = { errMsgRes ->
+                        buttonPositive.isEnabled = true
+                        toast(errMsgRes)
                     })
                 }
             }
@@ -396,26 +421,6 @@ class MainActivity : MainActivityBaseRemote() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 viewPager.currentItem = tab?.position ?: 0
-            }
-        })
-
-        // Make viewpager change tab position
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageScrollStateChanged(state: Int) {
-                super.onPageScrollStateChanged(state)
-                if (viewPager.scrollState == ViewPager2.SCROLL_STATE_IDLE) {
-                    val selectedTab = tabs.getTabAt(viewPager.currentItem)
-                    selectedTab?.select()
-                    newDialog.getButton(AlertDialog.BUTTON_POSITIVE).text = selectedTab?.text
-                    newDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
-
-                    if (selectedTab?.position == 1) {
-                        val textView =
-                            (hostFragment.view?.findViewById<View>(R.id.bt_host_desc) as TextView)
-                        textView.text = getString(R.string.online_create_message_wait)
-                    }
-                }
-
             }
         })
     }
