@@ -3,6 +3,7 @@
     <string name="hov_undo">Annuler</string>
     <string name="hov_nav_close">Fermer le menu</string>
     <string name="hov_nav_open">Ouvrir le menu</string>
+    <string name="copied">Copié !</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">L\'adversaire demande l\'annulation. Accepter Vous?</string>

@@ -3,6 +3,7 @@
     <string name="hov_undo">Widerrufen</string>
     <string name="hov_nav_close">Navigationsleiste schließen</string>
     <string name="hov_nav_open">Navigationsleiste öffnen</string>
+    <string name="copied">Kopiert!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">Gegner bittet um Widerrufung, akzeptieren?</string>

@@ -3,6 +3,7 @@
     <string name="hov_undo">Desfazer</string>
     <string name="hov_nav_close">Fechar janela de navegação</string>
     <string name="hov_nav_open">Abrir janela de navegação</string>
+    <string name="copied">Copiado!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">O oponente está solicitando desfazer, aceitar?</string>

@@ -11,7 +11,11 @@
 
 package com.henrykvdb.sttt
 
+import android.R.attr.label
+import android.R.attr.text
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -337,10 +341,18 @@ class MainActivity : MainActivityBaseRemote() {
                     val textView = layout.findViewById<TextView?>(R.id.bt_host_desc)
                     if (textView == null) // at time callback dialog may be destroyed
                         return@createOnlineGame
-                    else textView.text = HtmlCompat.fromHtml(
-                        getString(R.string.online_create_message_ready, gameId),
-                        HtmlCompat.FROM_HTML_MODE_LEGACY
-                    )
+                    else{
+                        textView.setOnLongClickListener {
+                            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("UTTT", gameId)
+                            clipboard.setPrimaryClip(clip)
+                            toast(R.string.copied); true
+                        }
+                        textView.text = HtmlCompat.fromHtml(
+                            getString(R.string.online_create_message_ready, gameId),
+                            HtmlCompat.FROM_HTML_MODE_LEGACY
+                        )
+                    }
 
                     var handshakeComplete = false
                     createListener(gameId, onChange = { data ->

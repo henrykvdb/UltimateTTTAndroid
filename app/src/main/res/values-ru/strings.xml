@@ -4,6 +4,7 @@
     <string name="hov_undo">Отменить</string>
     <string name="hov_nav_close">Закрыть боковую панель</string>
     <string name="hov_nav_open">Открыть боковую панель</string>
+    <string name="copied">Скопировано!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">Оппонент запрашивает отмену, принять?</string>

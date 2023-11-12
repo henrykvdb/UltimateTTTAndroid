@@ -3,6 +3,7 @@
     <string name="hov_undo">Undo</string>
     <string name="hov_nav_close">Tutup panel samping navigasi</string>
     <string name="hov_nav_open">Buka laci navigasi</string>
+    <string name="copied">Tersalin!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">Lawan meminta undo, terima?</string>

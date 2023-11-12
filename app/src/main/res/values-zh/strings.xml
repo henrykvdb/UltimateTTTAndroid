@@ -3,6 +3,7 @@
     <string name="hov_undo">撤消</string>
     <string name="hov_nav_close">关闭目录</string>
     <string name="hov_nav_open">打开目录</string>
+    <string name="copied">已复制！</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">对手希望悔棋，你接受吗？</string>

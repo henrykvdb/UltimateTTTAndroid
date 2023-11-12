@@ -3,6 +3,7 @@
     <string name="hov_undo">Torna indietro o Schermata home</string>
     <string name="hov_nav_close">Chiudi la barra di ricerca</string>
     <string name="hov_nav_open">Apri la barra di ricerca</string>
+    <string name="copied">Copiato!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">L\'avversario vuole cambiare mossa, accetti?</string>

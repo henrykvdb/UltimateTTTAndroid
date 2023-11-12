@@ -3,6 +3,7 @@
     <string name="hov_undo">Ongedaan maken</string>
     <string name="hov_nav_close">Sluit navigatie</string>
     <string name="hov_nav_open">Open navigatie</string>
+    <string name="copied">Gekopieerd!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">Tegenstander vraagt om zet ongedaan te maken, accepteer?</string>

@@ -3,6 +3,7 @@
     <string name="hov_undo">실행 취소</string>
     <string name="hov_nav_close">탐색 창 닫기</string>
     <string name="hov_nav_open">탐색 창 열기</string>
+    <string name="copied">복사됨!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">상대가 실행 취소를 요청합니다. 수락하시겠습니까?</string>

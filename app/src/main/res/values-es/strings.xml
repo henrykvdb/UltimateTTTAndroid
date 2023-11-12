@@ -3,6 +3,7 @@
     <string name="hov_undo">Deshacer</string>
     <string name="hov_nav_close">Cerrar el menú</string>
     <string name="hov_nav_open">Abrir el menú</string>
+    <string name="copied">¡Copiado!</string>
 
     <!-- Online game undo request -->
     <string name="undo_request_msg">El oponente está solicitando deshacer la última jugada/último movimiento , ¿aceptar?</string>
