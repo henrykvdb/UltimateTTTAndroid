@@ -51,6 +51,7 @@ import com.google.firebase.ktx.initialize
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -235,10 +236,19 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		super.onSaveInstanceState(outState)
 	}
 
+	val AI_DURATION = 500 // The AI is artificially slowed down to 500ms
 	private fun launchAI(){
 		// Only generate move if needed
 		if (gs.nextSource() != Source.AI) return
 		if (gs.board.isDone) return
+
+		// Update progress bar and return if should delay more (to reach AI_DURATION)
+		fun updateProgressAI(start: Long): Boolean{
+			val runtime = System.currentTimeMillis() - start
+			val progress = (runtime.toInt() * 100) / AI_DURATION
+			runOnUiThread { binding.aiProgressInd.progress = progress }
+			return runtime < AI_DURATION
+		}
 
 		aiJob = lifecycleScope.launch {
 			var move: Byte = -1
@@ -247,10 +257,17 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 				withContext(Dispatchers.IO) {
 					val bot = gs.extraBot
 					bot.reset() // the bot might have been cancelled before
+					val start = System.currentTimeMillis()
 					move = bot.move(gs.board) {
-						if (isActive) runOnUiThread {
-							if(it < 100) binding.aiProgressInd.progress = it
-						} else bot.cancel()
+						if (isActive)
+							updateProgressAI(start)
+						else bot.cancel()
+					}
+
+					var running = true
+					while (isActive && running) {
+						delay(1)
+						running = updateProgressAI(start)
 					}
 				}
 			} finally {
