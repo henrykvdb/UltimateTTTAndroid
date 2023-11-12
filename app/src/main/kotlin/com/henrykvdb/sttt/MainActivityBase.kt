@@ -55,6 +55,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 
 fun log(text: String) = if (BuildConfig.DEBUG) Log.e("STTT", text) else 0
@@ -243,10 +244,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		if (gs.board.isDone) return
 
 		// Update progress bar and return if should delay more (to reach AI_DURATION)
-		fun updateProgressAI(start: Long): Boolean{
+		fun updateProgressAI(start: Long, aiProg: Int): Boolean{
 			val runtime = System.currentTimeMillis() - start
-			val progress = (runtime.toInt() * 100) / AI_DURATION
-			runOnUiThread { binding.aiProgressInd.progress = progress }
+			val progress = min((runtime.toInt() * 100) / AI_DURATION, aiProg)
+			runOnUiThread { binding.aiProgressInd.progress = min(progress, 100) }
 			return runtime < AI_DURATION
 		}
 
@@ -258,16 +259,16 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 					val bot = gs.extraBot
 					bot.reset() // the bot might have been cancelled before
 					val start = System.currentTimeMillis()
-					move = bot.move(gs.board) {
+					move = bot.move(gs.board) { aiProgress ->
 						if (isActive)
-							updateProgressAI(start)
+							updateProgressAI(start, aiProgress)
 						else bot.cancel()
 					}
 
 					var running = true
 					while (isActive && running) {
 						delay(1)
-						running = updateProgressAI(start)
+						running = updateProgressAI(start, 100)
 					}
 				}
 			} finally {
