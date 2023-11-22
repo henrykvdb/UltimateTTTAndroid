@@ -11,8 +11,6 @@
 
 package com.henrykvdb.sttt
 
-import android.R.attr.label
-import android.R.attr.text
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager

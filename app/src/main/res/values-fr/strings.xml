@@ -6,7 +6,7 @@
     <string name="copied">Copié !</string>
 
     <!-- Online game undo request -->
-    <string name="undo_request_msg">L\'adversaire demande l\'annulation. Accepter Vous?</string>
+    <string name="undo_request_msg">L\'adversaire demande l\'annulation. Acceptez-vous ?</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
 
@@ -20,22 +20,22 @@
     <string name="toast_cant_undo">Pas assez de mouvements</string>
 
     <!-- Window titles -->
-    <string name="title_computer">Jeu contre l’IA</string>
-    <string name="title_local">Jeu local</string>
-    <string name="title_online">Jeu en ligne</string>
+    <string name="title_computer">Partie contre l’IA</string>
+    <string name="title_local">Partie local</string>
+    <string name="title_online">Partie en ligne</string>
 
     <!-- Turn indicator -->
-    <string name="turn_yours">C\'est votre tour !</string>
-    <string name="turn_enemy">L\'advaersaire joue !</string>
+    <string name="turn_yours">C\'est à votre tour !</string>
+    <string name="turn_enemy">L\'adversaire est en train de jouer…</string>
 
     <!-- Win indicator -->
     <string name="winner_generic">%1$s a gagné la partie !</string>
-    <string name="winner_you">Vous avez gagné !</string>
-    <string name="winner_tie">C\'est un match nul !</string>
-    <string name="winner_other">Vous avez perdu !</string>
+    <string name="winner_you">Gagné !</string>
+    <string name="winner_tie">Match nul !</string>
+    <string name="winner_other">Perdu !</string>
 
     <!-- MAIN MENU: start a game -->
-    <string name="menu_title_new_game">Nouveau jeu</string>
+    <string name="menu_title_new_game">Nouvelle partie</string>
     <string name="menu_computer">Ordinateur</string>
     <string name="menu_local">Local</string>
     <string name="menu_online">En ligne</string>
@@ -50,10 +50,10 @@
 
     <!-- Rate dialog -->
     <string name="rate_title">Évaluer l\'application</string>
-    <string name="rate_message">Si vous aimez jouer Ultimate Tic Tac Toe, prenez un moment pour évaluer le jeu. Votre soutien est apprécié !</string>
-    <string name="rate_positive">Evaluation</string>
+    <string name="rate_message">Si vous aimez jouer à Ultimate Tic Tac Toe, pourriez-vous prendre un moment pour l’évaluer ? Merci pour votre soutien !</string>
+    <string name="rate_positive">Evaluer</string>
     <string name="rate_neutral">Plus tard</string>
-    <string name="rate_negative">Non, merci</string>
+    <string name="rate_negative">Non merci</string>
 
     <!--  Dialog new game  -->
     <string name="dialog_start_game">Lancer</string>
@@ -65,39 +65,39 @@
     <string name="dialog_start_random">Aléatoire</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">Lancer un nouveau jeu IA ?</string>
+    <string name="new_ai_title">Nuvelle partie contre l’IA ?</string>
     <string name="new_ai_difficulty">Difficulté</string>
 
     <!--  Dialog new game: Local  -->
-    <string name="new_local_title">Lancer une nouvelle partie?</string>
-    <string name="new_local_message">Créez un nouvelle partie à deux joueurs</string>
+    <string name="new_local_title">Nuvelle partie ?</string>
+    <string name="new_local_message">Créer une nouvelle partie à deux joueurs</string>
 
     <!--  Dialog new game: Online (create) -->
     <string name="online_create">Créer</string>
-    <string name="online_create_sel_board">Sélectionnez le tableau</string>
+    <string name="online_create_sel_board">Sélectionner le tableau</string>
     <string name="online_create_sel_board_new">Vide</string>
     <string name="online_create_sel_board_current">Actuel</string>
-    <string name="online_create_message_wait">Appuyez sur créer une fois que vous êtes prêt</string>
-    <string name="online_create_message_ready">Vous lancez un jeu, demandez à un ami de rejoindre &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (votre code d\'hôte de jeu)</string>
+    <string name="online_create_message_wait">Appuyez sur créer dès que vous êtes prêt</string>
+    <string name="online_create_message_ready">Vous hébergez une partie, demandez à un ami de rejoindre &lt;b&gt;&lt;font color="#FF0000"&gt;%1$s&lt;/font&gt;&lt;/b&gt; (votre code d\'hôte de jeu)</string>
 
     <!--  Dialog new game: Online (join) -->
     <string name="online_join">Rejoindre</string>
-    <string name="online_join_code">Code</string>
+    <string name="online_join_code">Code d\'hôte</string>
     <string name="online_join_message">Entrez le code de votre adversaire</string>
 
     <!-- Dialog about-->
     <string name="about_version">Version</string>
     <string name="about_credit_0">par Henrykvdb</string>
     <string name="about_credit_1">Merci à &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
-    <string name="about_source">Code source disponible:</string>
+    <string name="about_source">Code source disponible ici :</string>
     <string name="about_close">Fermer</string>
 
     <!-- Dialog feedback (title) -->
-    <string name="send_feedback">Envoyer feedback</string>
+    <string name="send_feedback">Envoyer un retour</string>
 
     <!-- Dialog share (body) -->
-    <string name="share_title">Partager avec</string>
-    <string name="share_message">Hé, Envie d’une partie de Ultimate Tic Tac Toe? </string>
+    <string name="share_title">Partager</string>
+    <string name="share_message">Hé, envie d’une partie d\'Ultimate Tic Tac Toe? </string>
 
     <!--  Tutorial slides 0 -->
     <string name="tut0_title">Tutoriel</string>
@@ -105,33 +105,33 @@
 
     <!--  Tutorial slides 1 -->
     <string name="tut1_title">Le plateau</string>
-    <string name="tut1_desc">Les joueurs jouent à tour de rôle dans neuf grilles de tic tac toe, disposées à l\'intérieur d\'une plus grande grille</string>
+    <string name="tut1_desc">Les joueurs jouent à tour de rôle au morpion dans neuf cases, disposées de façon à former une plus grande grille de morpion</string>
 
     <!--  Tutorial slides 2 -->
     <string name="tut2_title">Gagner des grilles</string>
-    <string name="tut2_desc">Gagnez des grilles en alignant votre signe trois fois, comme vous le feriez avec un tic tac toe ordinaire</string>
+    <string name="tut2_desc">Vous gagnez une grille en plaçant trois de vos signes sur une même ligne (horizontale, verticale ou diagonale), comme dans un morpion classique</string>
 
     <!--  Tutorial slides 3 -->
     <string name="tut3_title">Comment gagner</string>
-    <string name="tut3_desc">Gagnez 3 grilles d\'affilée pour gagner la partie</string>
+    <string name="tut3_desc">Il faut gagner 3 petites grilles d\'affilée pour gagner la partie</string>
 
     <!--  Tutorial slides 4 -->
     <string name="tut4_title">Les couleurs</string>
-    <string name="tut4_desc">Les coups possibles pour le joueur suivant sont indiqués dans la couleur de ce joueur. Le dernier coup est légèrement plus clair</string>
+    <string name="tut4_desc">Les coups possibles pour le joueur suivant sont indiqués dans la couleur du joueur. Le dernier coup est légèrement plus clair</string>
 
     <!--  Tutorial slides 5 -->
     <string name="tut5_title">Mouvements autorisés</string>
-    <string name="tut5_desc">Vous décidez où l\'adversaire peut jouer ensuite. Exemple: Si vous jouez en haut à droite dans une grille, l\'adversaire doit jouer dans la grille en haut à droite</string>
+    <string name="tut5_desc">Vous décidez où l\'adversaire peut jouer ensuite. Exemple: Si vous jouez dans la petite grille en haut à droite de la grande grille, l\'adversaire doit jouer dans la même petite grille</string>
 
     <!--  Tutorial slides 6 -->
     <string name="tut6_title">Coups libres</string>
-    <string name="tut6_desc">Si vous êtes envoyé sur une grille complète ou gagnée, vous pouvez jouer où vous voulez</string>
+    <string name="tut6_desc">Si vous êtes envoyé sur une petite grille complète ou gagnée, vous pouvez jouer où vous voulez</string>
 
     <!--  Tutorial slides 7 -->
-    <string name="tut7_title">Mode de jeu</string>
+    <string name="tut7_title">Modes de jeu</string>
     <string name="tut7_desc">Défiez vos amis en local ou en ligne. Jouez contre l’ordinateur et choisissez la difficulté</string>
-    <string name="tut7_against">Versus</string>
+    <string name="tut7_against">Contre</string>
     <string name="tut7_ways_computer">Ordinateur</string>
-    <string name="tut7_ways_local">Ami local</string>
+    <string name="tut7_ways_local">Ami en local</string>
     <string name="tut7_ways_online">Ami en ligne</string>
 </resources>

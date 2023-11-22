@@ -52,8 +52,8 @@
     <string name="rate_title">Califica la aplicación</string>
     <string name="rate_message">Si disfrutas usando Ultimate Tic Tac Toe, por favor tómate un momento para calificarlo. ¡Gracias por tu apoyo!</string>
     <string name="rate_positive">Calificar</string>
-    <string name="rate_neutral">Más tarde</string>
-    <string name="rate_negative">No, gracias</string>
+    <string name="rate_neutral">Después</string>
+    <string name="rate_negative">No</string>
 
     <!--  Dialog new game  -->
     <string name="dialog_start_game">Inicio</string>
@@ -65,11 +65,11 @@
     <string name="dialog_start_random">Aleatorio</string>
 
     <!--  Dialog new game: Computer  -->
-    <string name="new_ai_title">¿Comenzar un nuevo juego de IA?</string>
+    <string name="new_ai_title">¿Nuevo juego de IA?</string>
     <string name="new_ai_difficulty">Dificultad</string>
 
     <!--  Dialog new game: Local  -->
-    <string name="new_local_title">¿Comenzar un nuevo juego?</string>
+    <string name="new_local_title">¿Nuevo juego?</string>
     <string name="new_local_message">Crea un nuevo juego de dos jugadores</string>
 
     <!--  Dialog new game: Online (create) -->
@@ -88,7 +88,7 @@
     <!-- Dialog about-->
     <string name="about_version">Versión</string>
     <string name="about_credit_0">por Henrykvdb</string>
-    <string name="about_credit_1">Un agradecimiento especial a &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
+    <string name="about_credit_1">También gracias a &lt;a href=https://github.com/KarelPeeters&gt;KarelPeeters&lt;/a&gt;</string>
     <string name="about_source">Código fuente disponible:</string>
     <string name="about_close">Cerrar</string>
 
@@ -131,7 +131,7 @@
     <string name="tut7_title">Formas de jugar</string>
     <string name="tut7_desc">Desafía a tus amigos tanto localmente como en línea. Practica contra el ordenador e intenta vencerlo en la dificultad más alta</string>
     <string name="tut7_against">Contra</string>
-    <string name="tut7_ways_computer">ordenador</string>
+    <string name="tut7_ways_computer">Ordenador</string>
     <string name="tut7_ways_local">Amigo local</string>
     <string name="tut7_ways_online">Amigo en línea</string>
 </resources>

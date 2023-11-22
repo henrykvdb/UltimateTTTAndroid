@@ -10,8 +10,13 @@
     </style>
 
     <style name="AppTheme.AlertDialogTheme" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="materialAlertDialogTitleTextStyle">@style/AppTheme.AlertDialogTheme.TitleStyle</item>
         <item name="android:background">@color/colorBackground</item>
         <item name="android:windowSoftInputMode">adjustPan</item>
+    </style>
+
+    <style name="AppTheme.AlertDialogTheme.TitleStyle" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
