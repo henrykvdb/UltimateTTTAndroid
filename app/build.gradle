@@ -36,7 +36,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    lintOptions {
+    lint {
         disable 'ContentDescription'
     }
 
@@ -73,8 +73,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-appcheck-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
 
-    // Ads/Billing
-    implementation 'com.google.android.gms:play-services-ads:22.4.0'
-    implementation 'com.android.billingclient:billing:6.0.1'
+    // Ads networks + mediation
+    implementation 'com.google.android.gms:play-services-ads:22.5.0'
+    implementation 'com.google.ads.mediation:facebook:6.16.0.0'
+
+    // Billing
+    implementation 'com.android.billingclient:billing:6.1.0'
+
+    // GDPR/consent message
     implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
 }

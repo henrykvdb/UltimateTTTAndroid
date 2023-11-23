@@ -84,6 +84,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	private lateinit var consentInformation: ConsentInformation
 	private lateinit var bds : BillingDataSource
 
+	// Admob mobile ads SDK
+	private var initAdsEnabled = true // set to false when MobileAds.init() called
+	private var initAdsReady = false  // set to true when MobileAds.init() finished
+
 	// Implemented by child class MainActivity
 	open fun triggerDialogs() {}
 	open fun newAiDialog() {}
@@ -152,10 +156,18 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		redraw(shouldLaunchAI = false)
 
 		//Add ads in portrait
-		showAdChecked()
+		if (initAdsEnabled){ // Init SDK just once
+			initAdsEnabled = false
+			MobileAds.initialize(this) {
+				initAdsReady = true
+				showAdChecked()
+			}
+		}
+		else showAdChecked()
 
 		// Trigger the rate / tutorial dialog
-		if (savedInstanceState == null) triggerDialogs()
+		if (savedInstanceState == null)
+			triggerDialogs()
 	}
 
 	private var consentRequestOngoing = false
@@ -193,7 +205,6 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		adView?.visibility = if (shouldShowAd) View.VISIBLE else View.GONE
 
 		if (shouldShowAd){
-			MobileAds.initialize(this)
 			binding.adView?.apply {
 				visibility = View.VISIBLE
 				loadAd(AdRequest.Builder().build())
@@ -202,9 +213,9 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	}
 
 	private fun shouldShowAd(): Boolean {
-		val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+		val portrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 		val showAds = bds.billingLoaded && bds.showAds
-		return isPortrait && showAds
+		return portrait && showAds && initAdsReady
 	}
 
 	override fun onDestroy() {

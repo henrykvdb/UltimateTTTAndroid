@@ -17,3 +17,5 @@
 #}
 
 -keep class com.henrykvdb.sttt.RemoteDbEntry { *; }
+-dontwarn com.facebook.infer.annotation.Nullsafe$Mode
+-dontwarn com.facebook.infer.annotation.Nullsafe
