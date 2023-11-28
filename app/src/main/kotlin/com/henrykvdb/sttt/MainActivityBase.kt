@@ -262,6 +262,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			return runtime < AI_DURATION
 		}
 
+		aiJob?.cancel() // Cancel prior job
 		aiJob = lifecycleScope.launch {
 			var move: Byte = -1
 			try {
@@ -401,8 +402,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 			Source.LOCAL -> success = gs.undo()
 		}
 
-		if (!success) toast(R.string.toast_cant_undo)
-		else runOnUiThread { redraw() }
+		if (!success){
+			launchAI()
+			toast(R.string.toast_cant_undo)
+		} else runOnUiThread { redraw() }
 		return success
 	}
 }
