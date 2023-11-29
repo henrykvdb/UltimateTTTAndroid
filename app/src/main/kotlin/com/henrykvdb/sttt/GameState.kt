@@ -124,6 +124,7 @@ open class GameState : Serializable {
             sharedPref.edit {
                 log(gs.history.toString())
                 gs.history.forEachIndexed { i, move -> putInt("MOVE$i", move) }
+                putInt("MOVE${gs.history.size}", Int.MAX_VALUE) // end marker
                 putInt("X", gs.players.first.ordinal)
                 putInt("O", gs.players.second.ordinal)
                 putInt("difficulty", gs.extraBotDifficulty)
