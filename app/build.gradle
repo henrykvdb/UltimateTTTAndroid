@@ -13,8 +13,8 @@ android {
         applicationId 'com.henrykvdb.sttt'
         minSdk 21
         targetSdk 33
-        versionCode 34
-        versionName '2.3.3'
+        versionCode 35
+        versionName '2.3.4'
         resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl', 'in', 'ru', 'ko', 'fr', 'es']
     }
 
