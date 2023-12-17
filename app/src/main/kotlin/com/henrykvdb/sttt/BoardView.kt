@@ -69,8 +69,8 @@ open class BoardView(context: Context, attrs: AttributeSet?) : View(context, att
     private var bigGridStroke = 0
 
     //Fields for distinguishing click and drag events
-    private var pressedX = 0.0f
-    private var pressedY = 0.0f
+    private var downX = -1
+    private var downY = -1
 
     init {
         setVars()
@@ -265,51 +265,44 @@ open class BoardView(context: Context, attrs: AttributeSet?) : View(context, att
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(e: MotionEvent): Boolean {
+        // Avoid events outside board
+        if (e.x < 0 || e.y < 0 || e.x > fieldSize || e.y > fieldSize) {
+            log("ClickEvent: outside of board (ignored)")
+            downX = -1; downY = -1
+            return true
+        }
+
         if (e.action == MotionEvent.ACTION_DOWN) {
-            pressedX = e.x
-            pressedY = e.y
-        } else if (e.action == MotionEvent.ACTION_UP) {
-            // Avoid drag events
-            if (distance(pressedX, pressedY, e.x, e.y) >= 30) {
-                log("ClickEvent: drag (ingored)")
+            downX = getCoordXY(e.x)
+            downY = getCoordXY(e.y)
+        } else if (e.action == MotionEvent.ACTION_MOVE || e.action == MotionEvent.ACTION_UP) {
+            // Avoid events that drag outside of tile
+            val x = getCoordXY(e.x)
+            val y = getCoordXY(e.y)
+            if (x != downX || y != downY){
+                log("ClickEvent: dragged outside of tile (ignored)")
+                downX = -1; downY = -1
                 return true
             }
 
-            // Avoid events outside board
-            if (e.x < 0 || e.y < 0 || e.x > fieldSize || e.y > fieldSize) {
-                log("ClickEvent: outside of board (ignored)")
-                return true
+            if (e.action == MotionEvent.ACTION_UP) {
+                performClick()
+                moveCallback.invoke(toCoord(downX, downY))
+                log("ClickEvent: ($x, $y)")
             }
-
-            //Get event's macro
-            val xm = (e.x / macroSizeFull).toInt()
-            val ym = (e.y / macroSizeFull).toInt()
-
-            //Get event's tile
-            var xs = ((e.x - xm * macroSizeFull) / (macroSizeSmall / 3)).toInt()
-            var ys = ((e.y - ym * macroSizeFull) / (macroSizeSmall / 3)).toInt()
-
-            //Fix coordinates being too big due to whitespace
-            xs = if (xs > 2) --xs else xs
-            ys = if (ys > 2) --ys else ys
-
-            // Convert to (x, y)
-            val x = xm * 3 + xs
-            val y = ym * 3 + ys
-
-            performClick()
-            moveCallback.invoke(toCoord(x, y))
-            log("ClickEvent: ($x, $y)")
         }
 
         return true
     }
 
-    private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-        val dx = x1 - x2
-        val dy = y1 - y2
-        val distanceInPx = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
-        return distanceInPx / resources.displayMetrics.density
+    private fun getCoordXY(pixels: Float): Int {
+        val macros = (pixels / macroSizeFull).toInt()
+        var tiles = ((pixels - macros * macroSizeFull) / tileSize).toInt()
+
+        //Fix coordinates being too big due to whitespace
+        tiles = if (tiles > 2) --tiles else tiles
+
+        return macros * 3 + tiles
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
