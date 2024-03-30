@@ -62,7 +62,7 @@
     <string name="dialog_start_you">Jij</string>
     <string name="dialog_start_other">Andere</string>
     <string name="dialog_start_computer">Computer</string>
-    <string name="dialog_start_random">Willekeurig</string>
+    <string name="dialog_start_random">Random</string>
 
     <!--  Dialog new game: Computer  -->
     <string name="new_ai_title">Start een nieuw AI spel?</string>
