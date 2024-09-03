@@ -240,7 +240,7 @@ class MainActivity : MainActivityBaseRemote() {
 
                 val editText = findViewById<EditText>(R.id.remote_join_edit)
                 editText.filters = arrayOf(InputFilter.AllCaps(), InputFilter.LengthFilter(6))
-                editText?.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
+                editText?.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                     if (hasFocus)
                         forceRefreshHost = true // focus shift things around and makes a mess
                     else {

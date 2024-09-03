@@ -93,7 +93,7 @@ open class GameState : Serializable {
 
     @Synchronized fun undo(count:Int = 1): Boolean {
         if (history.size > count) {
-            repeat(count) { history.removeLast() }
+            repeat(count) { history.removeAt(history.lastIndex) }
             this.board = boardFromHistory(history)
             return true
         }

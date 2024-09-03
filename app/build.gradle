@@ -7,15 +7,16 @@ plugins {
 
 android {
     namespace 'com.henrykvdb.sttt'
-    compileSdk 33
+    compileSdk 35
 
     defaultConfig {
         applicationId 'com.henrykvdb.sttt'
-        minSdk 21
-        targetSdk 33
+        minSdk 23
+        targetSdk 35
         versionCode 36
         versionName '2.3.5'
-        resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl', 'in', 'ru', 'ko', 'fr', 'es']
+        // TODO figure out if indonesia locale is 'in' or 'id' after ISO change
+        resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl', 'in', 'id', 'ru', 'ko', 'fr', 'es']
     }
 
     buildTypes {
@@ -32,8 +33,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     lint {
@@ -41,11 +42,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 
@@ -55,31 +57,31 @@ dependencies {
 
     implementation files('libs/ULtimateTTTApi.jar')
 
-    implementation 'androidx.core:core-ktx:1.10.1' // Next version requires API target 34
+    implementation 'androidx.core:core-ktx:1.13.1' // Next version requires API target 34
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.10')
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.8.4"
 
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // Firebase
-    implementation(platform('com.google.firebase:firebase-bom:32.3.1'))
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-database-ktx'
+    implementation(platform('com.google.firebase:firebase-bom:33.2.0'))
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
-    implementation 'com.google.firebase:firebase-appcheck-ktx'
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-appcheck'
+    implementation 'com.google.firebase:firebase-auth'
 
     // Ads networks + mediation
-    implementation 'com.google.android.gms:play-services-ads:22.5.0'
-    implementation 'com.google.ads.mediation:facebook:6.16.0.0'
+    implementation 'com.google.android.gms:play-services-ads:23.3.0'
+    implementation 'com.google.ads.mediation:facebook:6.17.0.0'
 
     // Billing
-    implementation 'com.android.billingclient:billing:6.1.0'
+    implementation 'com.android.billingclient:billing:7.0.0'
 
     // GDPR/consent message
-    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    implementation 'com.google.android.ump:user-messaging-platform:3.0.0'
 }

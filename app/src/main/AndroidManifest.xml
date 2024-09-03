@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="preferExternal">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -29,6 +30,13 @@
         <activity android:name=".TutorialActivity"
             android:label="This is an intro"
             android:theme="@style/AppTheme.NoActionBar"/>
+
+        <!-- HACK NEEDED FOR AGP UPSTEP, PLEASE REMOVE :( -->
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource">
+        </property>
     </application>
 
 </manifest>
