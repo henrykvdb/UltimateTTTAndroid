@@ -13,7 +13,10 @@ package com.henrykvdb.sttt
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -23,7 +26,6 @@ import common.Board
 import common.Player
 import common.toCoord
 import kotlin.math.min
-import kotlin.math.sqrt
 
 @Suppress("com/henrykvdb/sttt/unused")
 typealias ds = DrawSettings

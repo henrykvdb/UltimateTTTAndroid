@@ -5,14 +5,21 @@ plugins {
     id 'com.google.firebase.crashlytics'
 }
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
+
 android {
     namespace 'com.henrykvdb.sttt'
-    compileSdk 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId 'com.henrykvdb.sttt'
         minSdk 23
-        targetSdk 35
+        targetSdk 36
         versionCode 37
         versionName '2.3.6'
         // TODO figure out if indonesia locale is 'in' or 'id' after ISO change
@@ -24,7 +31,7 @@ android {
             debuggable = false
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             resValue 'string', 'admob_banner_id', '"ca-app-pub-6464324284979557/5400944625"'
         }
         debug {
@@ -41,10 +48,6 @@ android {
         disable 'ContentDescription'
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     buildFeatures {
         viewBinding true
         buildConfig true
@@ -57,17 +60,17 @@ dependencies {
 
     implementation files('libs/ULtimateTTTApi.jar')
 
-    implementation 'androidx.core:core-ktx:1.13.1' // Next version requires API target 34
+    implementation 'androidx.core:core-ktx:1.17.0' // Next version requires API target 34
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.9.10')
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4'
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.8.4"
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.10.0"
 
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
 
     // Firebase
-    implementation(platform('com.google.firebase:firebase-bom:33.2.0'))
+    implementation(platform('com.google.firebase:firebase-bom:34.6.0'))
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-database'
@@ -76,12 +79,12 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
 
     // Ads networks + mediation
-    implementation 'com.google.android.gms:play-services-ads:23.3.0'
-    implementation 'com.google.ads.mediation:facebook:6.17.0.0'
+    implementation 'com.google.android.gms:play-services-ads:24.8.0'
+    implementation 'com.google.ads.mediation:facebook:6.21.0.0'
 
     // Billing
-    implementation 'com.android.billingclient:billing:7.0.0'
+    implementation 'com.android.billingclient:billing:8.1.0'
 
     // GDPR/consent message
-    implementation 'com.google.android.ump:user-messaging-platform:3.0.0'
+    implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 }

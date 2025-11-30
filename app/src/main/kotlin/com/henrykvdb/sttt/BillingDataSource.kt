@@ -154,7 +154,8 @@ class BillingDataSource private constructor(
 
     private fun querySkuDetailsAsync() {
         val params = QueryProductDetailsParams.newBuilder().setProductList(PRODUCT_LIST).build()
-        billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+        billingClient.queryProductDetailsAsync(params) { billingResult, queryProductDetailsResult ->
+            val productDetailsList = queryProductDetailsResult.productDetailsList
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && productDetailsList.isNotEmpty()) {
                 log("onSkuDetailsResponse OK: ${billingResult.debugMessage}")
                 skuDetailsResponseTime = SystemClock.elapsedRealtime()

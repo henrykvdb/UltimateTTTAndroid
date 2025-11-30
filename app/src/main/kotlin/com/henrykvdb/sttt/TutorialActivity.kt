@@ -72,13 +72,13 @@ class TutorialActivity : AppIntro() {
 
 	override fun onSkipPressed(currentFragment: Fragment?) {
 		super.onSkipPressed(currentFragment)
-		setResult(Activity.RESULT_OK, intent)
+		setResult(RESULT_OK, intent)
 		finish()
 	}
 
 	override fun onDonePressed(currentFragment: Fragment?) {
 		super.onDonePressed(currentFragment)
-		setResult(Activity.RESULT_OK, intent)
+		setResult(RESULT_OK, intent)
 		finish()
 	}
 }

@@ -20,8 +20,8 @@ class BoardTextView(context: Context, attrs: AttributeSet?) : androidx.appcompat
 
                 // Set text string
                 val yourTurn = gs.nextSource() == Source.LOCAL
-                if (yourTurn) text = resources.getString(R.string.turn_yours)
-                else text = resources.getString(R.string.turn_enemy)
+                text = if (yourTurn) resources.getString(R.string.turn_yours)
+                        else resources.getString(R.string.turn_enemy)
             }
         } else {
             if (board.wonBy == Player.NEUTRAL) {
@@ -42,8 +42,8 @@ class BoardTextView(context: Context, attrs: AttributeSet?) : androidx.appcompat
                     val youWon =
                         if (playerWin) gs.players.first == Source.LOCAL
                         else gs.players.second == Source.LOCAL
-                    if (youWon) text = resources.getString(R.string.winner_you)
-                    else text = resources.getString(R.string.winner_other)
+                    text = if (youWon) resources.getString(R.string.winner_you)
+                            else resources.getString(R.string.winner_other)
                 }
             }
         }

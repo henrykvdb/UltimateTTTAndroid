@@ -6,8 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
-import android.widget.TextView
-import common.Player
 
 /** Special BoardView to indicate the next move rule
  *

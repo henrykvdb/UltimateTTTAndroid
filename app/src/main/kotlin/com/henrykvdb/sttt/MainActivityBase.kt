@@ -18,8 +18,8 @@
 
 package com.henrykvdb.sttt
 
-import android.app.*
-import android.content.*
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -43,11 +43,11 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
-import com.google.firebase.appcheck.ktx.appCheck
+import com.google.firebase.Firebase
+import com.google.firebase.appcheck.appCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.ktx.initialize
+import com.google.firebase.initialize
 import com.henrykvdb.sttt.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -75,8 +75,8 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 	private lateinit var drawerToggle: ActionBarDrawerToggle
 	private var onBackCallback = object: OnBackPressedCallback(true) {
 		override fun handleOnBackPressed() {
-			moveTaskToBack(true);
-		}
+			moveTaskToBack(true)
+        }
 	}
 
 	//Misc fields
@@ -123,7 +123,7 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		)
 
 		//Disable crash reporting and firebase analytics on debug builds
-		FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
 
 		//Add listener to open and closeGame drawer
 		drawerToggle = ActionBarDrawerToggle(
@@ -386,9 +386,10 @@ open class MainActivityBase : AppCompatActivity(), NavigationView.OnNavigationIt
 		toast.show()
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu) = true.apply {
-		menuInflater.inflate(R.menu.menu_undo, menu)
-	}
+	override fun onCreateOptionsMenu(menu: Menu) : Boolean {
+        menuInflater.inflate(R.menu.menu_undo, menu)
+        return true
+    }
 
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		if (item.itemId != R.id.action_undo) return false

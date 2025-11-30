@@ -11,7 +11,6 @@
 
 package com.henrykvdb.sttt
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -39,6 +38,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -64,17 +64,15 @@ class MainActivity : MainActivityBaseRemote() {
                 + ", API: ${Build.VERSION.SDK_INT}"
                 + try {
             ", app version: ${BuildConfig.VERSION_NAME}"
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             ""
         } + "**/")
         // @formatter:on
 
         startActivity(Intent.createChooser(Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse(
-                "mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${
+            data = "mailto:${Uri.encode("henrykdev@gmail.com")}?subject=${Uri.encode("Feedback")}&body=${
                     Uri.encode(deviceInfo)
-                }"
-            )
+                }".toUri()
         }, getString(R.string.send_feedback)))
     }
 
@@ -93,7 +91,7 @@ class MainActivity : MainActivityBaseRemote() {
         (layout.findViewById<View>(R.id.versionName_view) as TextView).text = try {
             resources.getText(R.string.app_name_newline).toString() + "\n" +
                     getString(R.string.about_version) + " " + BuildConfig.VERSION_NAME
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             resources.getText(R.string.app_name_newline)
         }
 
@@ -130,7 +128,7 @@ class MainActivity : MainActivityBaseRemote() {
         } else {
             val intent = Intent(this, TutorialActivity::class.java)
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
+                if (result.resultCode == RESULT_OK) {
                     editor.putLong(LAUNCH_COUNT, 1)
                     editor.apply()
                 }
@@ -147,7 +145,7 @@ class MainActivity : MainActivityBaseRemote() {
                     editor.apply()
                     startActivity(
                         Intent(
-                            Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")
+                            Intent.ACTION_VIEW, "market://details?id=$packageName".toUri()
                         ).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
                             addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -244,8 +242,8 @@ class MainActivity : MainActivityBaseRemote() {
                     if (hasFocus)
                         forceRefreshHost = true // focus shift things around and makes a mess
                     else {
-                        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                        imm.hideSoftInputFromWindow(editText?.windowToken, 0)
+                        val imm = activity?.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.hideSoftInputFromWindow(editText.windowToken, 0)
                     }
                 }
             }
