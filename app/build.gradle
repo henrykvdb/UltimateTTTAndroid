@@ -20,8 +20,8 @@ android {
         applicationId 'com.henrykvdb.sttt'
         minSdk 23
         targetSdk 36
-        versionCode 37
-        versionName '2.3.6'
+        versionCode 38
+        versionName '2.3.7'
         // TODO figure out if indonesia locale is 'in' or 'id' after ISO change
         resourceConfigurations += ['en', 'it', 'de', 'pt', 'zh', 'nl', 'in', 'id', 'ru', 'ko', 'fr', 'es']
     }
